@@ -1,0 +1,21 @@
+{
+  "name": "tabris-js-cli",
+  "version": "0.0.1",
+  "description": "Command line tool for Tabris.js",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "yo": "^1.8.5"
+  },
+  "bin": {
+    "tabris": "cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eclipsesource/tabris-js-cli.git"
+  },
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/eclipsesource/tabris-js-cli/issues"
+  },
+  "homepage": "https://github.com/eclipsesource/tabris-js-cli#readme"
+}
