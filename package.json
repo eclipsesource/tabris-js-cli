@@ -4,6 +4,8 @@
   "description": "Command line tool for Tabris.js",
   "dependencies": {
     "commander": "^2.9.0",
+    "cross-spawn": "^4.0.2",
+    "generator-tabris-js": "^1.9.0",
     "yo": "^1.8.5"
   },
   "bin": {

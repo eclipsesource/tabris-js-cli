@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
 const program = require('commander');
-const spawn = require('child_process').spawn;
+const spawn = require('cross-spawn');
+const path = require('path');
 const packageJson = require('./package.json');
 
 program
   .version(packageJson.version)
   .command('init')
   .description('Create a new Tabris.js project in the current directory.')
-  .action(() => spawn('./node_modules/.bin/yo', ['tabris-js'], {stdio: 'inherit'}));
+  .action(() => spawn(path.join(__dirname, 'node_modules', '.bin', 'yo'), ['tabris-js'], {stdio: 'inherit'}));
 
 program.parse(process.argv);
 
