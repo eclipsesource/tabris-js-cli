@@ -9,7 +9,7 @@
     "yo": "^1.8.5"
   },
   "bin": {
-    "tabris": "tabris.js"
+    "tabris": "src/tabris.js"
   },
   "repository": {
     "type": "git",
