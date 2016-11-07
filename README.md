@@ -29,6 +29,12 @@ tabris init
 ```
 ... will guide you through creating a Tabris.js project structure in the current directory.
 
+### Serving a Tabris.js app
+```sh
+tabris serve
+```
+... will start a server you can point the [Tabris.js developer app](https://tabrisjs.com/documentation/latest/developer-app#the-tabrisjs-developer-app) to.
+
 ## License
 
 Published under the terms of the [BSD 3-Clause License](LICENSE).

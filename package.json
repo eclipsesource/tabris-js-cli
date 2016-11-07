@@ -3,13 +3,19 @@
   "version": "0.0.1",
   "description": "Command line tool for Tabris.js",
   "dependencies": {
+    "colors": "^1.1.2",
     "commander": "^2.9.0",
     "cross-spawn": "^4.0.2",
+    "ecstatic": "^2.1.0",
     "generator-tabris-js": "^1.9.0",
+    "union": "^0.4.6",
     "yo": "^1.8.5"
   },
   "bin": {
     "tabris": "src/tabris.js"
+  },
+  "scripts": {
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -19,5 +25,10 @@
   "bugs": {
     "url": "https://github.com/eclipsesource/tabris-js-cli/issues"
   },
-  "homepage": "https://github.com/eclipsesource/tabris-js-cli#readme"
+  "homepage": "https://github.com/eclipsesource/tabris-js-cli#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "portscanner": "^1.0.0",
+    "temp": "^0.8.3"
+  }
 }

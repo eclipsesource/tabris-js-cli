@@ -3,6 +3,7 @@
 const program = require('commander');
 const packageJson = require('../package.json');
 require('./init');
+require('./serve');
 
 program.version(packageJson.version);
 program.parse(process.argv);
