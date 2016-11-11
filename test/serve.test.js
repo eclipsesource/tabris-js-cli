@@ -2,6 +2,7 @@ const temp = require('temp').track();
 const expect = require('chai').expect;
 const spawn = require('child_process').spawn;
 const portscanner = require('portscanner');
+const fetch = require('node-fetch');
 
 describe('serve', function() {
 
@@ -48,7 +49,61 @@ describe('serve', function() {
     });
   });
 
+  describe('when serving a file', () => {
+
+    it('fails when the file does not exist', function(done) {
+      process1 = spawn('node', ['./src/tabris', 'serve', 'foobar.js']);
+
+      process1.stderr.on('data', data => {
+        expect(data.toString()).to.match(/Path must be a directory or a file/);
+        done();
+      });
+    });
+
+    it('a server is started', function() {
+      return createFile('foo').then(path => {
+        process1 = spawn('node', ['./src/tabris', 'serve', path]);
+
+        return waitForStdout(process1)
+          .then(stdout => getPortFromStdout(stdout))
+          .then(port => getPortStatus(port))
+          .then(status =>
+            expect(status).to.equal('open')
+          );
+      });
+    });
+
+    it('a package.json is served', function() {
+      return createFile('foo').then(path => {
+        process1 = spawn('node', ['./src/tabris', 'serve', path]);
+
+        return waitForStdout(process1)
+          .then(stdout => getPortFromStdout(stdout))
+          .then(port => fetch(`http://127.0.0.1:${port}/package.json`)
+            .then(response => response.json())
+            .then(json =>
+              expect(json.main).to.equal(path)
+            )
+          );
+      });
+
+    });
+
+  });
+
 });
+
+function createFile(name) {
+  return new Promise((resolve, reject) => {
+    temp.open(name, (err, info) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(info.path);
+      }
+    });
+  });
+}
 
 function createDirectory(name) {
   return new Promise((resolve, reject) => {

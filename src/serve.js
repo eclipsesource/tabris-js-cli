@@ -5,6 +5,7 @@ const union = require('union');
 const colors = require('colors/safe');
 const os = require('os');
 const portscanner = require('portscanner');
+const path = require('path');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -21,13 +22,30 @@ function serve(inputPath) {
     fail('No remotely accessible network interfaces.');
   }
   fs.lstat(appPath, (err, stats) => {
+    if (err || !stats || !stats.isDirectory() && !stats.isFile()) {
+      fail('Path must be a directory or a file.');
+    }
     if (stats.isDirectory()) {
-      let server = union.createServer({before: [ecstatic({root: appPath})]});
-      findAvailablePort().then(port => server.listen(port, () => onListening(server, addresses)));
-    } else {
-      throw new Error('Path must be a directory');
+      startServer(appPath, addresses);
+    } else if (stats.isFile()) {
+      serveFile(appPath, addresses);
     }
   });
+}
+
+function serveFile(appPath, addresses) {
+  let servePackageJson = (req, res, next) => {
+    if (req.url === '/package.json') {
+      return res.json({main: appPath});
+    }
+    next();
+  };
+  startServer(path.join(appPath, '..'), addresses, [servePackageJson]);
+}
+
+function startServer(appPath, addresses, middlewares = []) {
+  let server = union.createServer({before: [...middlewares, ecstatic({root: appPath})]});
+  findAvailablePort().then(port => server.listen(port, () => onListening(server, addresses)));
 }
 
 function onListening(server, addresses) {
