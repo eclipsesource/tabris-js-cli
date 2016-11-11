@@ -5,29 +5,54 @@ const portscanner = require('portscanner');
 
 describe('serve', function() {
 
-  let process;
+  let process1, process2;
 
   afterEach(() => {
-    if (process) {
-      process.kill();
+    if (process1) {
+      process1.kill();
     }
+    if (process2) {
+      process2.kill();
+    }
+    process1, process2 = null;
   });
 
   it('serves a directory', function() {
-    return mkDir('foo').then(path => {
-      process = spawn('node', ['./src/tabris', 'serve', path]);
+    return createDirectory('foo').then(path => {
+      process1 = spawn('node', ['./src/tabris', 'serve', path]);
 
-      return waitForStdout(process).then(() => checkPort(8080)).then(status =>
-        expect(status).to.equal('open')
-      );
+      return waitForStdout(process1)
+        .then(stdout => getPortFromStdout(stdout))
+        .then(port => getPortStatus(port))
+        .then(status =>
+          expect(status).to.equal('open')
+        );
+    });
+  });
+
+  it('finds next unused port', function() {
+    return createDirectory('foo').then(path => {
+      process1 = spawn('node', ['./src/tabris', 'serve', path]);
+      let port1;
+      let port2;
+      return waitForStdout(process1)
+        .then(stdout => port1 = getPortFromStdout(stdout))
+        .then(() => process2 = spawn('node', ['./src/tabris', 'serve', path]))
+        .then(() => waitForStdout(process2))
+        .then(stdout => port2 = getPortFromStdout(stdout))
+        .then(() => {
+          expect(port1).to.be.ok;
+          expect(port2).to.be.ok;
+          expect(port1).to.not.equal(port2);
+        });
     });
   });
 
 });
 
-function mkDir(name) {
+function createDirectory(name) {
   return new Promise((resolve, reject) => {
-    temp.mkdir(name, function(err, path) {
+    temp.mkdir(name, (err, path) => {
       if (err) {
         reject(err);
       } else {
@@ -37,7 +62,7 @@ function mkDir(name) {
   });
 }
 
-function checkPort(port) {
+function getPortStatus(port) {
   return new Promise((resolve, reject) => {
     portscanner.checkPortStatus(port, '127.0.0.1', (error, status) => {
       if (error) {
@@ -51,4 +76,8 @@ function checkPort(port) {
 
 function waitForStdout(process) {
   return new Promise(resolve => process.stdout.once('data', data => resolve(data)));
+}
+
+function getPortFromStdout(stdout) {
+  return stdout.toString().match(/.*http:.*:(\d+).*/)[1];
 }

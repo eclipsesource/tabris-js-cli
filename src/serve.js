@@ -4,9 +4,10 @@ const ecstatic = require('ecstatic');
 const union = require('union');
 const colors = require('colors/safe');
 const os = require('os');
+const portscanner = require('portscanner');
 
-// TODO: resolve port using 'portscanner'
-const PORT = 8080;
+const BASE_PORT = 8080;
+const MAX_PORT = 65535;
 
 program
   .command('serve [path]')
@@ -15,28 +16,27 @@ program
 
 function serve(inputPath) {
   let appPath = inputPath || process.cwd();
-  let externalAddresses = getExternalAddresses();
-  if (!externalAddresses.length) {
+  let addresses = getExternalAddresses();
+  if (!addresses.length) {
     fail('No remotely accessible network interfaces.');
   }
   fs.lstat(appPath, (err, stats) => {
     if (stats.isDirectory()) {
-      let server = union.createServer({
-        before: [ecstatic({root: appPath})]
-      });
-      server.listen(PORT, () => {
-        let port = server.address().port;
-        console.log(
-          colors.yellow(`Server started.\nPoint your Tabris.js client to:`)
-        );
-        externalAddresses.forEach(
-          iface => console.log(colors.green('  http://' + iface.address + ':' + port.toString()))
-        );
-      });
+      let server = union.createServer({before: [ecstatic({root: appPath})]});
+      findAvailablePort().then(port => server.listen(port, () => onListening(server, addresses)));
     } else {
       throw new Error('Path must be a directory');
     }
   });
+}
+
+function onListening(server, addresses) {
+  let port = server.address().port;
+  console.log(
+    colors.yellow(`Server started.\nPoint your Tabris.js client to:`),
+    '\n',
+    addresses.map(iface => colors.green('  http://' + iface.address + ':' + port.toString())).join('\n')
+  );
 }
 
 function fail(message) {
@@ -49,4 +49,16 @@ function getExternalAddresses() {
   return Object.keys(interfaces)
     .map(key => interfaces[key].find(details => details.family === 'IPv4' && details.internal === false))
     .filter(val => !!val);
+}
+
+function findAvailablePort() {
+  return new Promise((resolve, reject) => {
+    portscanner.findAPortNotInUse(BASE_PORT, MAX_PORT, '127.0.0.1', function(error, port) {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(port);
+      }
+    });
+  });
 }
