@@ -36,7 +36,7 @@ function serve(inputPath) {
 function serveFile(appPath, addresses) {
   let servePackageJson = (req, res, next) => {
     if (req.url === '/package.json') {
-      return res.json({main: appPath});
+      return res.json({main: path.basename(appPath)});
     }
     next();
   };

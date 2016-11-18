@@ -3,6 +3,7 @@ const expect = require('chai').expect;
 const spawn = require('child_process').spawn;
 const portscanner = require('portscanner');
 const fetch = require('node-fetch');
+const path = require('path');
 
 describe('serve', function() {
 
@@ -74,15 +75,15 @@ describe('serve', function() {
     });
 
     it('a package.json is served', function() {
-      return createFile('foo').then(path => {
-        process1 = spawn('node', ['./src/tabris', 'serve', path]);
+      return createFile('foo').then(filePath => {
+        process1 = spawn('node', ['./src/tabris', 'serve', filePath]);
 
         return waitForStdout(process1)
           .then(stdout => getPortFromStdout(stdout))
           .then(port => fetch(`http://127.0.0.1:${port}/package.json`)
             .then(response => response.json())
             .then(json =>
-              expect(json.main).to.equal(path)
+              expect(json.main).to.equal(path.basename(filePath))
             )
           );
       });
