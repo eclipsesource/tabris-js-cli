@@ -1,5 +1,5 @@
 {
-  "name": "tabris-js-cli",
+  "name": "tabris-cli",
   "version": "0.0.1",
   "description": "Command line tool for Tabris.js",
   "dependencies": {
