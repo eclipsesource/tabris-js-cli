@@ -6,19 +6,7 @@ Command line tools which make developing Tabris.js apps even easier.
 
 ## Installation
 
-Before the module is officially released, it can be consumed from this git repository.
-
-Clone the repository:
-
-```sh
-$ git clone git@github.com:eclipsesource/tabris-js-cli.git
-```
-
-Then inside the project directory run:
-```sh
-$ npm link
-```
-... to create a [globally installed symbolic link](https://docs.npmjs.com/cli/link) to the module.
+`npm install -g tabris-cli`
 
 ## Usage
 
@@ -34,6 +22,20 @@ tabris init
 tabris serve
 ```
 ... will start a server you can point the [Tabris.js developer app](https://tabrisjs.com/documentation/latest/developer-app#the-tabrisjs-developer-app) to.
+
+## Development
+
+Clone the repository:
+
+```sh
+$ git clone git@github.com:eclipsesource/tabris-js-cli.git
+```
+
+Then inside the project directory run:
+```sh
+$ npm link
+```
+... to create a [globally installed symbolic link](https://docs.npmjs.com/cli/link) to the module.
 
 ## License
 
