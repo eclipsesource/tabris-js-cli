@@ -16,7 +16,7 @@
     "tabris": "src/tabris.js"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha && eslint ."
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
   "homepage": "https://github.com/eclipsesource/tabris-js-cli#readme",
   "devDependencies": {
     "chai": "^3.5.0",
+    "eslint": "^3.15.0",
     "mocha": "^3.1.2",
     "node-fetch": "^1.6.3",
     "temp": "^0.8.3"

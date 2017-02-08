@@ -51,8 +51,7 @@ function startServer(appPath, addresses, middlewares = []) {
 function onListening(server, addresses) {
   let port = server.address().port;
   console.log(
-    colors.yellow(`Server started.\nPoint your Tabris.js client to:`),
-    '\n',
+    colors.yellow('Server started.\nPoint your Tabris.js client to:\n'),
     addresses.map(iface => colors.green('  http://' + iface.address + ':' + port.toString())).join('\n')
   );
 }
