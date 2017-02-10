@@ -1,7 +1,10 @@
 const program = require('commander');
-const spawn = require('cross-spawn');
-const path = require('path');
+const yeoman = require('yeoman-environment');
 
 program.command('init')
   .description('Create a new Tabris.js project in the current directory.')
-  .action(() => spawn(path.join(__dirname, '..', 'node_modules', '.bin', 'yo'), ['tabris-js'], {stdio: 'inherit'}));
+  .action(() => {
+    let env = yeoman.createEnv();
+    env.register(require.resolve('generator-tabris-js'));
+    env.run('tabris-js');
+  });

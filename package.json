@@ -5,12 +5,11 @@
   "dependencies": {
     "colors": "^1.1.2",
     "commander": "^2.9.0",
-    "cross-spawn": "^4.0.2",
     "ecstatic": "^2.1.0",
-    "generator-tabris-js": "2.0.0-beta1",
+    "generator-tabris-js": "https://github.com/eclipsesource/generator-tabris-js",
     "portscanner": "^1.0.0",
     "union": "^0.4.6",
-    "yo": "^1.8.5"
+    "yeoman-environment": "^1.6.6"
   },
   "bin": {
     "tabris": "src/tabris.js"
