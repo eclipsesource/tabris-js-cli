@@ -37,6 +37,28 @@ $ npm link
 ```
 ... to create a [globally installed symbolic link](https://docs.npmjs.com/cli/link) to the module.
 
+## Project Goals
+A Command Line Interface (CLI) could be used to:
+
+### Initialize a Tabris.js project
+
+ * Delegate to yeoman
+
+### Start an application (serve files and folders)
+
+In contrast to an HTTP server, the CLI could offer more capabilities
+
+ * Take care of caching modes
+ * Serve also snippet files without the need for a package.json
+ * Transpile ES6 or typescript on the fly
+ * Keep track of changes and notify the client
+
+### Build locally
+
+ * prepare cordova folder layout in build folder
+ * copy transpiled sources
+ * start cordova build
+
 ## License
 
 Published under the terms of the [BSD 3-Clause License](LICENSE).
