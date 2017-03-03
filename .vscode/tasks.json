@@ -1,0 +1,14 @@
+{
+  "version": "0.1.0",
+  "command": "node",
+  "isShellCommand": true,
+  "showOutput": "always",
+  "suppressTaskName": true,
+  "tasks": [
+    {
+      "taskName": "test file",
+      "args": ["node_modules/.bin/mocha", "--", "${file}"],
+      "isTestCommand": true
+    }
+  ]
+}

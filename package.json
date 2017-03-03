@@ -15,7 +15,9 @@
     "tabris": "src/tabris.js"
   },
   "scripts": {
-    "test": "mocha && eslint ."
+    "mocha": "mocha",
+    "lint": "eslint .",
+    "test": "npm run mocha && npm run lint"
   },
   "repository": {
     "type": "git",
