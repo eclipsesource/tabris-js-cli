@@ -6,7 +6,9 @@
     "colors": "^1.1.2",
     "commander": "^2.9.0",
     "ecstatic": "^2.1.0",
+    "fs-extra": "^2.0.0",
     "generator-tabris-js": "https://github.com/eclipsesource/generator-tabris-js",
+    "ignore": "^3.2.4",
     "portscanner": "^1.0.0",
     "union": "^0.4.6",
     "yeoman-environment": "^1.6.6"

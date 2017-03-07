@@ -1,4 +1,6 @@
 .DS_Store
 .history/
+build/
+example/
 node_modules/
 npm-debug.log*
