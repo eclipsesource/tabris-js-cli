@@ -1,3 +1,4 @@
+const os = require('os');
 const {statSync, readFileSync} = require('fs');
 const {copySync, emptyDirSync, mkdirsSync} = require('fs-extra');
 const {spawnSync} = require('child_process');
@@ -78,8 +79,9 @@ function copyProject() {
 }
 
 function exec(cmd, args, opts = {}) {
-  console.log('exec', `[${opts.cwd || './'}]`, cmd, args.join(' '));
-  const ps = spawnSync(cmd, args, Object.assign({stdio: 'inherit'}, opts));
+  let cmdName = os.platform() === 'win32' ? cmd + '.cmd' : cmd;
+  console.log('exec', `[${opts.cwd || './'}]`, cmdName, args.join(' '));
+  const ps = spawnSync(cmdName, args, Object.assign({stdio: 'inherit'}, opts));
   if (ps.status !== 0) {
     throw new Error(`The command ${cmd} exited with ${ps.status}`);
   }
