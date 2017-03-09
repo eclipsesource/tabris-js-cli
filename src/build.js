@@ -14,7 +14,7 @@ function build(platform) {
   if (!platform) {
     fail('Missing platform');
   }
-  if (!['android', 'ios'].includes(platform)) {
+  if (!['android', 'ios', 'windows'].includes(platform)) {
     fail('Invalid platform: ' + platform);
   }
   let envVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;

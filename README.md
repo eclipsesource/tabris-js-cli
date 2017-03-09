@@ -25,10 +25,10 @@ tabris serve
 
 ### Building a Tabris.js app
 ```sh
-tabris build [android|ios]
+tabris build [android|ios|windows]
 ```
 ... will perform a local app build. Requires an installation of the development tools for the respective platform.
-The path to the cordova platform is expected in the environment variable `TABRIS_IOS_PLATFORM` or `TABRIS_ANDROID_PLATFORM`, respectively.
+The path to the cordova platform is expected in the environment variable `TABRIS_ANDROID_PLATFORM`, `TABRIS_IOS_PLATFORM`, or `TABRIS_WINDOWS_PLATFORM`, respectively.
 These platforms can be downloaded from [tabrisjs.com](https://tabrisjs.com/download).
 
 ## Development

@@ -17,7 +17,9 @@ describe('build', function() {
       cwd = dir;
       env = {
         PATH: mockBinDir + ':' + process.env.PATH,
-        TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android'
+        TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
+        TABRIS_IOS_PLATFORM: 'path/to/tabris-ios',
+        TABRIS_WINDOWS_PLATFORM: 'path/to/tabris-windows'
       };
       opts = {cwd, env, encoding: 'utf8'};
       mkdirsSync(join(cwd, 'cordova'));
@@ -36,6 +38,14 @@ describe('build', function() {
 
     expect(result.stderr.trim()).to.equal('Invalid platform: foo');
   });
+
+  for (let platform of ['android', 'ios', 'windows']) {
+    it(`succeeds with platform '${platform}'`, function() {
+      let result = spawnSync('node', [file, 'build', platform], opts);
+
+      expect(result.status).to.equal(0);
+    });
+  }
 
   it('fails without platform environment variable', function() {
     env.TABRIS_ANDROID_PLATFORM = '';
@@ -59,12 +69,6 @@ describe('build', function() {
     let result = spawnSync('node', [file, 'build', 'android'], opts);
 
     expect(result.stderr.trim()).to.equal('Could not find cordova directory');
-  });
-
-  it('succeeds', function() {
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
   });
 
   it('creates a new build/cordova/www folder', function() {
