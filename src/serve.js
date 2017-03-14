@@ -10,10 +10,16 @@ const path = require('path');
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
 
+let logging = false;
+
 program
   .command('serve [path]')
+  .option('-l, --logging', 'enable request logging')
   .description('Serves a Tabris.js app from a directory.')
-  .action(inputPath => serve(inputPath));
+  .action((inputPath, options) => {
+    logging = !!options.logging;
+    serve(inputPath);
+  });
 
 function serve(inputPath) {
   let appPath = inputPath || process.cwd();
@@ -44,7 +50,13 @@ function serveFile(appPath, addresses) {
 }
 
 function startServer(appPath, addresses, middlewares = []) {
-  let server = union.createServer({before: [...middlewares, ecstatic({root: appPath})]});
+  let server = union.createServer({
+    before: [requestLogger, ...middlewares, ecstatic({root: appPath})],
+    onError: (err, req, res) => {
+      log(req, err);
+      res.end();
+    }
+  });
   findAvailablePort().then(port => server.listen(port, () => onListening(server, addresses)));
 }
 
@@ -54,6 +66,26 @@ function onListening(server, addresses) {
     colors.yellow('Server started.\nPoint your Tabris.js client to:\n'),
     addresses.map(iface => colors.green('  http://' + iface.address + ':' + port.toString())).join('\n')
   );
+}
+
+function requestLogger(req, res, next) {
+  log(req);
+  next();
+}
+
+function log(req, err) {
+  if (!logging) {
+    return;
+  }
+  if (err) {
+    console.error(
+      colors.red(`${req.method} ${req.url} ${err.status}: "${err.message || err}"`)
+    );
+  } else {
+    console.info(
+      colors.blue(`${req.method} ${req.url}`)
+    );
+  }
 }
 
 function fail(message) {

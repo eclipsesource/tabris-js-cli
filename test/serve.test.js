@@ -92,6 +92,45 @@ describe('serve', function() {
 
   });
 
+  describe('when logging is enabled', function() {
+
+    it('request errors are logged to the console', function() {
+      return createFile('foo').then(filePath => {
+        process1 = spawn('node', ['./src/tabris', 'serve', filePath, '-l']);
+
+        return waitForStdout(process1)
+          .then(stdout => getPortFromStdout(stdout))
+          .then(port => Promise.all([
+            waitForStderr(process1),
+            fetch(`http://127.0.0.1:${port}/non-existant`)
+          ]))
+          .then(([stderr]) => stderr.toString())
+          .then(log =>
+            expect(log).to.contain('GET /non-existant 404: "Not found"')
+          );
+      });
+    });
+
+    it('requests are logged to the console', function() {
+      return createFile('foo').then(filePath => {
+        process1 = spawn('node', ['./src/tabris', 'serve', filePath, '-l']);
+
+        return waitForStdout(process1)
+          .then(stdout => getPortFromStdout(stdout))
+          .then(port => Promise.all([
+            waitForStdout(process1),
+            fetch(`http://127.0.0.1:${port}/package.json`)
+          ]))
+          .then(([stdout]) => stdout.toString())
+          .then(log =>
+            expect(log).to.contain('GET /package.json')
+          );
+      });
+    });
+
+  });
+
+
 });
 
 function createFile(name) {
@@ -128,6 +167,10 @@ function getPortStatus(port) {
       }
     });
   });
+}
+
+function waitForStderr(process) {
+  return new Promise(resolve => process.stderr.once('data', data => resolve(data)));
 }
 
 function waitForStdout(process) {
