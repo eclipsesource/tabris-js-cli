@@ -5,7 +5,7 @@ const {mkdirsSync, removeSync} = require('fs-extra');
 const temp = require('temp').track();
 const expect = require('chai').expect;
 
-const file = join(__dirname, '../src/tabris');
+const tabris = join(__dirname, '../src/tabris');
 const mockBinDir = join(__dirname, 'bin');
 
 describe('build', function() {
@@ -28,20 +28,20 @@ describe('build', function() {
   });
 
   it('fails without platform argument', function() {
-    let result = spawnSync('node', [file, 'build'], opts);
+    let result = spawnSync('node', [tabris, 'build'], opts);
 
     expect(result.stderr.trim()).to.equal('Missing platform');
   });
 
   it('fails with invalid platform argument', function() {
-    let result = spawnSync('node', [file, 'build', 'foo'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'foo'], opts);
 
     expect(result.stderr.trim()).to.equal('Invalid platform: foo');
   });
 
   for (let platform of ['android', 'ios', 'windows']) {
     it(`succeeds with platform '${platform}'`, function() {
-      let result = spawnSync('node', [file, 'build', platform], opts);
+      let result = spawnSync('node', [tabris, 'build', platform], opts);
 
       expect(result.status).to.equal(0);
     });
@@ -50,7 +50,7 @@ describe('build', function() {
   it('fails without platform environment variable', function() {
     env.TABRIS_ANDROID_PLATFORM = '';
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.stderr.trim()).to.equal('Missing cordova platform spec, expected in $TABRIS_ANDROID_PLATFORM');
   });
@@ -58,7 +58,7 @@ describe('build', function() {
   it('fails if package.json is missing', function() {
     removeSync(join(cwd, 'package.json'));
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.stderr.trim()).to.equal('Could not find package.json');
   });
@@ -66,13 +66,13 @@ describe('build', function() {
   it('fails if cordova/ is missing', function() {
     removeSync(join(cwd, 'cordova'));
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.stderr.trim()).to.equal('Could not find cordova directory');
   });
 
   it('creates a new build/cordova/www folder', function() {
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(statSync(join(cwd, 'build/cordova/www')).isDirectory()).to.be.true;
@@ -81,7 +81,7 @@ describe('build', function() {
   it('cleans existing build/cordova folder', function() {
     mkdirsSync(join(cwd, 'build/cordova/foo'));
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(existsSync(join(cwd, 'build/cordova/foo'))).to.be.false;
@@ -91,7 +91,7 @@ describe('build', function() {
     mkdirsSync(join(cwd, 'build/foo'));
     writeFileSync(join(cwd, 'build/foo/bar'), 'test');
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(existsSync(join(cwd, 'build/foo/bar'))).to.be.true;
@@ -101,7 +101,7 @@ describe('build', function() {
     mkdirsSync(join(cwd, 'cordova/foo'));
     writeFileSync(join(cwd, 'cordova/foo/bar'), 'test');
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(existsSync(join(cwd, 'build/cordova/foo/bar'))).to.be.true;
@@ -113,7 +113,7 @@ describe('build', function() {
     writeFileSync(join(cwd, 'src/foo'), 'test');
     writeFileSync(join(cwd, 'test/foo'), 'test');
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(existsSync(join(cwd, 'build/cordova/www/src/foo'))).to.be.true;
@@ -131,7 +131,7 @@ describe('build', function() {
     writeFileSync(join(cwd, 'node_modules/foo'), 'test');
     writeFileSync(join(cwd, '.tabrisignore'), 'test');
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(existsSync(join(cwd, 'build/cordova/www/.git'))).to.be.false;
@@ -148,7 +148,7 @@ describe('build', function() {
     writeFileSync(join(cwd, 'dist/foo'), 'test');
     writeFileSync(join(cwd, '.tabrisignore'), 'test/\ndist/\n');
 
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(existsSync(join(cwd, 'build/cordova/www/test'))).to.be.false;
@@ -156,7 +156,7 @@ describe('build', function() {
   });
 
   it('calls npm commands', function() {
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain(`NPM run --if-present build:android [${cwd}]`);
@@ -165,7 +165,7 @@ describe('build', function() {
   });
 
   it('calls cordova commands', function() {
-    let result = spawnSync('node', [file, 'build', 'android'], opts);
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
