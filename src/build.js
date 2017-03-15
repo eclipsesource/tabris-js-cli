@@ -6,10 +6,26 @@ const program = require('commander');
 const colors = require('colors/safe');
 const ignore = require('ignore');
 
+const DESCRIPTION = `Builds a Tabris.js app.
+
+  <platform>:\t\tandroid, ios or windows
+  [platformOpts...]:\tplatform-specific options passed to cordova build`;
+
+let debug;
+let release;
+let platformOpts;
+
 program
-  .command('build <platform>')
-  .description('Builds a Tabris.js app.')
-  .action(platform => build(platform));
+  .command('build <platform> [platformOpts...]')
+  .option('--debug', 'perform a debug build')
+  .option('--release', 'perform a release build')
+  .description(DESCRIPTION)
+  .action((platform, platformOptions, options) => {
+    platformOpts = platformOptions;
+    debug = !!options.debug;
+    release = !!options.release;
+    build(platform);
+  });
 
 function build(platform) {
   if (!['android', 'ios', 'windows'].includes(platform)) {
@@ -56,7 +72,9 @@ function runCordovaPlatformAdd(cordovaPlatform) {
 }
 
 function runCordovaBuild() {
-  exec('cordova', ['build'], {cwd: 'build/cordova'});
+  let type = release && '--release' || debug && '--debug' || '';
+  let parameters = platformOpts.length && ['--', ...platformOpts] || [];
+  exec('cordova', ['build', type, ...parameters], {cwd: 'build/cordova'});
 }
 
 function copyCordova() {

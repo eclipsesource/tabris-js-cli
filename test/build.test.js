@@ -166,6 +166,37 @@ describe('build', function() {
     expect(result.stdout).to.contain(`CORDOVA build [${join(cwd, 'build/cordova')}]`);
   });
 
+  it('passes --release parameter to cordova', function() {
+    let result = spawnSync('node', [tabris, 'build', 'android', '--release'], opts);
+
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+    expect(result.stdout).to.contain(`CORDOVA build --release [${join(cwd, 'build/cordova')}]`);
+  });
+
+  it('passes --debug parameter to cordova', function() {
+    let result = spawnSync('node', [tabris, 'build', 'android', '--debug'], opts);
+
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+    expect(result.stdout).to.contain(`CORDOVA build --debug [${join(cwd, 'build/cordova')}]`);
+  });
+
+  it('passes platform specific parameters to cordova', function() {
+    let result = spawnSync('node', [tabris, 'build', 'android', '--', '--foo', '42'], opts);
+
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+    expect(result.stdout).to.contain(`CORDOVA build -- --foo 42 [${join(cwd, 'build/cordova')}]`);
+  });
+
+  it('passes build type and platform specific parameters to cordova', function() {
+    let result = spawnSync('node', [tabris, 'build', '--debug', 'android', '--', '--foo', '42'], opts);
+
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+    expect(result.stdout).to.contain(`CORDOVA build --debug -- --foo 42 [${join(cwd, 'build/cordova')}]`);
+  });
 });
 
 function createTmpDir(name) {
