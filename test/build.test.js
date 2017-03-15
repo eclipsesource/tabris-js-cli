@@ -1,5 +1,5 @@
 const {join} = require('path');
-const {writeFileSync, statSync, existsSync} = require('fs');
+const {writeFileSync, statSync, existsSync, realpathSync} = require('fs');
 const {spawnSync} = require('child_process');
 const {mkdirsSync, removeSync} = require('fs-extra');
 const temp = require('temp').track();
@@ -14,7 +14,7 @@ describe('build', function() {
 
   beforeEach(function() {
     return createTmpDir('test').then(dir => {
-      cwd = dir;
+      cwd = realpathSync(dir);
       env = {
         PATH: mockBinDir + ':' + process.env.PATH,
         TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
