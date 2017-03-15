@@ -7,7 +7,9 @@ require('./serve');
 require('./build');
 
 program.version(packageJson.version);
-program.parse(process.argv);
+program.on('*', () =>
+  program.commands.some(command => command._name === process.argv[0]) || program.help()
+).parse(process.argv);
 
 if (!process.argv.slice(2).length) {
   program.help();
