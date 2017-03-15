@@ -27,12 +27,6 @@ describe('build', function() {
     });
   });
 
-  it('fails without platform argument', function() {
-    let result = spawnSync('node', [tabris, 'build'], opts);
-
-    expect(result.stderr.trim()).to.equal('Missing platform');
-  });
-
   it('fails with invalid platform argument', function() {
     let result = spawnSync('node', [tabris, 'build', 'foo'], opts);
 

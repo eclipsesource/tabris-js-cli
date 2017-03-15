@@ -7,14 +7,11 @@ const colors = require('colors/safe');
 const ignore = require('ignore');
 
 program
-  .command('build [platform]')
+  .command('build <platform>')
   .description('Builds a Tabris.js app.')
   .action(platform => build(platform));
 
 function build(platform) {
-  if (!platform) {
-    fail('Missing platform');
-  }
   if (!['android', 'ios', 'windows'].includes(platform)) {
     fail('Invalid platform: ' + platform);
   }
