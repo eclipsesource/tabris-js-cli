@@ -72,9 +72,9 @@ function runCordovaPlatformAdd(cordovaPlatform) {
 }
 
 function runCordovaBuild() {
-  let type = release && '--release' || debug && '--debug' || '';
+  let type = release && '--release' || debug && '--debug';
   let parameters = platformOpts.length && ['--', ...platformOpts] || [];
-  exec('cordova', ['build', type, ...parameters], {cwd: 'build/cordova'});
+  exec('cordova', ['build', type, ...parameters].filter(truthy), {cwd: 'build/cordova'});
 }
 
 function copyCordova() {
@@ -113,4 +113,8 @@ function statSafe(file) {
 function fail(message) {
   console.error(colors.red(message));
   process.exit(1);
+}
+
+function truthy(value) {
+  return !!value;
 }
