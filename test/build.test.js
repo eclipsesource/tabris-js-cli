@@ -2,7 +2,7 @@ const {join} = require('path');
 const {writeFileSync, statSync, existsSync, realpathSync} = require('fs');
 const {spawnSync} = require('child_process');
 const {mkdirsSync, removeSync} = require('fs-extra');
-const temp = require('temp').track();
+const {createTmpDir} = require('./tmp');
 const expect = require('chai').expect;
 
 const tabris = join(__dirname, '../src/tabris');
@@ -198,15 +198,3 @@ describe('build', function() {
     expect(result.stdout).to.contain(`CORDOVA build --debug -- --foo 42 [${join(cwd, 'build/cordova')}]`);
   });
 });
-
-function createTmpDir(name) {
-  return new Promise((resolve, reject) => {
-    temp.mkdir(name, (err, path) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(path);
-      }
-    });
-  });
-}
