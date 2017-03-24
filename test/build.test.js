@@ -1,7 +1,7 @@
 const {join} = require('path');
-const {writeFileSync, statSync, existsSync, realpathSync} = require('fs');
+const {writeFileSync, existsSync, realpathSync} = require('fs');
 const {spawnSync} = require('child_process');
-const {mkdirsSync, removeSync} = require('fs-extra');
+const {mkdirsSync} = require('fs-extra');
 const {createTmpDir} = require('./tmp');
 const expect = require('chai').expect;
 
@@ -41,81 +41,18 @@ describe('build', function() {
     });
   }
 
+  it('fails with debug and release both set', function() {
+    let result = spawnSync('node', [tabris, 'build', 'android', '--debug', '--release'], opts);
+
+    expect(result.stderr.trim()).to.equal('Cannot specify both --release and --debug');
+  });
+
   it('fails without platform environment variable', function() {
     env.TABRIS_ANDROID_PLATFORM = '';
 
     let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.stderr.trim()).to.equal('Missing cordova platform spec, expected in $TABRIS_ANDROID_PLATFORM');
-  });
-
-  it('fails if package.json is missing', function() {
-    removeSync(join(cwd, 'package.json'));
-
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.stderr.trim()).to.equal('Could not find package.json');
-  });
-
-  it('fails if cordova/ is missing', function() {
-    removeSync(join(cwd, 'cordova'));
-
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.stderr.trim()).to.equal('Could not find cordova directory');
-  });
-
-  it('creates a new build/cordova/www folder', function() {
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(statSync(join(cwd, 'build/cordova/www')).isDirectory()).to.be.true;
-  });
-
-  it('does not clean existing build/cordova folder', function() {
-    mkdirsSync(join(cwd, 'build/cordova/foo'));
-
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(statSync(join(cwd, 'build/cordova/www')).isDirectory()).to.be.true;
-  });
-
-  it('does not clean existing build folder', function() {
-    mkdirsSync(join(cwd, 'build/foo'));
-    writeFileSync(join(cwd, 'build/foo/bar'), 'test');
-
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(existsSync(join(cwd, 'build/foo/bar'))).to.be.true;
-  });
-
-  it('does not execute cordova platform add if platform already added', function() {
-    mkdirsSync(join(cwd, 'build/cordova/platforms'));
-    writeFileSync(join(cwd, 'build/cordova/platforms/platforms.json'), '{"android": "foo"}');
-
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(result.stdout).not.to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
-  });
-
-  it('executes cordova platform add if platform not added', function() {
-    mkdirsSync(join(cwd, 'build/cordova/platforms'));
-    writeFileSync(join(cwd, 'build/cordova/platforms/platforms.json'), '{"ios": "foo"}');
-
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
-  });
-
-  it('executes cordova platform add if platforms.json does not exist', function() {
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
   });
 
   it('copies cordova/ contents to build/cordova', function() {
@@ -141,50 +78,6 @@ describe('build', function() {
     expect(existsSync(join(cwd, 'build/cordova/www/test/foo'))).to.be.true;
   });
 
-  it('excludes default blacklisted contents from copying to build/cordova/www', function() {
-    mkdirsSync(join(cwd, '.git'));
-    mkdirsSync(join(cwd, 'build'));
-    mkdirsSync(join(cwd, 'cordova'));
-    mkdirsSync(join(cwd, 'node_modules'));
-    writeFileSync(join(cwd, '.git/foo'), 'test');
-    writeFileSync(join(cwd, 'build/foo'), 'test');
-    writeFileSync(join(cwd, 'cordova/foo'), 'test');
-    writeFileSync(join(cwd, 'node_modules/foo'), 'test');
-    writeFileSync(join(cwd, '.tabrisignore'), 'test');
-
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(existsSync(join(cwd, 'build/cordova/www/.git'))).to.be.false;
-    expect(existsSync(join(cwd, 'build/cordova/www/build'))).to.be.false;
-    expect(existsSync(join(cwd, 'build/cordova/www/cordova'))).to.be.false;
-    expect(existsSync(join(cwd, 'build/cordova/www/node_modules'))).to.be.false;
-    expect(existsSync(join(cwd, 'build/cordova/www/.tabrisignore'))).to.be.false;
-  });
-
-  it('excludes .tabrisignore contents from copying to build/cordova/www', function() {
-    mkdirsSync(join(cwd, 'test'));
-    mkdirsSync(join(cwd, 'dist'));
-    writeFileSync(join(cwd, 'test/foo'), 'test');
-    writeFileSync(join(cwd, 'dist/foo'), 'test');
-    writeFileSync(join(cwd, '.tabrisignore'), 'test/\ndist/\n');
-
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(existsSync(join(cwd, 'build/cordova/www/test'))).to.be.false;
-    expect(existsSync(join(cwd, 'build/cordova/www/dist'))).to.be.false;
-  });
-
-  it('calls npm commands', function() {
-    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain(`NPM run --if-present build:android [${cwd}]`);
-    expect(result.stdout).to.contain(`NPM run --if-present build [${cwd}]`);
-    expect(result.stdout).to.contain(`NPM install --production [${join(cwd, 'build/cordova/www')}]`);
-  });
-
   it('calls cordova commands', function() {
     let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
@@ -193,35 +86,4 @@ describe('build', function() {
     expect(result.stdout).to.contain(`CORDOVA build [${join(cwd, 'build/cordova')}]`);
   });
 
-  it('passes --release parameter to cordova', function() {
-    let result = spawnSync('node', [tabris, 'build', 'android', '--release'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
-    expect(result.stdout).to.contain(`CORDOVA build --release [${join(cwd, 'build/cordova')}]`);
-  });
-
-  it('passes --debug parameter to cordova', function() {
-    let result = spawnSync('node', [tabris, 'build', 'android', '--debug'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
-    expect(result.stdout).to.contain(`CORDOVA build --debug [${join(cwd, 'build/cordova')}]`);
-  });
-
-  it('passes platform specific parameters to cordova', function() {
-    let result = spawnSync('node', [tabris, 'build', 'android', '--', '--foo', '42'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
-    expect(result.stdout).to.contain(`CORDOVA build -- --foo 42 [${join(cwd, 'build/cordova')}]`);
-  });
-
-  it('passes build type and platform specific parameters to cordova', function() {
-    let result = spawnSync('node', [tabris, 'build', '--debug', 'android', '--', '--foo', '42'], opts);
-
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
-    expect(result.stdout).to.contain(`CORDOVA build --debug -- --foo 42 [${join(cwd, 'build/cordova')}]`);
-  });
 });

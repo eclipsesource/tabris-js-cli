@@ -6,6 +6,7 @@ const colors = require('colors/safe');
 const os = require('os');
 const portscanner = require('portscanner');
 const path = require('path');
+const {fail} = require('./errorHandler');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -86,11 +87,6 @@ function log(req, err) {
       colors.blue(`${req.method} ${req.url}`)
     );
   }
-}
-
-function fail(message) {
-  console.error(colors.red(message));
-  process.exit(1);
 }
 
 function getExternalAddresses() {
