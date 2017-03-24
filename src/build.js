@@ -52,7 +52,7 @@ function build(platform) {
 }
 
 function createBuildFolder() {
-  console.log('create build folder build/cordova');
+  logCommand('mkdir -p build/cordova');
   ensureDirSync('build/cordova/www');
 }
 
@@ -104,11 +104,15 @@ function copyProject() {
 
 function exec(cmd, args, opts = {}) {
   let cmdName = os.platform() === 'win32' ? cmd + '.cmd' : cmd;
-  console.log('exec', `[${opts.cwd || './'}]`, cmdName, args.join(' '));
+  logCommand([cmdName, ...args].join(' '), opts.cwd);
   const ps = spawnSync(cmdName, args, Object.assign({stdio: 'inherit'}, opts));
   if (ps.status !== 0) {
     throw new Error(`The command ${cmd} exited with ${ps.status}`);
   }
+}
+
+function logCommand(command, cwd = './') {
+  console.log(`[${cwd}]`, command);
 }
 
 function statSafe(file) {
