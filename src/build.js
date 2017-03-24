@@ -1,6 +1,6 @@
 const os = require('os');
 const {statSync, readFileSync} = require('fs');
-const {copySync, emptyDirSync, mkdirsSync} = require('fs-extra');
+const {copySync, existsSync, ensureDirSync} = require('fs-extra');
 const {spawnSync} = require('child_process');
 const program = require('commander');
 const colors = require('colors/safe');
@@ -47,15 +47,13 @@ function build(platform) {
   copyCordova();
   copyProject();
   runInstall();
-  runCordovaPlatformAdd(platformSpec);
+  runCordovaPlatformAdd(platform, platformSpec);
   runCordovaBuild();
 }
 
 function createBuildFolder() {
   console.log('create build folder build/cordova');
-  mkdirsSync('build');
-  emptyDirSync('build/cordova');
-  mkdirsSync('build/cordova/www');
+  ensureDirSync('build/cordova/www');
 }
 
 function runBuildScripts(platform) {
@@ -67,8 +65,19 @@ function runInstall() {
   exec('npm', ['install', '--production'], {cwd: 'build/cordova/www'});
 }
 
-function runCordovaPlatformAdd(cordovaPlatform) {
-  exec('cordova', ['platform', 'add', cordovaPlatform], {cwd: 'build/cordova'});
+function runCordovaPlatformAdd(platform, platformSpec) {
+  let platformsJsonPath = './build/cordova/platforms/platforms.json';
+  if (!existsSync(platformsJsonPath)) {
+    return execCordovaPlatformAdd(platformSpec);
+  }
+  let platforms = JSON.parse(readFileSync(platformsJsonPath, 'utf8'));
+  if (!platforms[platform]) {
+    execCordovaPlatformAdd(platformSpec);
+  }
+}
+
+function execCordovaPlatformAdd(platformSpec) {
+  exec('cordova', ['platform', 'add', platformSpec], {cwd: 'build/cordova'});
 }
 
 function runCordovaBuild() {

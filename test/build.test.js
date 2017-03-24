@@ -72,13 +72,13 @@ describe('build', function() {
     expect(statSync(join(cwd, 'build/cordova/www')).isDirectory()).to.be.true;
   });
 
-  it('cleans existing build/cordova folder', function() {
+  it('does not clean existing build/cordova folder', function() {
     mkdirsSync(join(cwd, 'build/cordova/foo'));
 
     let result = spawnSync('node', [tabris, 'build', 'android'], opts);
 
     expect(result.status).to.equal(0);
-    expect(existsSync(join(cwd, 'build/cordova/foo'))).to.be.false;
+    expect(statSync(join(cwd, 'build/cordova/www')).isDirectory()).to.be.true;
   });
 
   it('does not clean existing build folder', function() {
@@ -89,6 +89,33 @@ describe('build', function() {
 
     expect(result.status).to.equal(0);
     expect(existsSync(join(cwd, 'build/foo/bar'))).to.be.true;
+  });
+
+  it('does not execute cordova platform add if platform already added', function() {
+    mkdirsSync(join(cwd, 'build/cordova/platforms'));
+    writeFileSync(join(cwd, 'build/cordova/platforms/platforms.json'), '{"android": "foo"}');
+
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
+
+    expect(result.status).to.equal(0);
+    expect(result.stdout).not.to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+  });
+
+  it('executes cordova platform add if platform not added', function() {
+    mkdirsSync(join(cwd, 'build/cordova/platforms'));
+    writeFileSync(join(cwd, 'build/cordova/platforms/platforms.json'), '{"ios": "foo"}');
+
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
+
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+  });
+
+  it('executes cordova platform add if platforms.json does not exist', function() {
+    let result = spawnSync('node', [tabris, 'build', 'android'], opts);
+
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
   });
 
   it('copies cordova/ contents to build/cordova', function() {
