@@ -1,5 +1,5 @@
 const {join} = require('path');
-const {writeFileSync, existsSync, realpathSync} = require('fs');
+const {readFileSync, writeFileSync, existsSync, realpathSync} = require('fs');
 const {spawnSync} = require('child_process');
 const {mkdirsSync} = require('fs-extra');
 const {createTmpDir} = require('./tmp');
@@ -84,6 +84,15 @@ describe('build', function() {
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
     expect(result.stdout).to.contain(`CORDOVA build [${join(cwd, 'build/cordova')}]`);
+  });
+
+  it('replaces variables in config.xml', function() {
+    writeFileSync(join(cwd, 'cordova', 'config.xml'), '$VAR1 $VAR2');
+
+    spawnSync('node', [tabris, 'build', 'android', '--variables', 'VAR1=foo,VAR2=bar'], opts);
+
+    let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
+    expect(configXmlContents).to.equal('foo bar');
   });
 
 });
