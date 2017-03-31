@@ -29,8 +29,10 @@ function registerBuildCommand(name, description) {
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
     .option('--debug', 'perform a debug build')
     .option('--release', 'perform a release build')
+    .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
     .description(description)
-    .action((platform, platformOpts, {debug, release, variables} = {}) => {
+    .action((platform, platformOpts, {debug, release, variables, replaceEnvVars} = {}) => {
+      let variableReplacements = Object.assign({}, replaceEnvVars && process.env, variables);
       let buildType = release && 'release' || debug && 'debug';
       let envVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;
       let platformSpec = process.env[envVar];
@@ -41,7 +43,7 @@ function registerBuildCommand(name, description) {
       let configXmlPath = join(CORDOVA_PROJECT_PATH, 'config.xml');
       if (existsSync(configXmlPath)) {
         ConfigXml.readFrom(configXmlPath)
-          .replaceVariables(variables)
+          .replaceVariables(variableReplacements)
           .writeTo(configXmlPath);
       }
       new CordovaCli(CORDOVA_PROJECT_PATH)

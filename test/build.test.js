@@ -88,13 +88,53 @@ const mockBinDir = join(__dirname, 'bin');
       expect(result.stdout).to.contain(`CORDOVA ${command} android [${join(cwd, 'build/cordova')}]`);
     });
 
-    it('replaces variables in config.xml', function() {
+    it('replaces given variables in config.xml', function() {
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '$VAR1 $VAR2');
 
       spawnSync('node', [tabris, command, 'android', '--variables', 'VAR1=foo,VAR2=bar'], opts);
 
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.equal('foo bar');
+    });
+
+    it('replaces environment variables in config.xml', function() {
+      Object.assign(env, {VAR1: 'foo', VAR2: 'bar'});
+      writeFileSync(join(cwd, 'cordova', 'config.xml'), '$VAR1 $VAR2');
+
+      spawnSync('node', [tabris, command, 'android'], opts);
+
+      let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
+      expect(configXmlContents).to.equal('foo bar');
+    });
+
+    it('replaces environment variables and given variables in config.xml', function() {
+      Object.assign(env, {VAR1: 'foo', VAR2: 'bar'});
+      writeFileSync(join(cwd, 'cordova', 'config.xml'), '$VAR1 $VAR2 $VAR3');
+
+      spawnSync('node', [tabris, command, 'android', '--variables', 'VAR3=baz'], opts);
+
+      let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
+      expect(configXmlContents).to.equal('foo bar baz');
+    });
+
+    it('given variables have precedence over environment variables', function() {
+      Object.assign(env, {VAR1: 'foo', VAR2: 'bar'});
+      writeFileSync(join(cwd, 'cordova', 'config.xml'), '$VAR1 $VAR2');
+
+      spawnSync('node', [tabris, command, 'android', '--variables', 'VAR1=baz'], opts);
+
+      let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
+      expect(configXmlContents).to.equal('baz bar');
+    });
+
+    it('does not replace environment variables when --no-replace-env-vars is given', function() {
+      Object.assign(env, {VAR1: 'foo', VAR2: 'bar'});
+      writeFileSync(join(cwd, 'cordova', 'config.xml'), '$VAR1 $VAR2 $VAR3');
+
+      spawnSync('node', [tabris, command, 'android', '--no-replace-env-vars', '--variables', 'VAR3=baz'], opts);
+
+      let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
+      expect(configXmlContents).to.equal('$VAR1 $VAR2 baz');
     });
 
     it('does not fail when config.xml exists, but no --variables given', function() {
