@@ -20,10 +20,10 @@ class CordovaCli {
     return this;
   }
 
-  platformCommand(command, {options = [], platformOpts = []} = {}) {
+  platformCommand(command, platform, {options = [], platformOpts = []} = {}) {
     let opts = options.filter(truthy).map(option => '--' + option);
     let parameters = platformOpts.length && ['--', ...platformOpts] || [];
-    proc.exec('cordova', [command, ...opts, ...parameters].filter(truthy), {cwd: this._cwd});
+    proc.exec('cordova', [command, platform, ...opts, ...parameters].filter(truthy), {cwd: this._cwd});
     return this;
   }
 

@@ -49,33 +49,33 @@ describe('CordovaCli', function() {
   describe('platformCommand', function() {
 
     it('calls cordova command', function() {
-      cli.platformCommand('command');
+      cli.platformCommand('command', 'platform');
 
-      expect(proc.exec).to.have.been.calledWith('cordova', ['command']);
+      expect(proc.exec).to.have.been.calledWith('cordova', ['command', 'platform']);
     });
 
     it('does not pass falsy options', function() {
-      cli.platformCommand('command', {options: [null, false]});
+      cli.platformCommand('command', 'platform', {options: [null, false]});
 
-      expect(proc.exec).to.have.been.calledWith('cordova', ['command']);
+      expect(proc.exec).to.have.been.calledWith('cordova', ['command', 'platform']);
     });
 
     it('passes options to cordova', function() {
-      cli.platformCommand('command', {options: ['foo', 'bar']});
+      cli.platformCommand('command', 'platform', {options: ['foo', 'bar']});
 
-      expect(proc.exec).to.have.been.calledWith('cordova', ['command', '--foo', '--bar']);
+      expect(proc.exec).to.have.been.calledWith('cordova', ['command', 'platform', '--foo', '--bar']);
     });
 
     it('passes platformOpts to cordova', function() {
-      cli.platformCommand('command', {platformOpts: ['foo', 'bar']});
+      cli.platformCommand('command', 'platform', {platformOpts: ['foo', 'bar']});
 
-      expect(proc.exec).to.have.been.calledWith('cordova', ['command', '--', 'foo', 'bar']);
+      expect(proc.exec).to.have.been.calledWith('cordova', ['command', 'platform', '--', 'foo', 'bar']);
     });
 
     it('passes options and platformOpts to cordova', function() {
-      cli.platformCommand('command', {options: ['baz'], platformOpts: ['foo']});
+      cli.platformCommand('command', 'platform', {options: ['baz'], platformOpts: ['foo']});
 
-      expect(proc.exec).to.have.been.calledWith('cordova', ['command', '--baz', '--', 'foo']);
+      expect(proc.exec).to.have.been.calledWith('cordova', ['command', 'platform', '--baz', '--', 'foo']);
     });
 
   });

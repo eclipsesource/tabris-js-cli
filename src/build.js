@@ -46,7 +46,7 @@ function registerBuildCommand(name, description) {
       }
       new CordovaCli(CORDOVA_PROJECT_PATH)
         .platformAddSafe(platform, platformSpec)
-        .platformCommand(name, {options: [buildType], platformOpts});
+        .platformCommand(name, platform, {options: [buildType], platformOpts});
     });
 }
 

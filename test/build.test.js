@@ -85,7 +85,7 @@ const mockBinDir = join(__dirname, 'bin');
 
       expect(result.status).to.equal(0);
       expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
-      expect(result.stdout).to.contain(`CORDOVA ${command} [${join(cwd, 'build/cordova')}]`);
+      expect(result.stdout).to.contain(`CORDOVA ${command} android [${join(cwd, 'build/cordova')}]`);
     });
 
     it('replaces variables in config.xml', function() {
