@@ -5,7 +5,6 @@ const packageJson = require('../package.json');
 require('./init');
 require('./serve');
 require('./build');
-require('./run');
 require('./clean');
 
 program.version(packageJson.version);
