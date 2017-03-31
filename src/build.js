@@ -13,7 +13,7 @@ const CORDOVA_PROJECT_PATH = 'build/cordova';
 const PARAMS_DESCRIPTION = `
 
   <platform>:\t\tandroid, ios or windows
-  [platformOpts...]:\tplatform-specific options passed to cordova build
+  [platformOpts...]:\tplatform-specific options passed to cordova
 `;
 const BUILD_DESCRIPTION = `Builds a Tabris.js app. ${PARAMS_DESCRIPTION}`;
 const RUN_DESCRIPTION = `Builds a Tabris.js app and runs it on a connected device or emulator. ${PARAMS_DESCRIPTION}`;
