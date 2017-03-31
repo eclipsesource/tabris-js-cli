@@ -88,4 +88,12 @@ describe('run', function() {
     expect(configXmlContents).to.equal('foo bar');
   });
 
+  it('does not fail when config.xml exists, but no --variables given', function() {
+    writeFileSync(join(cwd, 'cordova', 'config.xml'), '$VAR1 $VAR2');
+
+    let result = spawnSync('node', [tabris, 'run', 'android'], opts);
+
+    expect(result.status).to.equal(0);
+  });
+
 });

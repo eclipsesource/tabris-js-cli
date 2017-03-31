@@ -25,6 +25,9 @@ module.exports = class ConfigXml {
   }
 
   replaceVariables(variableReplacements) {
+    if (!variableReplacements) {
+      return this;
+    }
     log.command('Replacing variables in config.xml...');
     Object.keys(variableReplacements).forEach(name => {
       let replacement = variableReplacements[name];

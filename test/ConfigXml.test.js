@@ -45,6 +45,13 @@ describe('ConfigXml', function() {
 
   describe('replaceVariables', function() {
 
+    it('does not fail when variables undefined', function() {
+      let configXml = new ConfigXml('$VAR1 $VAR2')
+        .replaceVariables();
+
+      expect(configXml.toString()).to.equal('$VAR1 $VAR2');
+    });
+
     it('replaces variables in config.xml', function() {
       let configXml = new ConfigXml('$VAR1 $VAR2')
         .replaceVariables({VAR1: 'foo', VAR2: 'bar'});
