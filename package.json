@@ -7,7 +7,7 @@
     "commander": "^2.9.0",
     "ecstatic": "^2.1.0",
     "fs-extra": "^2.0.0",
-    "generator-tabris-js": "https://github.com/eclipsesource/generator-tabris-js",
+    "generator-tabris-js": "latest",
     "ignore": "^3.2.4",
     "portscanner": "^1.0.0",
     "union": "^0.4.6",
