@@ -31,6 +31,12 @@ tabris build [android|ios|windows]
 The path to the cordova platform is expected in the environment variable `TABRIS_ANDROID_PLATFORM`, `TABRIS_IOS_PLATFORM`, or `TABRIS_WINDOWS_PLATFORM`, respectively.
 These platforms can be downloaded from [tabrisjs.com](https://tabrisjs.com/download).
 
+In addition to the `build` command, the cli supports a `run` command which behaves in the same manner as `build` but also deploys the build app to a connected device.
+
+```sh
+tabris run [android|ios|windows]
+```
+
 ## Development
 
 Clone the repository:
