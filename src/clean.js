@@ -7,6 +7,6 @@ program
   .command('clean')
   .description(DESCRIPTION)
   .action(() => {
-    console.log('remove build folder build/cordova');
+    console.log('Removing build folder build/cordova');
     removeSync('build/cordova');
   });
