@@ -32,7 +32,10 @@ function registerBuildCommand(name, description) {
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
     .description(description)
     .action((platform, platformOpts, {debug, release, variables, replaceEnvVars} = {}) => {
-      let variableReplacements = Object.assign({}, replaceEnvVars && process.env, variables);
+      let variableReplacements = Object.assign({
+        IS_DEBUG: !!debug,
+        IS_RELEASE: !!release
+      }, replaceEnvVars && process.env, variables);
       let buildType = release && 'release' || debug && 'debug';
       let envVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;
       let platformSpec = process.env[envVar];
