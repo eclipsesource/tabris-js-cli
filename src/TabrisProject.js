@@ -36,13 +36,13 @@ class TabrisProject {
   }
 
   _copyJsProject(destination) {
-    log.command(`Copying app files to ${destination}/www/ ...`);
+    log.command(`Copying app files to ${destination}/www/app/ ...`);
     let tabrisignorePath = join(this._path, '.tabrisignore');
     let ig = ignore().add(['.git/', 'node_modules/', 'cordova/', relative(this._path, destination), '.tabrisignore']);
     if (existsSync(tabrisignorePath)) {
       ig.add(readFileSync(tabrisignorePath).toString());
     }
-    copySync(this._path, `${destination}/www/`, {
+    copySync(this._path, join(destination, 'www/app'), {
       filter: (path) => {
         let stats = statSafe(path);
         let dirPath = stats && stats.isDirectory() && !path.endsWith('/') ? path + '/' : path;
@@ -52,7 +52,7 @@ class TabrisProject {
   }
 
   _installProductionDependencies(destination) {
-    proc.exec('npm', ['install', '--production'], {cwd: `${destination}/www`});
+    proc.exec('npm', ['install', '--production'], {cwd: join(destination, 'www/app')});
   }
 
 }

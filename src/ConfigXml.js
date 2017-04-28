@@ -1,4 +1,6 @@
+const {join} = require('path');
 const {writeFileSync, readFileSync} = require('fs-extra');
+const {Parser, Builder} = require('xml2js');
 const log = require('./log');
 
 module.exports = class ConfigXml {
@@ -32,6 +34,27 @@ module.exports = class ConfigXml {
     Object.keys(variableReplacements).forEach(name => {
       let replacement = variableReplacements[name];
       this._contents = this._contents.replace(new RegExp('\\$' + name, 'g'), replacement);
+    });
+    return this;
+  }
+
+  adjustContentPath() {
+    let parser = new Parser({trim: true});
+    let builder = new Builder();
+    parser.parseString(this._contents, (err, root) => {
+      if (err) {
+        throw new Error('Could not parse config.xml: ' + err.message);
+      }
+      if (!root.widget) {
+        throw new Error('Missing or empty <widget> element in config.xml');
+      }
+      if (root.widget.content) {
+        let src = root.widget.content[0].$.src;
+        root.widget.content[0].$.src = join('app', src);
+      } else {
+        root.widget.content = [{$: {src: 'app/package.json'}}];
+      }
+      this._contents = builder.buildObject(root);
     });
     return this;
   }

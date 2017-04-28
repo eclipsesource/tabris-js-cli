@@ -89,6 +89,46 @@ describe('ConfigXml', function() {
 
   });
 
+  describe('adjustContentPath', function() {
+
+    it('fails on malformed input', function() {
+      let configXml = new ConfigXml('This is not XML!');
+
+      expect(() => configXml.adjustContentPath()).to.throw(Error, 'Could not parse config.xml');
+    });
+
+    it('fails on invalid input', function() {
+      let configXml = new ConfigXml('<foo></foo>');
+
+      expect(() => configXml.adjustContentPath()).to.throw(Error, 'Missing or empty <widget> element in config.xml');
+    });
+
+    it('inserts missing content element', function() {
+      let configXml = new ConfigXml('<widget id="test"></widget>');
+
+      configXml.adjustContentPath();
+
+      expect(configXml.toString()).to.contain('<content src="app/package.json"/>');
+    });
+
+    it('prefixes existing content element', function() {
+      let configXml = new ConfigXml('<widget id="test"><content src="foo/package.json"/></widget>');
+
+      configXml.adjustContentPath();
+
+      expect(configXml.toString()).to.contain('<content src="app/foo/package.json"/>');
+    });
+
+    it('returns context', function() {
+      let configXml = new ConfigXml('<widget id="test"></widget>');
+
+      let result = configXml.adjustContentPath();
+
+      expect(result).to.equal(configXml);
+    });
+
+  });
+
   describe('writeTo', function() {
 
     it('fails when directory does not exist', function() {

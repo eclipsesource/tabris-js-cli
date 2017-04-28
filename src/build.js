@@ -43,6 +43,7 @@ function registerBuildCommand(name, description) {
       let configXmlPath = join(CORDOVA_PROJECT_PATH, 'config.xml');
       if (existsSync(configXmlPath)) {
         ConfigXml.readFrom(configXmlPath)
+          .adjustContentPath()
           .replaceVariables(variableReplacements)
           .writeTo(configXmlPath);
       }

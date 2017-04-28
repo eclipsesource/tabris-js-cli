@@ -62,7 +62,7 @@ describe('TabrisProject', function() {
       project = new TabrisProject(cwd);
     });
 
-    it('copies project contents to destination/www', function() {
+    it('copies project contents to destination/www/app', function() {
       mkdirSync(join(cwd, 'src'));
       mkdirSync(join(cwd, 'test'));
       writeFileSync(join(cwd, 'src/foo'), 'test');
@@ -70,8 +70,8 @@ describe('TabrisProject', function() {
 
       project.createCordovaProject(join(cwd, 'destination'));
 
-      expect(existsSync(join(cwd, 'destination/www/src/foo'))).to.be.true;
-      expect(existsSync(join(cwd, 'destination/www/test/foo'))).to.be.true;
+      expect(existsSync(join(cwd, 'destination/www/app/src/foo'))).to.be.true;
+      expect(existsSync(join(cwd, 'destination/www/app/test/foo'))).to.be.true;
     });
 
     it('copies cordova/ contents to destination/cordova', function() {
@@ -83,7 +83,7 @@ describe('TabrisProject', function() {
       expect(existsSync(join(cwd, 'destination/foo/bar'))).to.be.true;
     });
 
-    it('excludes default blacklisted contents from copying to destination/www', function() {
+    it('excludes default blacklisted contents from copying to destination/www/app', function() {
       mkdirSync(join(cwd, '.git'));
       mkdirSync(join(cwd, 'build'));
       mkdirSync(join(cwd, 'node_modules'));
@@ -95,14 +95,14 @@ describe('TabrisProject', function() {
 
       project.createCordovaProject(join(cwd, 'destination'));
 
-      expect(existsSync(join(cwd, 'destination/www/.git'))).to.be.false;
-      expect(existsSync(join(cwd, 'destination/www/destination'))).to.be.false;
-      expect(existsSync(join(cwd, 'destination/www/cordova'))).to.be.false;
-      expect(existsSync(join(cwd, 'destination/www/node_modules'))).to.be.false;
-      expect(existsSync(join(cwd, 'destination/www/.tabrisignore'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/.git'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/destination'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/cordova'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/node_modules'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/.tabrisignore'))).to.be.false;
     });
 
-    it('excludes .tabrisignore contents from copying to destination/www', function() {
+    it('excludes .tabrisignore contents from copying to destination/www/app', function() {
       mkdirSync(join(cwd, 'test'));
       mkdirSync(join(cwd, 'dist'));
       writeFileSync(join(cwd, 'test/foo'), 'test');
@@ -111,16 +111,16 @@ describe('TabrisProject', function() {
 
       project.createCordovaProject(join(cwd, 'destination'));
 
-      expect(existsSync(join(cwd, 'destination/www/test'))).to.be.false;
-      expect(existsSync(join(cwd, 'destination/www/dist'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/test'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/dist'))).to.be.false;
     });
 
-    it('installs production dependencies in destination/www', function() {
+    it('installs production dependencies in destination/www/app', function() {
       let destination = join(cwd, 'foo');
 
       project.createCordovaProject(destination);
 
-      expect(proc.exec).to.have.been.calledWith('npm', ['install', '--production'], {cwd: `${destination}/www`});
+      expect(proc.exec).to.have.been.calledWith('npm', ['install', '--production'], {cwd: `${destination}/www/app`});
     });
 
   });
