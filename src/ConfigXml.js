@@ -26,15 +26,12 @@ module.exports = class ConfigXml {
     return this._contents;
   }
 
-  replaceVariables(variableReplacements) {
-    if (!variableReplacements) {
+  replaceVariables(vars) {
+    if (!vars) {
       return this;
     }
     log.command('Replacing variables in config.xml...');
-    Object.keys(variableReplacements).forEach(name => {
-      let replacement = variableReplacements[name];
-      this._contents = this._contents.replace(new RegExp('\\$' + name, 'g'), replacement);
-    });
+    this._contents = this._contents.replace(/\$(\w+)/g, (match, name) => name in vars ? vars[name] : match);
     return this;
   }
 
