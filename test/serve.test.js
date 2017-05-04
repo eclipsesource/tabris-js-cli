@@ -158,15 +158,7 @@ function createDirectory(name) {
 }
 
 function getPortStatus(port) {
-  return new Promise((resolve, reject) => {
-    portscanner.checkPortStatus(port, '127.0.0.1', (error, status) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(status);
-      }
-    });
-  });
+  return portscanner.checkPortStatus(port, '127.0.0.1');
 }
 
 function waitForStderr(process) {

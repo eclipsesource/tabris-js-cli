@@ -97,13 +97,5 @@ function getExternalAddresses() {
 }
 
 function findAvailablePort() {
-  return new Promise((resolve, reject) => {
-    portscanner.findAPortNotInUse(BASE_PORT, MAX_PORT, '127.0.0.1', function(error, port) {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(port);
-      }
-    });
-  });
+  return portscanner.findAPortNotInUse(BASE_PORT, MAX_PORT, '127.0.0.1');
 }

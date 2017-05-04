@@ -9,7 +9,7 @@
     "fs-extra": "^2.0.0",
     "generator-tabris-js": "latest",
     "ignore": "^3.2.4",
-    "portscanner": "^1.0.0",
+    "portscanner": "^2.1.0",
     "union": "^0.4.6",
     "xml2js": "^0.4.17",
     "yeoman-environment": "^1.6.6"
