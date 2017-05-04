@@ -1,5 +1,4 @@
-const {existsSync} = require('fs-extra');
-const {copySync, statSync, readFileSync} = require('fs-extra');
+const {copySync, statSync, readFileSync, existsSync} = require('fs-extra');
 const {relative, join} = require('path');
 const ignore = require('ignore');
 const log = require('./log');

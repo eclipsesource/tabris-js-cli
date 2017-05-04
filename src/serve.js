@@ -1,5 +1,5 @@
 const program = require('commander');
-const fs = require('fs');
+const fs = require('fs-extra');
 const ecstatic = require('ecstatic');
 const union = require('union');
 const colors = require('colors/safe');

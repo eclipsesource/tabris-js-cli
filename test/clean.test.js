@@ -1,7 +1,6 @@
 const {join} = require('path');
-const {existsSync, realpathSync} = require('fs');
+const {existsSync, realpathSync, mkdirsSync} = require('fs-extra');
 const {spawnSync} = require('child_process');
-const {mkdirsSync} = require('fs-extra');
 const expect = require('chai').expect;
 const {createTmpDir} = require('./tmp');
 
