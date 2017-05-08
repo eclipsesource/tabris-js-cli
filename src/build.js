@@ -1,12 +1,11 @@
+const {join} = require('path');
 const {existsSync} = require('fs-extra');
-const {fail} = require('./errorHandler');
+const program = require('commander');
+const {fail, handleErrors} = require('./errorHandler');
 const TabrisProject = require('./TabrisProject');
 const CordovaCli = require('./CordovaCli');
 const ConfigXml = require('./ConfigXml');
-const {join} = require('path');
 const {parseVariables} = require('./argumentsParser');
-const program = require('commander');
-
 const PROJECT_PATH = '.';
 const CORDOVA_PROJECT_PATH = 'build/cordova';
 
@@ -31,7 +30,7 @@ function registerBuildCommand(name, description) {
     .option('--release', 'perform a release build')
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
     .description(description)
-    .action((platform, platformOpts, {debug, release, variables, replaceEnvVars} = {}) => {
+    .action(handleErrors((platform, platformOpts, {debug, release, variables, replaceEnvVars} = {}) => {
       let variableReplacements = Object.assign({
         IS_DEBUG: !!debug,
         IS_RELEASE: !!release
@@ -53,7 +52,7 @@ function registerBuildCommand(name, description) {
       new CordovaCli(CORDOVA_PROJECT_PATH)
         .platformAddSafe(platform, platformSpec)
         .platformCommand(name, platform, {options: [buildType], platformOpts});
-    });
+    }));
 }
 
 function validateArguments({debug, release, platform, platformSpec, envVar}) {

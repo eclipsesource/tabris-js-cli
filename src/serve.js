@@ -6,7 +6,7 @@ const colors = require('colors/safe');
 const os = require('os');
 const portscanner = require('portscanner');
 const path = require('path');
-const {fail} = require('./errorHandler');
+const {fail, handleErrors} = require('./errorHandler');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -17,10 +17,10 @@ program
   .command('serve [path]')
   .option('-l, --logging', 'enable request logging')
   .description('Serves a Tabris.js app from a directory.')
-  .action((inputPath, options) => {
+  .action(handleErrors((inputPath, options) => {
     logging = !!options.logging;
     serve(inputPath);
-  });
+  }));
 
 function serve(inputPath) {
   let appPath = inputPath || process.cwd();
