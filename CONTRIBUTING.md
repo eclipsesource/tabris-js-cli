@@ -5,17 +5,20 @@ and Tabris.js tools.
 
 # Getting Started
 To contribute to the Tabris.js CLI first begin by forking the project on
-GitHub. Once you have forked the project, clone it locally and create a new
-feature branch for your work:
+GitHub. Once you have forked the project, clone it to your local machine
+and create a new feature branch for your work:
 ```
 git checkout -b feature_branch_name master
 ```
 
 ## Setting up your Development Environment
-Once you have cloned the repository, run `npm install`.
-Use `npm link` to update your installation with the contents from
-the Tabris.js CLI. This will create a symbolic link for you
-so you should not have to run this command for each change.
+Once you have cloned the repository, install dependencies by running
+`npm install`.
+
+To try out this version and any changes you'll make, it's most convenient
+to set up a symbolic link from your global `tabris` command to this
+project directory. To do so, run [`npm link`](https://docs.npmjs.com/cli/link)
+inside the project directory.
 
 ## Coding Styles and Linting Rules
 The Tabris.js CLI project includes a `.eslintrc` file with the linting rules
