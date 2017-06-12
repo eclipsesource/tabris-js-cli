@@ -2,10 +2,14 @@
 
 const program = require('commander');
 const packageJson = require('../package.json');
+const updateNotifier = require('update-notifier');
+
 require('./init');
 require('./serve');
 require('./build');
 require('./clean');
+
+updateNotifier({pkg: packageJson}).notify({defer: false});
 
 program.version(packageJson.version);
 program.on('*', () =>
