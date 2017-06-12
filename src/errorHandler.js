@@ -1,9 +1,9 @@
-const colors = require('colors/safe');
+const {red} = require('chalk');
 
 module.exports = {fail, handleErrors};
 
 function fail(message) {
-  console.error(colors.red(message));
+  console.error(red(message));
   process.exit(1);
 }
 

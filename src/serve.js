@@ -2,7 +2,7 @@ const program = require('commander');
 const fs = require('fs-extra');
 const ecstatic = require('ecstatic');
 const union = require('union');
-const colors = require('colors/safe');
+const {green, yellow, red, blue} = require('chalk');
 const os = require('os');
 const portscanner = require('portscanner');
 const path = require('path');
@@ -64,8 +64,8 @@ function startServer(appPath, addresses, middlewares = []) {
 function onListening(server, addresses) {
   let port = server.address().port;
   console.log(
-    colors.yellow('Server started.\nPoint your Tabris.js client to:\n'),
-    addresses.map(iface => colors.green('  http://' + iface.address + ':' + port.toString())).join('\n')
+    yellow('Server started.\nPoint your Tabris.js client to:\n'),
+    addresses.map(iface => green('  http://' + iface.address + ':' + port.toString())).join('\n')
   );
 }
 
@@ -80,11 +80,11 @@ function log(req, err) {
   }
   if (err) {
     console.error(
-      colors.red(`${req.method} ${req.url} ${err.status}: "${err.message || err}"`)
+      red(`${req.method} ${req.url} ${err.status}: "${err.message || err}"`)
     );
   } else {
     console.info(
-      colors.blue(`${req.method} ${req.url}`)
+      blue(`${req.method} ${req.url}`)
     );
   }
 }
