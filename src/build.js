@@ -28,7 +28,7 @@ function registerBuildCommand(name, description) {
   program
     .command(`${name} <platform> [platformOpts...]`)
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
-    .option('--cordovaBuildConfig <path>', CORDOVA_BUILD_CONFIG_DESCRIPTION)
+    .option('--cordova-build-config <path>', CORDOVA_BUILD_CONFIG_DESCRIPTION)
     .option('--debug', 'perform a debug build')
     .option('--release', 'perform a release build')
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')

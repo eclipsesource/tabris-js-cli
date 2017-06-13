@@ -88,7 +88,7 @@ const mockBinDir = join(__dirname, 'bin');
     });
 
     it('passes buildConfig to Cordova', function() {
-      let result = spawnSync('node', [tabris, command, 'android', '--cordovaBuildConfig=foo'], opts);
+      let result = spawnSync('node', [tabris, command, 'android', '--cordova-build-config=foo'], opts);
 
       expect(result.status).to.equal(0);
       expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
