@@ -1,3 +1,13 @@
+## 0.5.0
+
+### Support build configuration for code signing with Cordova
+
+The `build` and `run` commands now accept a build configuration file used by Cordova (see [iOS](http://cordova.apache.org/docs/en/6.x/guide/platforms/ios/index.html#using-buildjson), [Android](http://cordova.apache.org/docs/en/6.x/guide/platforms/android/index.html#using-buildjson)). It can be given using the `--cordova-build-config=...` option.
+
+### Update notifications
+
+The Tabris CLI will now show a notice when using an outdated version.
+
 ## 0.4.0
 
 ### Support for request logging
