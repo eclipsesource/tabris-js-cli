@@ -18,6 +18,8 @@ const BUILD_DESCRIPTION = `Builds a Tabris.js app. ${PARAMS_DESCRIPTION}`;
 const RUN_DESCRIPTION = `Builds a Tabris.js app and runs it on a connected device or emulator. ${PARAMS_DESCRIPTION}`;
 const VARIABLES_DESCRIPTION = `comma separated list of variable replacements in config.xml
 \t\t\t\te.g. --variables FOO=bar replaces all "$FOO" with "bar".`;
+const CORDOVA_BUILD_CONFIG_DESCRIPTION =
+  'path to a build configuration file passed to Cordova (relative to cordova/ directory)';
 
 registerBuildCommand('build', BUILD_DESCRIPTION);
 registerBuildCommand('run', RUN_DESCRIPTION);
@@ -26,11 +28,14 @@ function registerBuildCommand(name, description) {
   program
     .command(`${name} <platform> [platformOpts...]`)
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
+    .option('--cordovaBuildConfig <path>', CORDOVA_BUILD_CONFIG_DESCRIPTION)
     .option('--debug', 'perform a debug build')
     .option('--release', 'perform a release build')
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
     .description(description)
-    .action(handleErrors((platform, platformOpts, {debug, release, variables, replaceEnvVars} = {}) => {
+    .action(handleErrors((platform, platformOpts, {
+      debug, release, variables, replaceEnvVars, cordovaBuildConfig
+    } = {}) => {
       let variableReplacements = Object.assign({
         IS_DEBUG: !!debug,
         IS_RELEASE: !!release
@@ -49,9 +54,10 @@ function registerBuildCommand(name, description) {
           .replaceVariables(variableReplacements)
           .writeTo(configXmlPath);
       }
+      let options = [buildType, cordovaBuildConfig && `buildConfig=${cordovaBuildConfig}`];
       new CordovaCli(CORDOVA_PROJECT_PATH)
         .platformAddSafe(platform, platformSpec)
-        .platformCommand(name, platform, {options: [buildType], platformOpts});
+        .platformCommand(name, platform, {options, platformOpts});
     }));
 }
 

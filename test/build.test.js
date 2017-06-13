@@ -87,6 +87,14 @@ const mockBinDir = join(__dirname, 'bin');
       expect(result.stdout).to.contain(`CORDOVA ${command} android [${join(cwd, 'build/cordova')}]`);
     });
 
+    it('passes buildConfig to Cordova', function() {
+      let result = spawnSync('node', [tabris, command, 'android', '--cordovaBuildConfig=foo'], opts);
+
+      expect(result.status).to.equal(0);
+      expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+      expect(result.stdout).to.contain(`CORDOVA ${command} android --buildConfig=foo [${join(cwd, 'build/cordova')}]`);
+    });
+
     it('replaces given variables in config.xml', function() {
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"><name>$VAR1 $VAR2</name></widget>');
 
