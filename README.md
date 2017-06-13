@@ -51,6 +51,8 @@ tabris build [android|ios|windows] --variables FOO=bar,BAR=baz
 ```
 will replace all occurrences of `$FOO` with `bar` and `$BAR` with `baz`.
 
+For code signing, you can specify a build config file (see: [iOS](http://cordova.apache.org/docs/en/6.x/guide/platforms/ios/index.html#using-buildjson), [Android](http://cordova.apache.org/docs/en/6.x/guide/platforms/android/index.html#using-buildjson)) using the `--cordova-build-config=...` option. It can be relative to the `cordova/` project directory. You may want to include this file in `.gitignore` since it could contain sensitive information.
+
 ### Cleaning up build cache
 
 To speed up the build, pre-compiled build artifacts are being reused.
