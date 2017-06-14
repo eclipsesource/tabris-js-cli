@@ -30,17 +30,19 @@ function registerBuildCommand(name, description) {
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
     .option('--cordova-build-config <path>', CORDOVA_BUILD_CONFIG_DESCRIPTION)
     .option('--debug', 'perform a debug build')
+    .option('--device', 'build the app for a device')
+    .option('--emulator', 'build the app for an emulator')
     .option('--release', 'perform a release build')
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
+    .option('--verbose', 'print more verbose output')
     .description(description)
     .action(handleErrors((platform, platformOpts, {
-      debug, release, variables, replaceEnvVars, cordovaBuildConfig
+      debug, release, variables, replaceEnvVars, cordovaBuildConfig, device, emulator, verbose
     } = {}) => {
       let variableReplacements = Object.assign({
         IS_DEBUG: !!debug,
         IS_RELEASE: !!release
       }, replaceEnvVars && process.env, variables);
-      let buildType = release && 'release' || debug && 'debug';
       let envVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;
       let platformSpec = process.env[envVar];
       validateArguments({debug, release, platform, platformSpec, envVar});
@@ -54,10 +56,19 @@ function registerBuildCommand(name, description) {
           .replaceVariables(variableReplacements)
           .writeTo(configXmlPath);
       }
-      let options = [buildType, cordovaBuildConfig && `buildConfig=${cordovaBuildConfig}`];
+      let platformAddOptions = [
+        verbose && 'verbose'
+      ];
+      let platformCommandOptions = [
+        release && 'release' || debug && 'debug',
+        device && 'device',
+        emulator && 'emulator',
+        cordovaBuildConfig && `buildConfig=${cordovaBuildConfig}`,
+        verbose && 'verbose'
+      ];
       new CordovaCli(CORDOVA_PROJECT_PATH)
-        .platformAddSafe(platform, platformSpec)
-        .platformCommand(name, platform, {options, platformOpts});
+        .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
+        .platformCommand(name, platform, {options: platformCommandOptions, platformOpts});
     }));
 }
 

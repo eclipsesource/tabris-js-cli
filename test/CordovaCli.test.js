@@ -27,6 +27,12 @@ describe('CordovaCli', function() {
       expect(proc.exec).to.have.been.calledWith('cordova', ['platform', 'add', 'spec'], {cwd});
     });
 
+    it('calls cordova platform add with options', function() {
+      cli.platformAddSafe('name', 'spec', {options: ['foo']});
+
+      expect(proc.exec).to.have.been.calledWith('cordova', ['platform', 'add', 'spec', '--foo'], {cwd});
+    });
+
     it('calls cordova platform add if platforms.json exists and platform not declared', function() {
       mkdirSync(join(cwd, 'platforms'));
       writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{}');

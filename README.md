@@ -38,6 +38,10 @@ These platforms can be downloaded from [tabrisjs.com](https://tabrisjs.com/downl
 
 The build type (debug or release) can set by adding either `--debug` or `--release`, while debug is the default.
 
+The options `--device` and `--emulator` specify whether the app should be built for/ran on a device or an emulator.
+
+The option `--verbose` will provide more verbose output.
+
 In addition to the `build` command, the CLI supports a `run` command which behaves in the same manner as `build` but also deploys and starts the built app on a connected device or an emulator:
 
 ```

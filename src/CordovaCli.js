@@ -7,15 +7,17 @@ class CordovaCli {
     this._cwd = cwd;
   }
 
-  platformAddSafe(name, spec) {
+  platformAddSafe(name, spec, {options = []} = {}) {
     let platformsJsonPath = `${this._cwd}/platforms/platforms.json`;
+    let opts = options.filter(truthy).map(option => '--' + option);
+    let args = ['platform', 'add', spec, ...opts].filter(truthy);
     if (!existsSync(platformsJsonPath)) {
-      proc.exec('cordova', ['platform', 'add', spec], {cwd: `${this._cwd}`});
+      proc.exec('cordova', args, {cwd: `${this._cwd}`});
       return this;
     }
     let platforms = JSON.parse(readFileSync(platformsJsonPath, 'utf8'));
     if (!platforms[name]) {
-      proc.exec('cordova', ['platform', 'add', spec], {cwd: `${this._cwd}`});
+      proc.exec('cordova', args, {cwd: `${this._cwd}`});
     }
     return this;
   }

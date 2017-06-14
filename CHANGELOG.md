@@ -1,6 +1,19 @@
+## 0.6.0
+
+### tabris build/run
+
+#### Support options --device and --emulator
+
+The options `--device` and `--emulator` specify whether an app should be built for/ran on a device or an emulator.
+
+#### Support option --verbose
+
+`--verbose` will provide more verbose output.
+
 ## 0.5.1
 
 ### Fix missing update-notifier dependency
+
 The runtime dependency update-notifier was declared falsely as a devDependency.
 
 ## 0.5.0

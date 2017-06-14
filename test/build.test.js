@@ -87,12 +87,37 @@ const mockBinDir = join(__dirname, 'bin');
       expect(result.stdout).to.contain(`CORDOVA ${command} android [${join(cwd, 'build/cordova')}]`);
     });
 
-    it('passes buildConfig to Cordova', function() {
+    it('passes --buildConfig to Cordova', function() {
       let result = spawnSync('node', [tabris, command, 'android', '--cordova-build-config=foo'], opts);
 
       expect(result.status).to.equal(0);
       expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
       expect(result.stdout).to.contain(`CORDOVA ${command} android --buildConfig=foo [${join(cwd, 'build/cordova')}]`);
+    });
+
+    it('passes --device to Cordova', function() {
+      let result = spawnSync('node', [tabris, command, 'android', '--device'], opts);
+
+      expect(result.status).to.equal(0);
+      expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+      expect(result.stdout).to.contain(`CORDOVA ${command} android --device [${join(cwd, 'build/cordova')}]`);
+    });
+
+    it('passes --emulator to Cordova', function() {
+      let result = spawnSync('node', [tabris, command, 'android', '--emulator'], opts);
+
+      expect(result.status).to.equal(0);
+      expect(result.stdout).to.contain(`CORDOVA platform add path/to/tabris-android [${join(cwd, 'build/cordova')}]`);
+      expect(result.stdout).to.contain(`CORDOVA ${command} android --emulator [${join(cwd, 'build/cordova')}]`);
+    });
+
+    it('passes --verbose to Cordova', function() {
+      let result = spawnSync('node', [tabris, command, 'android', '--verbose'], opts);
+
+      expect(result.status).to.equal(0);
+      expect(result.stdout)
+        .to.contain(`CORDOVA platform add path/to/tabris-android --verbose [${join(cwd, 'build/cordova')}]`);
+      expect(result.stdout).to.contain(`CORDOVA ${command} android --verbose [${join(cwd, 'build/cordova')}]`);
     });
 
     it('replaces given variables in config.xml', function() {
