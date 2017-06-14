@@ -1,3 +1,8 @@
+## 0.5.1
+
+### Fix missing update-notifier dependency
+The runtime dependency update-notifier was declared falsely as a devDependency.
+
 ## 0.5.0
 
 ### Support build configuration for code signing with Cordova
