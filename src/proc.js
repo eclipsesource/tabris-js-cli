@@ -9,6 +9,7 @@ function exec(cmd, args, opts = {}) {
   if (ps.status !== 0) {
     throw new Error(`The command ${cmd} exited with ${ps.status}`);
   }
+  return ps;
 }
 
 module.exports = {exec};

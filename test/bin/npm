@@ -1,2 +1,6 @@
 #!/bin/sh
-echo NPM $@ [$PWD]
+if [ $1 = "bin" ]; then
+  echo `dirname $0`
+else
+  echo NPM $@ [$PWD]
+fi

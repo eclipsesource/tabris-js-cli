@@ -1,12 +1,19 @@
-const {existsSync, readFileSync} = require('fs-extra');
-const fs = require('fs-extra');
-const proc = require('./proc');
 const {join} = require('path');
+const fs = require('fs-extra');
+const {existsSync, readFileSync} = require('fs-extra');
+const proc = require('./proc');
 
 class CordovaCli {
 
   constructor(cwd) {
     this._cwd = cwd;
+    this._resolveCordovaPath();
+  }
+
+  _resolveCordovaPath() {
+    let binPath = proc.exec('npm', ['bin'], {cwd: __dirname, stdio: 'pipe'});
+    let dir = binPath.stdout.toString().trim();
+    this._cordova = join(dir, 'cordova');
   }
 
   platformAddSafe(platform, spec, {options = []} = {}) {
@@ -18,14 +25,14 @@ class CordovaCli {
     if (this._platformDirectoryExists(platform)) {
       fs.removeSync(join(this._cwd, 'platforms', platform));
     }
-    proc.exec('cordova', args, {cwd: `${this._cwd}`});
+    proc.exec(this._cordova, args, {cwd: `${this._cwd}`});
     return this;
   }
 
   platformCommand(command, platform, {options = [], platformOpts = []} = {}) {
     let opts = options.filter(truthy).map(option => '--' + option);
     let parameters = platformOpts.length && ['--', ...platformOpts] || [];
-    proc.exec('cordova', [command, platform, ...opts, ...parameters].filter(truthy), {cwd: this._cwd});
+    proc.exec(this._cordova, [command, platform, ...opts, ...parameters].filter(truthy), {cwd: this._cwd});
     return this;
   }
 
