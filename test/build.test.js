@@ -11,6 +11,8 @@ const mockBinDir = join(__dirname, 'bin');
 
   describe(command, function() {
 
+    this.timeout(10000);
+
     let cwd, env, opts;
 
     beforeEach(function() {
