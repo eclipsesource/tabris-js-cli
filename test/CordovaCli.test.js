@@ -1,4 +1,5 @@
-const {realpathSync, mkdirSync, writeFileSync} = require('fs-extra');
+const fs = require('fs-extra');
+const {realpathSync, mkdirSync, mkdirsSync, writeFileSync} = require('fs-extra');
 const {createTmpDir} = require('./tmp');
 const proc = require('../src/proc');
 const {join} = require('path');
@@ -11,6 +12,7 @@ describe('CordovaCli', function() {
 
   beforeEach(function() {
     proc.exec = stub(proc, 'exec');
+    stub(fs, 'removeSync');
     return createTmpDir('test').then(dir => {
       cwd = realpathSync(dir);
       cli = new CordovaCli(cwd);
@@ -33,11 +35,12 @@ describe('CordovaCli', function() {
       expect(proc.exec).to.have.been.calledWith('cordova', ['platform', 'add', 'spec', '--foo'], {cwd});
     });
 
-    it('calls cordova platform add if platforms.json exists and platform not declared', function() {
+    it('calls cordova platform add if platforms.json exists but misses platform', function() {
       mkdirSync(join(cwd, 'platforms'));
       writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{}');
       cli.platformAddSafe('name', 'spec');
 
+      expect(fs.removeSync).not.to.have.been.called;
       expect(proc.exec).to.have.been.calledWith('cordova', ['platform', 'add', 'spec'], {cwd});
     });
 
@@ -47,7 +50,25 @@ describe('CordovaCli', function() {
 
       cli.platformAddSafe('name', 'bar');
 
+      expect(fs.removeSync).not.to.have.been.called;
       expect(proc.exec).not.to.have.been.called;
+    });
+
+    it('removes platform directory before platform add if existing and missing from platforms.json', function() {
+      mkdirsSync(join(cwd, 'platforms', 'name'));
+      writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{}');
+      cli.platformAddSafe('name', 'spec');
+
+      expect(fs.removeSync).to.have.been.calledWithMatch(/platforms\/name$/);
+      expect(proc.exec).to.have.been.calledWith('cordova', ['platform', 'add', 'spec'], {cwd});
+    });
+
+    it('removes platform directory before platform add if existing and platforms.json missing', function() {
+      mkdirsSync(join(cwd, 'platforms', 'name'));
+      cli.platformAddSafe('name', 'spec');
+
+      expect(fs.removeSync).to.have.been.calledWithMatch(/platforms\/name$/);
+      expect(proc.exec).to.have.been.calledWith('cordova', ['platform', 'add', 'spec'], {cwd});
     });
 
   });

@@ -1,5 +1,7 @@
 const {existsSync, readFileSync} = require('fs-extra');
+const fs = require('fs-extra');
 const proc = require('./proc');
+const {join} = require('path');
 
 class CordovaCli {
 
@@ -7,18 +9,16 @@ class CordovaCli {
     this._cwd = cwd;
   }
 
-  platformAddSafe(name, spec, {options = []} = {}) {
-    let platformsJsonPath = `${this._cwd}/platforms/platforms.json`;
+  platformAddSafe(platform, spec, {options = []} = {}) {
     let opts = options.filter(truthy).map(option => '--' + option);
     let args = ['platform', 'add', spec, ...opts].filter(truthy);
-    if (!existsSync(platformsJsonPath)) {
-      proc.exec('cordova', args, {cwd: `${this._cwd}`});
-      return this;
+    if (this._platformDeclared(platform)) {
+      return;
     }
-    let platforms = JSON.parse(readFileSync(platformsJsonPath, 'utf8'));
-    if (!platforms[name]) {
-      proc.exec('cordova', args, {cwd: `${this._cwd}`});
+    if (this._platformDirectoryExists(platform)) {
+      fs.removeSync(join(this._cwd, 'platforms', platform));
     }
+    proc.exec('cordova', args, {cwd: `${this._cwd}`});
     return this;
   }
 
@@ -27,6 +27,20 @@ class CordovaCli {
     let parameters = platformOpts.length && ['--', ...platformOpts] || [];
     proc.exec('cordova', [command, platform, ...opts, ...parameters].filter(truthy), {cwd: this._cwd});
     return this;
+  }
+
+  _platformDirectoryExists(platform) {
+    let platformDirectory = join(this._cwd, 'platforms', platform);
+    return existsSync(platformDirectory);
+  }
+
+  _platformDeclared(name) {
+    let platformsJsonPath = join(this._cwd, 'platforms', 'platforms.json');
+    if (!existsSync(platformsJsonPath)) {
+      return false;
+    }
+    let platforms = JSON.parse(readFileSync(platformsJsonPath, 'utf8'));
+    return !!platforms[name];
   }
 
 }
