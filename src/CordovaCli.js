@@ -13,26 +13,22 @@ class CordovaCli {
   _resolveCordovaPath() {
     let binPath = proc.exec('npm', ['bin'], {cwd: __dirname, stdio: 'pipe'});
     let dir = binPath.stdout.toString().trim();
-    this._cordova = join(dir, 'cordova');
+    this._cordovaPath = join(dir, 'cordova');
   }
 
   platformAddSafe(platform, spec, {options = []} = {}) {
-    let opts = options.filter(truthy).map(option => '--' + option);
-    let args = ['platform', 'add', spec, ...opts].filter(truthy);
     if (this._platformDeclared(platform)) {
       return;
     }
     if (this._platformDirectoryExists(platform)) {
       fs.removeSync(join(this._cwd, 'platforms', platform));
     }
-    proc.exec(this._cordova, args, {cwd: `${this._cwd}`});
+    this._execCordova(['platform', 'add', spec], options);
     return this;
   }
 
   platformCommand(command, platform, {options = [], platformOpts = []} = {}) {
-    let opts = options.filter(truthy).map(option => '--' + option);
-    let parameters = platformOpts.length && ['--', ...platformOpts] || [];
-    proc.exec(this._cordova, [command, platform, ...opts, ...parameters].filter(truthy), {cwd: this._cwd});
+    this._execCordova([command, platform], options, platformOpts);
     return this;
   }
 
@@ -48,6 +44,12 @@ class CordovaCli {
     }
     let platforms = JSON.parse(readFileSync(platformsJsonPath, 'utf8'));
     return !!platforms[name];
+  }
+
+  _execCordova(args, opts = [], platformOpts = []) {
+    let nonOptionArgs = platformOpts.length ? ['--', ...platformOpts] : [];
+    let options = opts.filter(truthy).map(opt => `--${opt}`);
+    proc.exec(this._cordovaPath, [...args, ...options, ...nonOptionArgs], {cwd: this._cwd});
   }
 
 }
