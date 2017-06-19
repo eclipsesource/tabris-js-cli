@@ -3,7 +3,7 @@ const {realpathSync, mkdirSync, mkdirsSync, writeFileSync} = require('fs-extra')
 const {createTmpDir} = require('./tmp');
 const proc = require('../src/proc');
 const {join} = require('path');
-const {expect, stub, restore} = require('./test');
+const {expect, stub, restore, match} = require('./test');
 const CordovaCli = require('../src/CordovaCli');
 
 describe('CordovaCli', function() {
@@ -27,13 +27,21 @@ describe('CordovaCli', function() {
     it('calls cordova platform add', function() {
       cli.platformAddSafe('name', 'spec');
 
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['platform', 'add', 'spec'], {cwd});
+      let args = match.array.contains(['platform', 'add', 'spec']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args, {cwd});
+    });
+
+    it('passes --no-update-notifier to cordova', function() {
+      cli.platformAddSafe('name', 'spec');
+
+      expect(proc.exec).to.have.been.calledWith('path/cordova', match.array.endsWith(['--no-update-notifier']), {cwd});
     });
 
     it('calls cordova platform add with options', function() {
       cli.platformAddSafe('name', 'spec', {options: ['foo']});
 
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['platform', 'add', 'spec', '--foo'], {cwd});
+      let args = match.array.contains(['platform', 'add', 'spec', '--foo']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args, {cwd});
     });
 
     it('calls cordova platform add if platforms.json exists but misses platform', function() {
@@ -42,7 +50,8 @@ describe('CordovaCli', function() {
       cli.platformAddSafe('name', 'spec');
 
       expect(fs.removeSync).not.to.have.been.called;
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['platform', 'add', 'spec'], {cwd});
+      let args = match.array.contains(['platform', 'add', 'spec']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args, {cwd});
     });
 
     it('does not call cordova platform add if platform declared', function() {
@@ -61,7 +70,8 @@ describe('CordovaCli', function() {
       cli.platformAddSafe('name', 'spec');
 
       expect(fs.removeSync).to.have.been.calledWithMatch(/platforms\/name$/);
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['platform', 'add', 'spec'], {cwd});
+      let args = match.array.contains(['platform', 'add', 'spec']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args, {cwd});
     });
 
     it('removes platform directory before platform add if existing and platforms.json missing', function() {
@@ -69,7 +79,8 @@ describe('CordovaCli', function() {
       cli.platformAddSafe('name', 'spec');
 
       expect(fs.removeSync).to.have.been.calledWithMatch(/platforms\/name$/);
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['platform', 'add', 'spec'], {cwd});
+      let args = match.array.contains(['platform', 'add', 'spec']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args, {cwd});
     });
 
   });
@@ -79,31 +90,40 @@ describe('CordovaCli', function() {
     it('calls cordova command', function() {
       cli.platformCommand('command', 'platform');
 
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['command', 'platform']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', match.array.contains(['command', 'platform']));
+    });
+
+    it('passes --no-update-notifier to cordova', function() {
+      cli.platformCommand('command', 'platform');
+
+      expect(proc.exec).to.have.been.calledWith('path/cordova', match.array.endsWith(['--no-update-notifier']));
     });
 
     it('does not pass falsy options', function() {
       cli.platformCommand('command', 'platform', {options: [null, false]});
 
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['command', 'platform']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', match.array.contains(['command', 'platform']));
     });
 
     it('passes options to cordova', function() {
       cli.platformCommand('command', 'platform', {options: ['foo', 'bar']});
 
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['command', 'platform', '--foo', '--bar']);
+      let args = match.array.contains(['command', 'platform', '--foo', '--bar']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args);
     });
 
     it('passes platformOpts to cordova', function() {
       cli.platformCommand('command', 'platform', {platformOpts: ['foo', 'bar']});
 
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['command', 'platform', '--', 'foo', 'bar']);
+      let args = match.array.contains(['command', 'platform', '--', 'foo', 'bar']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args);
     });
 
     it('passes options and platformOpts to cordova', function() {
       cli.platformCommand('command', 'platform', {options: ['baz'], platformOpts: ['foo']});
 
-      expect(proc.exec).to.have.been.calledWith('path/cordova', ['command', 'platform', '--baz', '--', 'foo']);
+      let args = match.array.contains(['command', 'platform', '--baz', '--', 'foo']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args);
     });
 
   });
