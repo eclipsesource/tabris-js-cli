@@ -3,6 +3,7 @@ const {readFileSync, writeFileSync, existsSync, realpathSync, mkdirsSync} = requ
 const {spawnSync} = require('child_process');
 const {createTmpDir} = require('./tmp');
 const expect = require('chai').expect;
+const packageJson = require('../package.json');
 
 const tabris = join(__dirname, '../src/tabris');
 const mockBinDir = join(__dirname, 'bin');
@@ -27,6 +28,9 @@ const mockBinDir = join(__dirname, 'bin');
         opts = {cwd, env, encoding: 'utf8'};
         mkdirsSync(join(cwd, 'cordova'));
         writeFileSync(join(cwd, 'package.json'), '{}');
+        mkdirsSync(join(cwd, 'test_install/node_modules/tabris'));
+        writeFileSync(join(cwd, 'test_install/node_modules/tabris/package.json'),
+          `{"version": "${packageJson.version}"}`);
       });
     });
 

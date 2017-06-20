@@ -6,6 +6,7 @@ const TabrisProject = require('./TabrisProject');
 const CordovaCli = require('./CordovaCli');
 const ConfigXml = require('./ConfigXml');
 const {parseVariables} = require('./argumentsParser');
+const packageJson = require('../package.json');
 const PROJECT_PATH = '.';
 const CORDOVA_PROJECT_PATH = 'build/cordova';
 
@@ -49,6 +50,7 @@ function registerBuildCommand(name, description) {
       new TabrisProject(PROJECT_PATH)
         .runPackageJsonBuildScripts(platform)
         .createCordovaProject(CORDOVA_PROJECT_PATH);
+      TabrisProject.validateTabrisModuleVersion(CORDOVA_PROJECT_PATH, `~${packageJson.version}`);
       let configXmlPath = join(CORDOVA_PROJECT_PATH, 'config.xml');
       if (existsSync(configXmlPath)) {
         ConfigXml.readFrom(configXmlPath)

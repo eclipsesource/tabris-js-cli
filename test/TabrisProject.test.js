@@ -1,4 +1,4 @@
-const {mkdirSync, existsSync, removeSync, writeFileSync, realpathSync} = require('fs-extra');
+const {mkdirsSync, mkdirSync, existsSync, removeSync, writeFileSync, realpathSync} = require('fs-extra');
 const {join} = require('path');
 const {createTmpDir} = require('./tmp');
 const proc = require('../src/proc');
@@ -33,6 +33,31 @@ describe('TabrisProject', function() {
       removeSync(join(cwd, 'cordova'));
 
       expect(() => new TabrisProject(cwd)).to.throw('Could not find cordova directory');
+    });
+
+  });
+
+  describe('validateTabrisModuleVersion', function() {
+
+    beforeEach(function() {
+      mkdirsSync(join(cwd, 'www', 'app', 'node_modules', 'tabris'));
+    });
+
+    it('throws if CLI version too high', function() {
+      writeFileSync(join(cwd, 'www', 'app', 'node_modules', 'tabris', 'package.json'), '{"version": "2.0.0"}');
+      expect(() => TabrisProject.validateTabrisModuleVersion(cwd, '~3.0.0'))
+        .to.throw(/Please migrate your app to tabris ~3.0.0/);
+    });
+
+    it('throws if CLI version too low', function() {
+      writeFileSync(join(cwd, 'www', 'app', 'node_modules', 'tabris', 'package.json'), '{"version": "2.0.0"}');
+      expect(() => TabrisProject.validateTabrisModuleVersion(cwd, '~1.0.0'))
+        .to.throw(/Make sure Tabris.js CLI is up to date./);
+    });
+
+    it('does not throw if CLI version matches version range', function() {
+      writeFileSync(join(cwd, 'www', 'app', 'node_modules', 'tabris', 'package.json'), '{"version": "2.0.1"}');
+      expect(() => TabrisProject.validateTabrisModuleVersion(cwd, '~2.0.0')).not.to.throw();
     });
 
   });

@@ -12,7 +12,7 @@ function handleErrors(runnable) {
     try {
       return runnable.apply(this, arguments);
     } catch (err) {
-      fail('Error: ' + err);
+      fail(err instanceof Error ? err : 'Error: ' + err);
     }
   };
 }

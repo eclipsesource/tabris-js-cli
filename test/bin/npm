@@ -2,5 +2,9 @@
 if [ $1 = "bin" ]; then
   echo `dirname $0`
 else
+  if [ $1 = "install" ]; then
+    # test_install is a fixture generated in build and run test specs
+    cp -af ../../../../test_install/. .
+  fi
   echo NPM $@ [$PWD]
 fi
