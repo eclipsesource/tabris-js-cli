@@ -13,7 +13,7 @@ describe('TabrisProject', function() {
     stub(console, 'log');
     return createTmpDir('test').then(dir => {
       cwd = realpathSync(dir);
-      proc.exec = stub(proc, 'exec');
+      stub(proc, 'exec');
       writeFileSync(join(cwd, 'package.json'), '{}');
       mkdirSync(join(cwd, 'cordova'));
     });

@@ -11,7 +11,7 @@ describe('CordovaCli', function() {
   let cli, cwd;
 
   beforeEach(function() {
-    proc.exec = stub(proc, 'exec');
+    stub(proc, 'exec');
     stub(fs, 'removeSync');
     proc.exec.withArgs('npm', ['bin']).returns({stdout: 'path'});
     return createTmpDir('test').then(dir => {
