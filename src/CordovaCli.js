@@ -18,7 +18,7 @@ class CordovaCli {
 
   platformAddSafe(platform, spec, {options = []} = {}) {
     if (this._platformDeclared(platform)) {
-      return;
+      return this;
     }
     if (this._platformDirectoryExists(platform)) {
       fs.removeSync(join(this._cwd, 'platforms', platform));

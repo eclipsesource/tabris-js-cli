@@ -64,6 +64,13 @@ describe('CordovaCli', function() {
       expect(proc.exec).not.to.have.been.calledWith('path/cordova');
     });
 
+    it('returns self if platform declared', function() {
+      mkdirSync(join(cwd, 'platforms'));
+      writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{"name": "foo"}');
+
+      expect(cli.platformAddSafe('name', 'bar')).to.equal(cli);
+    });
+
     it('removes platform directory before platform add if existing and missing from platforms.json', function() {
       mkdirsSync(join(cwd, 'platforms', 'name'));
       writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{}');
