@@ -33,6 +33,7 @@ describe('serve', function() {
   });
 
   it('finds next unused port', function() {
+    this.timeout(10000);
     return createDirectory('foo').then(path => {
       process1 = spawn('node', ['./src/tabris', 'serve', path]);
       let port1;
