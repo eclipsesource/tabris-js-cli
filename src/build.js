@@ -37,16 +37,14 @@ function registerBuildCommand(name, description) {
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
     .option('--verbose', 'print more verbose output')
     .description(description)
-    .action(handleErrors((platform, platformOpts, {
-      debug, release, variables, replaceEnvVars, cordovaBuildConfig, device, emulator, verbose
-    } = {}) => {
+    .action(handleErrors((platform, platformOpts, options) => {
       let variableReplacements = Object.assign({
-        IS_DEBUG: !!debug,
-        IS_RELEASE: !!release
-      }, replaceEnvVars && process.env, variables);
+        IS_DEBUG: !!options.debug,
+        IS_RELEASE: !!options.release
+      }, options.replaceEnvVars && process.env, options.variables);
       let envVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;
       let platformSpec = process.env[envVar];
-      validateArguments({debug, release, platform, platformSpec, envVar});
+      validateArguments({debug: options.debug, release: options.release, platform, platformSpec, envVar});
       new TabrisProject(PROJECT_PATH)
         .runPackageJsonBuildScripts(platform)
         .createCordovaProject(CORDOVA_PROJECT_PATH);
@@ -59,14 +57,14 @@ function registerBuildCommand(name, description) {
           .writeTo(configXmlPath);
       }
       let platformAddOptions = [
-        verbose && 'verbose'
+        options.verbose && 'verbose'
       ];
       let platformCommandOptions = [
-        release && 'release' || debug && 'debug',
-        device && 'device',
-        emulator && 'emulator',
-        cordovaBuildConfig && `buildConfig=${cordovaBuildConfig}`,
-        verbose && 'verbose'
+        options.release && 'release' || options.debug && 'debug',
+        options.device && 'device',
+        options.emulator && 'emulator',
+        options.cordovaBuildConfig && `buildConfig=${options.cordovaBuildConfig}`,
+        options.verbose && 'verbose'
       ];
       new CordovaCli(CORDOVA_PROJECT_PATH)
         .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
