@@ -2,6 +2,7 @@ const {mkdirsSync, mkdirSync, existsSync, removeSync, writeFileSync, realpathSyn
 const {join} = require('path');
 const {createTmpDir} = require('./tmp');
 const proc = require('../src/proc');
+const log = require('../src/log');
 const {expect, stub, restore} = require('./test');
 const TabrisProject = require('../src/TabrisProject');
 
@@ -10,10 +11,10 @@ describe('TabrisProject', function() {
   let cwd;
 
   beforeEach(function() {
-    stub(console, 'log');
+    stub(log, 'command');
+    stub(proc, 'exec');
     return createTmpDir('test').then(dir => {
       cwd = realpathSync(dir);
-      stub(proc, 'exec');
       writeFileSync(join(cwd, 'package.json'), '{}');
       mkdirSync(join(cwd, 'cordova'));
     });
@@ -37,27 +38,30 @@ describe('TabrisProject', function() {
 
   });
 
-  describe('validateTabrisModuleVersion', function() {
+  describe('validateInstalledTabrisVersion', function() {
+
+    let tabrisProject;
 
     beforeEach(function() {
+      tabrisProject = new TabrisProject(cwd);
       mkdirsSync(join(cwd, 'www', 'app', 'node_modules', 'tabris'));
     });
 
     it('throws if CLI version too high', function() {
-      writeFileSync(join(cwd, 'www', 'app', 'node_modules', 'tabris', 'package.json'), '{"version": "2.0.0"}');
-      expect(() => TabrisProject.validateTabrisModuleVersion(cwd, '~3.0.0'))
+      tabrisProject._installedTabrisVersion = '2.0.0';
+      expect(() => tabrisProject.validateInstalledTabrisVersion('~3.0.0'))
         .to.throw(/Please migrate your app to tabris ~3.0.0/);
     });
 
     it('throws if CLI version too low', function() {
-      writeFileSync(join(cwd, 'www', 'app', 'node_modules', 'tabris', 'package.json'), '{"version": "2.0.0"}');
-      expect(() => TabrisProject.validateTabrisModuleVersion(cwd, '~1.0.0'))
+      tabrisProject._installedTabrisVersion = '2.0.0';
+      expect(() => tabrisProject.validateInstalledTabrisVersion('~1.0.0'))
         .to.throw(/Make sure Tabris.js CLI is up to date./);
     });
 
     it('does not throw if CLI version matches version range', function() {
-      writeFileSync(join(cwd, 'www', 'app', 'node_modules', 'tabris', 'package.json'), '{"version": "2.0.1"}');
-      expect(() => TabrisProject.validateTabrisModuleVersion(cwd, '~2.0.0')).not.to.throw();
+      tabrisProject._installedTabrisVersion = '2.0.1';
+      expect(() => tabrisProject.validateInstalledTabrisVersion('~2.0.0')).not.to.throw();
     });
 
   });
@@ -85,6 +89,11 @@ describe('TabrisProject', function() {
 
     beforeEach(function() {
       project = new TabrisProject(cwd);
+      proc.exec.callsFake(() => {
+        let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
+        mkdirsSync(tabrisModulePath);
+        writeFileSync(join(tabrisModulePath, 'package.json'), '{"version": "2.0.0"}');
+      });
     });
 
     it('copies project contents to destination/www/app', function() {
@@ -123,7 +132,7 @@ describe('TabrisProject', function() {
       expect(existsSync(join(cwd, 'destination/www/app/.git'))).to.be.false;
       expect(existsSync(join(cwd, 'destination/www/app/destination'))).to.be.false;
       expect(existsSync(join(cwd, 'destination/www/app/cordova'))).to.be.false;
-      expect(existsSync(join(cwd, 'destination/www/app/node_modules'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/node_modules/foo'))).to.be.false;
       expect(existsSync(join(cwd, 'destination/www/app/.tabrisignore'))).to.be.false;
     });
 
@@ -141,7 +150,7 @@ describe('TabrisProject', function() {
     });
 
     it('installs production dependencies in destination/www/app', function() {
-      let destination = join(cwd, 'foo');
+      let destination = join(cwd, 'destination');
 
       project.createCordovaProject(destination);
 

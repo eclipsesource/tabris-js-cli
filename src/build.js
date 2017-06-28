@@ -4,11 +4,17 @@ const program = require('commander');
 const {fail, handleErrors} = require('./errorHandler');
 const TabrisProject = require('./TabrisProject');
 const CordovaCli = require('./CordovaCli');
+const BuildKeyProvider = require('./BuildKeyProvider');
+const PlatformDownloader = require('./PlatformDownloader');
 const ConfigXml = require('./ConfigXml');
 const {parseVariables} = require('./argumentsParser');
+const {homedir} = require('os');
 const packageJson = require('../package.json');
-const PROJECT_PATH = '.';
-const CORDOVA_PROJECT_PATH = 'build/cordova';
+
+const PROJECT_DIR = '.';
+const CORDOVA_PROJECT_DIR = 'build/cordova';
+const CLI_DATA_DIR = join(homedir(), '.tabris-cli');
+const PLATFORMS_DIR = join(CLI_DATA_DIR, 'platforms');
 
 const PARAMS_DESCRIPTION = `
 
@@ -42,44 +48,51 @@ function registerBuildCommand(name, description) {
         IS_DEBUG: !!options.debug,
         IS_RELEASE: !!options.release
       }, options.replaceEnvVars && process.env, options.variables);
-      let envVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;
-      let platformSpec = process.env[envVar];
-      validateArguments({debug: options.debug, release: options.release, platform, platformSpec, envVar});
-      new TabrisProject(PROJECT_PATH)
+      let platformEnvVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;
+      let platformSpec = process.env[platformEnvVar];
+      validateArguments({platform, debug: options.debug, release: options.release});
+      let {installedTabrisVersion} = new TabrisProject(PROJECT_DIR)
         .runPackageJsonBuildScripts(platform)
-        .createCordovaProject(CORDOVA_PROJECT_PATH);
-      TabrisProject.validateTabrisModuleVersion(CORDOVA_PROJECT_PATH, `~${packageJson.version}`);
-      let configXmlPath = join(CORDOVA_PROJECT_PATH, 'config.xml');
+        .createCordovaProject(CORDOVA_PROJECT_DIR)
+        .validateInstalledTabrisVersion(`~${packageJson.version}`);
+      let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
       if (existsSync(configXmlPath)) {
         ConfigXml.readFrom(configXmlPath)
           .adjustContentPath()
           .replaceVariables(variableReplacements)
           .writeTo(configXmlPath);
       }
-      let platformAddOptions = [
-        options.verbose && 'verbose'
-      ];
-      let platformCommandOptions = [
-        options.release && 'release' || options.debug && 'debug',
-        options.device && 'device',
-        options.emulator && 'emulator',
-        options.cordovaBuildConfig && `buildConfig=${options.cordovaBuildConfig}`,
-        options.verbose && 'verbose'
-      ];
-      new CordovaCli(CORDOVA_PROJECT_PATH)
-        .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
-        .platformCommand(name, platform, {options: platformCommandOptions, platformOpts});
+      if (platformSpec) {
+        executeCordovaCommands({name, platform, platformSpec, platformOpts, options});
+      } else {
+        new BuildKeyProvider(CLI_DATA_DIR).getBuildKey()
+          .then(buildKey => new PlatformDownloader({platform, buildKey, version: installedTabrisVersion})
+              .download(PLATFORMS_DIR))
+          .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, platformOpts, options}))
+          .catch(fail);
+      }
     }));
 }
 
-function validateArguments({debug, release, platform, platformSpec, envVar}) {
+function executeCordovaCommands({name, platformOpts, platform, platformSpec, options}) {
+  let platformAddOptions = [options.verbose && 'verbose'];
+  let platformCommandOptions = [
+    options.release && 'release' || options.debug && 'debug',
+    options.device && 'device',
+    options.emulator && 'emulator',
+    options.cordovaBuildConfig && `buildConfig=${options.cordovaBuildConfig}`,
+    options.verbose && 'verbose'
+  ];
+  new CordovaCli(CORDOVA_PROJECT_DIR)
+    .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
+    .platformCommand(name, platform, {options: platformCommandOptions, platformOpts});
+}
+
+function validateArguments({debug, release, platform}) {
   if (debug && release) {
     fail('Cannot specify both --release and --debug');
   }
   if (!['android', 'ios', 'windows'].includes(platform)) {
     fail('Invalid platform: ' + platform);
-  }
-  if (!platformSpec) {
-    fail('Missing cordova platform spec, expected in $' + envVar);
   }
 }

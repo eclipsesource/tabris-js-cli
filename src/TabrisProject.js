@@ -17,17 +17,8 @@ class TabrisProject {
     }
   }
 
-  static validateTabrisModuleVersion(cordovaProjectPath, range) {
-    let tabrisPackageJsonPath = join(cordovaProjectPath, 'www', 'app', 'node_modules', 'tabris', 'package.json');
-    let tabrisPackageJson = JSON.parse(readFileSync(tabrisPackageJsonPath, 'utf8'));
-    if (!semver.satisfies(tabrisPackageJson.version, range)) {
-      let message =
-        `App uses incompatible Tabris.js version ${tabrisPackageJson.version}, ${range} required.\n` +
-        (semver.gtr(tabrisPackageJson.version, range) ?
-          'Make sure Tabris.js CLI is up to date.' :
-          `Please migrate your app to tabris ${range}.`);
-      throw new Error(message);
-    }
+  get installedTabrisVersion() {
+    return this._installedTabrisVersion;
   }
 
   runPackageJsonBuildScripts(platform) {
@@ -40,6 +31,19 @@ class TabrisProject {
     this._copyCordovaFiles(destination);
     this._copyJsProject(destination);
     this._installProductionDependencies(destination);
+    this._installedTabrisVersion = this._getTabrisVersion(destination);
+    return this;
+  }
+
+  validateInstalledTabrisVersion(range) {
+    if (!semver.satisfies(this.installedTabrisVersion, range)) {
+      let message =
+        `App uses incompatible Tabris.js version ${this.installedTabrisVersion}, ${range} required.\n` +
+        (semver.gtr(this.installedTabrisVersion, range) ?
+          'Make sure Tabris.js CLI is up to date.' :
+          `Please migrate your app to tabris ${range}.`);
+      throw new Error(message);
+    }
     return this;
   }
 
@@ -66,6 +70,12 @@ class TabrisProject {
 
   _installProductionDependencies(destination) {
     proc.exec('npm', ['install', '--production'], {cwd: join(destination, 'www/app')});
+  }
+
+  _getTabrisVersion(cordovaProjectPath) {
+    let tabrisPackageJsonPath = join(cordovaProjectPath, 'www', 'app', 'node_modules', 'tabris', 'package.json');
+    let tabrisPackageJson = JSON.parse(readFileSync(tabrisPackageJsonPath, 'utf8'));
+    return tabrisPackageJson.version;
   }
 
 }

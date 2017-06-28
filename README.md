@@ -32,9 +32,7 @@ Request logging can be enabled using the option `--logging` or `-l`.
 tabris build [android|ios|windows]
 ```
 
-... will perform a local app build. Requires an installation of the development tools for the respective platform.
-The path to the cordova platform is expected in the environment variable `TABRIS_ANDROID_PLATFORM`, `TABRIS_IOS_PLATFORM`, or `TABRIS_WINDOWS_PLATFORM`, respectively.
-These platforms can be downloaded from [tabrisjs.com](https://tabrisjs.com/download).
+... will perform a local app build. When run for the first time, it prompts for a build key, which can be retrieved from the [Tabris.js Account Settings page](https://tabrisjs.com/settings/account).
 
 The build type (debug or release) can set by adding either `--debug` or `--release`, while debug is the default.
 

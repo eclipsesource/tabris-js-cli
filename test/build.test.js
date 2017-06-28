@@ -19,7 +19,11 @@ const mockBinDir = join(__dirname, 'bin');
     beforeEach(function() {
       return createTmpDir('test').then(dir => {
         cwd = realpathSync(dir);
+        mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/ios/${packageJson.version}`));
+        mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/android/${packageJson.version}`));
+        mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/windows/${packageJson.version}`));
         env = {
+          HOME: join(cwd, 'test_home'),
           PATH: mockBinDir + ':' + process.env.PATH,
           TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
           TABRIS_IOS_PLATFORM: 'path/to/tabris-ios',
@@ -44,6 +48,7 @@ const mockBinDir = join(__dirname, 'bin');
       it(`succeeds with platform '${platform}'`, function() {
         let result = spawnSync('node', [tabris, command, platform], opts);
 
+        expect(result.stderr).to.equal('');
         expect(result.status).to.equal(0);
       });
     }
@@ -52,14 +57,6 @@ const mockBinDir = join(__dirname, 'bin');
       let result = spawnSync('node', [tabris, command, 'android', '--debug', '--release'], opts);
 
       expect(result.stderr.trim()).to.equal('Cannot specify both --release and --debug');
-    });
-
-    it('fails without platform environment variable', function() {
-      env.TABRIS_ANDROID_PLATFORM = '';
-
-      let result = spawnSync('node', [tabris, command, 'android'], opts);
-
-      expect(result.stderr.trim()).to.equal('Missing cordova platform spec, expected in $TABRIS_ANDROID_PLATFORM');
     });
 
     it('copies cordova/ contents to build/cordova', function() {
