@@ -2,8 +2,8 @@ const {red} = require('chalk');
 
 module.exports = {fail, handleErrors};
 
-function fail(message) {
-  console.error(red(message));
+function fail(error) {
+  console.error(red(error instanceof Error ? error.message : error));
   process.exit(1);
 }
 
@@ -12,7 +12,7 @@ function handleErrors(runnable) {
     try {
       return runnable.apply(this, arguments);
     } catch (err) {
-      fail(err instanceof Error ? err : 'Error: ' + err);
+      fail(err);
     }
   };
 }
