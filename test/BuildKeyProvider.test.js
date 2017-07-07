@@ -48,6 +48,14 @@ describe('BuildKeyProvider', function() {
         });
       });
 
+      it('returns build.key file contents when build key ends with new line', function() {
+        fs.writeFileSync(buildKeyPath, VALID_KEY + '\n', 'utf8');
+
+        return provider.getBuildKey().then(result => {
+          expect(result).to.equal(VALID_KEY);
+        });
+      });
+
       it('rejects when build key was invalid', function() {
         fs.writeFileSync(buildKeyPath, 'invalidKey', 'utf8');
 

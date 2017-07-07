@@ -20,7 +20,7 @@ class BuildKeyProvider {
         return resolve(process.env[BUILD_KEY_ENV_VAR]);
       }
       if (fs.existsSync(this._buildKeyFilePath)) {
-        let buildKey = fs.readFileSync(this._buildKeyFilePath, 'utf8');
+        let buildKey = fs.readFileSync(this._buildKeyFilePath, 'utf8').trim();
         this._validateBuildKey(buildKey);
         return resolve(buildKey);
       }
