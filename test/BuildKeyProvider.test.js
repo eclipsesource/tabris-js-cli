@@ -1,8 +1,8 @@
 const BuildKeyProvider = require('../src/BuildKeyProvider');
 const fs = require('fs-extra');
+const temp = require('temp').track();
 const {expect, stub, restore} = require('./test');
 const {join} = require('path');
-const {createTmpDir} = require('./tmp');
 
 describe('BuildKeyProvider', function() {
 
@@ -11,12 +11,10 @@ describe('BuildKeyProvider', function() {
   let provider, cliDataDir, buildKeyPath;
 
   beforeEach(function() {
-    return createTmpDir('cliDataDir').then(dir => {
-      cliDataDir = dir;
-      provider = new BuildKeyProvider(dir);
-      buildKeyPath = join(dir, 'build.key');
-      stub(process.stdout, 'write');
-    });
+    cliDataDir = temp.mkdirSync('cliDataDir');
+    provider = new BuildKeyProvider(cliDataDir);
+    buildKeyPath = join(cliDataDir, 'build.key');
+    stub(process.stdout, 'write');
   });
 
   afterEach(() => {

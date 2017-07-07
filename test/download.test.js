@@ -1,7 +1,7 @@
 const {join} = require('path');
+const temp = require('temp').track();
 const {expect, stub, restore} = require('./test');
 const download = require('../src/download');
-const {createTmpDir} = require('./tmp');
 const https = require('https');
 const stream = require('stream');
 
@@ -13,9 +13,8 @@ describe('download', function() {
     httpsStub = {get: stub().returnsThis(), on: stub().returnsThis()};
     stub(https, 'get').returns(httpsStub);
     fakeResponse = {on: stub(), pipe: stub(), statusCode: 200};
-    return createTmpDir('platformsDir').then(dir => {
-      destination = join(dir, 'filename');
-    });
+    let dir = temp.mkdirSync('platformsDir');
+    destination = join(dir, 'filename');
   });
 
   afterEach(restore);

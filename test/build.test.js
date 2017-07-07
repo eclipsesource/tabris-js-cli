@@ -1,8 +1,8 @@
 const {join} = require('path');
 const {readFileSync, writeFileSync, existsSync, realpathSync, mkdirsSync} = require('fs-extra');
 const {spawnSync} = require('child_process');
-const {createTmpDir} = require('./tmp');
 const expect = require('chai').expect;
+const temp = require('temp').track();
 const packageJson = require('../package.json');
 
 const tabris = join(__dirname, '../src/tabris');
@@ -17,25 +17,24 @@ const mockBinDir = join(__dirname, 'bin');
     let cwd, env, opts;
 
     beforeEach(function() {
-      return createTmpDir('test').then(dir => {
-        cwd = realpathSync(dir);
-        mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/ios/${packageJson.version}`));
-        mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/android/${packageJson.version}`));
-        mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/windows/${packageJson.version}`));
-        env = {
-          HOME: join(cwd, 'test_home'),
-          PATH: mockBinDir + ':' + process.env.PATH,
-          TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
-          TABRIS_IOS_PLATFORM: 'path/to/tabris-ios',
-          TABRIS_WINDOWS_PLATFORM: 'path/to/tabris-windows'
-        };
-        opts = {cwd, env, encoding: 'utf8'};
-        mkdirsSync(join(cwd, 'cordova'));
-        writeFileSync(join(cwd, 'package.json'), '{}');
-        mkdirsSync(join(cwd, 'test_install/node_modules/tabris'));
-        writeFileSync(join(cwd, 'test_install/node_modules/tabris/package.json'),
-          `{"version": "${packageJson.version}"}`);
-      });
+      let dir = temp.mkdirSync('test');
+      cwd = realpathSync(dir);
+      mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/ios/${packageJson.version}`));
+      mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/android/${packageJson.version}`));
+      mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/windows/${packageJson.version}`));
+      env = {
+        HOME: join(cwd, 'test_home'),
+        PATH: mockBinDir + ':' + process.env.PATH,
+        TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
+        TABRIS_IOS_PLATFORM: 'path/to/tabris-ios',
+        TABRIS_WINDOWS_PLATFORM: 'path/to/tabris-windows'
+      };
+      opts = {cwd, env, encoding: 'utf8'};
+      mkdirsSync(join(cwd, 'cordova'));
+      writeFileSync(join(cwd, 'package.json'), '{}');
+      mkdirsSync(join(cwd, 'test_install/node_modules/tabris'));
+      writeFileSync(join(cwd, 'test_install/node_modules/tabris/package.json'),
+        `{"version": "${packageJson.version}"}`);
     });
 
     it('fails with invalid platform argument', function() {

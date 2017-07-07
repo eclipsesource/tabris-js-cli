@@ -1,6 +1,6 @@
 const {mkdirsSync, mkdirSync, existsSync, removeSync, writeFileSync, realpathSync} = require('fs-extra');
 const {join} = require('path');
-const {createTmpDir} = require('./tmp');
+const temp = require('temp').track();
 const proc = require('../src/proc');
 const log = require('../src/log');
 const {expect, stub, restore} = require('./test');
@@ -13,11 +13,10 @@ describe('TabrisProject', function() {
   beforeEach(function() {
     stub(log, 'command');
     stub(proc, 'exec');
-    return createTmpDir('test').then(dir => {
-      cwd = realpathSync(dir);
-      writeFileSync(join(cwd, 'package.json'), '{}');
-      mkdirSync(join(cwd, 'cordova'));
-    });
+    let dir = temp.mkdirSync('test');
+    cwd = realpathSync(dir);
+    writeFileSync(join(cwd, 'package.json'), '{}');
+    mkdirSync(join(cwd, 'cordova'));
   });
 
   afterEach(() => restore());

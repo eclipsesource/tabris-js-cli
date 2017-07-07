@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const {realpathSync, mkdirSync, mkdirsSync, writeFileSync} = require('fs-extra');
-const {createTmpDir} = require('./tmp');
+const temp = require('temp').track();
 const proc = require('../src/proc');
 const {join} = require('path');
 const {expect, stub, restore, match} = require('./test');
@@ -14,10 +14,9 @@ describe('CordovaCli', function() {
     stub(proc, 'exec');
     stub(fs, 'removeSync');
     proc.exec.withArgs('npm', ['bin']).returns({stdout: 'path'});
-    return createTmpDir('test').then(dir => {
-      cwd = realpathSync(dir);
-      cli = new CordovaCli(cwd);
-    });
+    let dir = temp.mkdirSync();
+    cwd = realpathSync(dir);
+    cli = new CordovaCli(cwd);
   });
 
   afterEach(restore);

@@ -1,6 +1,6 @@
-const {createTmpDir} = require('./tmp');
 const {readFileSync, writeFileSync} = require('fs-extra');
 const {join} = require('path');
+const temp = require('temp').track();
 const ConfigXml = require('../src/ConfigXml');
 const {expect, stub, restore} = require('./test');
 
@@ -10,7 +10,7 @@ describe('ConfigXml', function() {
 
   beforeEach(function() {
     stub(console, 'log');
-    return createTmpDir('test').then(directory => cwd = directory);
+    cwd = temp.mkdirSync('test');
   });
 
   afterEach(restore);
