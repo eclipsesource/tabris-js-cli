@@ -19,7 +19,6 @@ const PLATFORMS_DIR = join(CLI_DATA_DIR, 'platforms');
 const PARAMS_DESCRIPTION = `
 
   <platform>:\t\tandroid, ios or windows
-  [platformOpts...]:\tplatform-specific options passed to cordova
 `;
 const BUILD_DESCRIPTION = `Builds a Tabris.js app. ${PARAMS_DESCRIPTION}`;
 const RUN_DESCRIPTION = `Builds a Tabris.js app and runs it on a connected device or emulator. ${PARAMS_DESCRIPTION}`;
@@ -33,7 +32,7 @@ registerBuildCommand('run', RUN_DESCRIPTION);
 
 function registerBuildCommand(name, description) {
   program
-    .command(`${name} <platform> [platformOpts...]`)
+    .command(`${name} <platform>`)
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
     .option('--cordova-build-config <path>', CORDOVA_BUILD_CONFIG_DESCRIPTION)
     .option('--debug', 'perform a debug build')
@@ -43,7 +42,7 @@ function registerBuildCommand(name, description) {
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
     .option('--verbose', 'print more verbose output')
     .description(description)
-    .action(handleErrors((platform, platformOpts, options) => {
+    .action(handleErrors((platform, options) => {
       let variableReplacements = Object.assign({
         IS_DEBUG: !!options.debug,
         IS_RELEASE: !!options.release
@@ -63,18 +62,18 @@ function registerBuildCommand(name, description) {
           .writeTo(configXmlPath);
       }
       if (platformSpec) {
-        executeCordovaCommands({name, platform, platformSpec, platformOpts, options});
+        executeCordovaCommands({name, platform, platformSpec, options});
       } else {
         new BuildKeyProvider(CLI_DATA_DIR).getBuildKey()
           .then(buildKey => new PlatformDownloader({platform, buildKey, version: installedTabrisVersion})
               .download(PLATFORMS_DIR))
-          .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, platformOpts, options}))
+          .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, options}))
           .catch(fail);
       }
     }));
 }
 
-function executeCordovaCommands({name, platformOpts, platform, platformSpec, options}) {
+function executeCordovaCommands({name, platform, platformSpec, options}) {
   let platformAddOptions = [options.verbose && 'verbose'];
   let platformCommandOptions = [
     options.release && 'release' || options.debug && 'debug',
@@ -85,7 +84,7 @@ function executeCordovaCommands({name, platformOpts, platform, platformSpec, opt
   ];
   new CordovaCli(CORDOVA_PROJECT_DIR)
     .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
-    .platformCommand(name, platform, {options: platformCommandOptions, platformOpts});
+    .platformCommand(name, platform, {options: platformCommandOptions});
 }
 
 function validateArguments({debug, release, platform}) {
