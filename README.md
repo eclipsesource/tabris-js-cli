@@ -2,66 +2,115 @@
 
 [![Build Status](https://travis-ci.org/eclipsesource/tabris-js-cli.svg?branch=master)](https://travis-ci.org/eclipsesource/tabris-js-cli)
 
-Command line tools which make developing Tabris.js apps even easier.
+The super tool for Tabris.js developers.
+
+## Table of Contents
+* [Installation](#installation)
+* [Commands](#commands)
+  + [`tabris init`](#tabris-init)
+  + [`tabris serve [options] [path]`](#tabris-serve-options-path)
+  + [`tabris build [options] <platform>`](#tabris-build-options-platform)
+  + [`tabris run [options] <platform>`](#tabris-run-options-platform)
+  + [`tabris clean`](#tabris-clean)
+* [License](#license)
 
 ## Installation
 
 `npm install -g tabris-cli`
 
-## Usage
+## Commands
 
-### Creating a new Tabris.js project
+### `tabris init`
 
-```
-tabris init
-```
-... will guide you through creating a Tabris.js project structure in the current directory.
+Creates a new Tabris.js app in the current directory.
 
-### Serving a Tabris.js app
+*See: [Quick Start Guide - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/getting-started.html)*
 
-```
-tabris serve
-```
-... will start a server you can point the [Tabris.js developer app](https://tabrisjs.com/documentation/latest/developer-app#the-tabrisjs-developer-app) to.
+### `tabris serve [options] [path]`
 
-Request logging can be enabled using the option `--logging` or `-l`.
+Starts a server the [Tabris.js developer app](https://tabrisjs.com/documentation/2.0/developer-app) can be pointed to.
 
-### Building a Tabris.js app
+#### path
 
-```
-tabris build [android|ios|windows]
-```
+The file or directory to serve the Tabris.js app from. When ommitted, the current working directory is served.
 
-... will perform a local app build. When run for the first time, it prompts for a build key, which can be retrieved from the [Tabris.js Account Settings page](https://tabrisjs.com/settings/account).
+#### options
 
-The build type (debug or release) can set by adding either `--debug` or `--release`, while debug is the default.
+##### `-l, --logging`
 
-The options `--device` and `--emulator` specify whether the app should be built for/ran on a device or an emulator.
+Enables request logging.
 
-The option `--verbose` will provide more verbose output.
+### `tabris build [options] <platform>`
 
-In addition to the `build` command, the CLI supports a `run` command which behaves in the same manner as `build` but also deploys and starts the built app on a connected device or an emulator:
+Builds a Tabris.js app for the given platform.
 
-```
-tabris run [android|ios|windows]
-```
+To speed up the build, pre-compiled build artifacts are kept in a build cache and are reused in subsequent builds. To clean up the build cache, e.g. after updating Cordova plug-ins, run `tabris clean`.
 
-Variables in the `config.xml` are replaced by environment variables unless `--no-replace-env-vars` is given.
-Additional variables can be specified with the `--variables` option:
-```
-tabris build [android|ios|windows] --variables FOO=bar,BAR=baz
-```
-will replace all occurrences of `$FOO` with `bar` and `$BAR` with `baz`.
+*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
 
-For code signing, you can specify a build config file (see: [iOS](http://cordova.apache.org/docs/en/6.x/guide/platforms/ios/index.html#using-buildjson), [Android](http://cordova.apache.org/docs/en/6.x/guide/platforms/android/index.html#using-buildjson)) using the `--cordova-build-config=...` option. It can be relative to the `cordova/` project directory. You may want to include this file in `.gitignore` since it could contain sensitive information.
+#### platform
 
-### Cleaning up build cache
+One of `ios`, `android` or `windows`.
 
-To speed up the build, pre-compiled build artifacts are being reused.
-To clean up the build cache, e.g. after adding or updating Cordova plug-ins, call:
-```
-tabris clean
-```
+#### options
+
+*Default options*:
+
+  * `--debug`
+  * `--emulator`
+  * `--cordova-build-config=./build.json`
+
+##### `--variables <replacements>`
+
+Comma-separated list of variable replacements in config.xml. `--variables FOO=bar,BAK=baz` will replace all occurrences of `$FOO` and `$BAK` in config.xml with respectively `bar` and `baz`.
+
+*Note: per default all environment variables are replaced in config.xml. To prevent that, use the `--no-replace-env-vars` option.*
+
+##### `--cordova-build-config <path>`
+
+Path to a build configuration file passed to Cordova. Relative to the `cordova/` directory.
+
+See Cordova platform documentation ([iOS](https://cordova.apache.org/docs/en/6.x/guide/platforms/ios/index.html#using-buildjson), [Android](https://cordova.apache.org/docs/en/6.x/guide/platforms/android/index.html#using-buildjson)) for more information about the file format.
+
+You may want to include this file in `.gitignore` since it may contain sensitive information.
+
+##### `--debug`
+
+Perform a debug build. Used for development.
+
+##### `--release`
+
+Perform a release build. Used when building apps for the marketplace of their platform.
+
+##### `--emulator`
+
+Build the app for an emulator.
+
+##### `--device`
+
+Build the app for a device.
+
+##### `--no-replace-env-vars`
+
+Do not replace environment variables in config.xml.
+
+*See `--variables` documentation for more information about variable replacement in config.xml.*
+
+##### `--verbose`
+
+Print more verbose output.
+
+### `tabris run [options] <platform>`
+
+Builds a Tabris.js app and runs it on a connected device or emulator.
+
+Uses same parameters as `tabris build`.
+
+*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
+
+### `tabris clean`
+
+Removes build artifacts.
 
 ## License
 

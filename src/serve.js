@@ -16,7 +16,7 @@ let logging = false;
 program
   .command('serve [path]')
   .option('-l, --logging', 'enable request logging')
-  .description('Serves a Tabris.js app from a directory.')
+  .description('Serves a Tabris.js app from a directory or a file.')
   .action(handleErrors((inputPath, options) => {
     logging = !!options.logging;
     serve(inputPath);
