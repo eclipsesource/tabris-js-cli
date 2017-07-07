@@ -1,11 +1,11 @@
 const program = require('commander');
-const fs = require('fs-extra');
+const {readFileSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
 const union = require('union');
 const {green, yellow, red, blue} = require('chalk');
 const os = require('os');
 const portscanner = require('portscanner');
-const path = require('path');
+const {basename, join} = require('path');
 const {fail, handleErrors} = require('./errorHandler');
 
 const BASE_PORT = 8080;
@@ -28,11 +28,18 @@ function serve(inputPath) {
   if (!addresses.length) {
     fail('No remotely accessible network interfaces.');
   }
-  fs.lstat(appPath, (err, stats) => {
+  lstat(appPath, (err, stats) => {
     if (err || !stats || !stats.isDirectory() && !stats.isFile()) {
       fail('Path must be a directory or a file.');
     }
     if (stats.isDirectory()) {
+      let packageJsonPath = join(appPath, 'package.json');
+      if (!existsSync(packageJsonPath)) {
+        fail('Directory must contain package.json');
+      }
+      if (!JSON.parse(readFileSync(packageJsonPath)).main) {
+        fail('package.json must contain a "main" field');
+      }
       startServer(appPath, addresses);
     } else if (stats.isFile()) {
       serveFile(appPath, addresses);
@@ -43,11 +50,11 @@ function serve(inputPath) {
 function serveFile(appPath, addresses) {
   let servePackageJson = (req, res, next) => {
     if (req.url === '/package.json') {
-      return res.json({main: path.basename(appPath)});
+      return res.json({main: basename(appPath)});
     }
     next();
   };
-  startServer(path.join(appPath, '..'), addresses, [servePackageJson]);
+  startServer(join(appPath, '..'), addresses, [servePackageJson]);
 }
 
 function startServer(appPath, addresses, middlewares = []) {

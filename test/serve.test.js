@@ -4,6 +4,8 @@ const spawn = require('child_process').spawn;
 const portscanner = require('portscanner');
 const fetch = require('node-fetch');
 const {basename} = require('path');
+const {join} = require('path');
+const {writeFileSync} = require('fs-extra');
 
 describe('serve', function() {
 
@@ -19,8 +21,29 @@ describe('serve', function() {
     process1, process2 = null;
   });
 
-  it('serves a directory', function() {
+  it('fails when directory does not contain package.json', function(done) {
     let path = temp.mkdirSync('foo');
+    process1 = spawn('node', ['./src/tabris', 'serve', path]);
+
+    process1.stderr.on('data', data => {
+      expect(data.toString()).to.match(/Directory must contain package.json/);
+      done();
+    });
+  });
+
+  it('fails when package.json is missing a "main" field', function(done) {
+    let path = temp.mkdirSync('foo');
+    process1 = spawn('node', ['./src/tabris', 'serve', path]);
+    writeFileSync(join(path, 'package.json'), '{}');
+
+    process1.stderr.on('data', data => {
+      expect(data.toString()).to.match(/package.json must contain a "main" field/);
+      done();
+    });
+  });
+
+  it('serves a directory', function() {
+    let path = createFakeApp();
     process1 = spawn('node', ['./src/tabris', 'serve', path]);
 
     return waitForStdout(process1)
@@ -33,7 +56,7 @@ describe('serve', function() {
 
   it('finds next unused port', function() {
     this.timeout(10000);
-    let path = temp.mkdirSync('foo');
+    let path = createFakeApp();
     process1 = spawn('node', ['./src/tabris', 'serve', path]);
     let port1;
     let port2;
@@ -124,8 +147,13 @@ describe('serve', function() {
 
   });
 
-
 });
+
+function createFakeApp() {
+  let path = temp.mkdirSync('foo');
+  writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
+  return path;
+}
 
 function getPortStatus(port) {
   return portscanner.checkPortStatus(port, '127.0.0.1');
