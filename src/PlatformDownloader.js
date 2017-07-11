@@ -45,7 +45,7 @@ module.exports = class PlatformDownloader {
       headers: {'X-Tabris-Access-Key': this._buildKey}
     };
     return download.downloadFile(options, platformZipPath).catch(e => {
-      if (e.statusCode && [404, 401].includes(e.statusCode)) {
+      if (e.statusCode === 401) {
         throw new Error('Invalid build key.');
       }
       throw new Error('Unable to download platform');
