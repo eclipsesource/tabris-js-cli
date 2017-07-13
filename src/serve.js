@@ -1,5 +1,5 @@
 const program = require('commander');
-const {readFileSync, existsSync, lstat} = require('fs-extra');
+const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
 const union = require('union');
 const {green, yellow, red, blue} = require('chalk');
@@ -37,7 +37,7 @@ function serve(inputPath) {
       if (!existsSync(packageJsonPath)) {
         fail('Directory must contain package.json');
       }
-      if (!JSON.parse(readFileSync(packageJsonPath)).main) {
+      if (!readJsonSync(packageJsonPath).main) {
         fail('package.json must contain a "main" field');
       }
       startServer(appPath, addresses);
