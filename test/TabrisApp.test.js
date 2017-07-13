@@ -4,9 +4,9 @@ const temp = require('temp').track();
 const proc = require('../src/proc');
 const log = require('../src/log');
 const {expect, stub, restore} = require('./test');
-const TabrisProject = require('../src/TabrisProject');
+const TabrisApp = require('../src/TabrisApp');
 
-describe('TabrisProject', function() {
+describe('TabrisApp', function() {
 
   let cwd;
 
@@ -26,41 +26,41 @@ describe('TabrisProject', function() {
     it('fails if package.json is missing', function() {
       removeSync(join(cwd, 'package.json'));
 
-      expect(() => new TabrisProject(cwd)).to.throw('Could not find package.json');
+      expect(() => new TabrisApp(cwd)).to.throw('Could not find package.json');
     });
 
     it('fails if cordova/ is missing', function() {
       removeSync(join(cwd, 'cordova'));
 
-      expect(() => new TabrisProject(cwd)).to.throw('Could not find cordova directory');
+      expect(() => new TabrisApp(cwd)).to.throw('Could not find cordova directory');
     });
 
   });
 
   describe('validateInstalledTabrisVersion', function() {
 
-    let tabrisProject;
+    let tabrisApp;
 
     beforeEach(function() {
-      tabrisProject = new TabrisProject(cwd);
+      tabrisApp = new TabrisApp(cwd);
       mkdirsSync(join(cwd, 'www', 'app', 'node_modules', 'tabris'));
     });
 
     it('throws if CLI version too high', function() {
-      tabrisProject._installedTabrisVersion = '2.0.0';
-      expect(() => tabrisProject.validateInstalledTabrisVersion('~3.0.0'))
+      tabrisApp._installedTabrisVersion = '2.0.0';
+      expect(() => tabrisApp.validateInstalledTabrisVersion('~3.0.0'))
         .to.throw(/Please migrate your app to tabris ~3.0.0/);
     });
 
     it('throws if CLI version too low', function() {
-      tabrisProject._installedTabrisVersion = '2.0.0';
-      expect(() => tabrisProject.validateInstalledTabrisVersion('~1.0.0'))
+      tabrisApp._installedTabrisVersion = '2.0.0';
+      expect(() => tabrisApp.validateInstalledTabrisVersion('~1.0.0'))
         .to.throw(/Make sure Tabris.js CLI is up to date./);
     });
 
     it('does not throw if CLI version matches version range', function() {
-      tabrisProject._installedTabrisVersion = '2.0.1';
-      expect(() => tabrisProject.validateInstalledTabrisVersion('~2.0.0')).not.to.throw();
+      tabrisApp._installedTabrisVersion = '2.0.1';
+      expect(() => tabrisApp.validateInstalledTabrisVersion('~2.0.0')).not.to.throw();
     });
 
   });
@@ -70,7 +70,7 @@ describe('TabrisProject', function() {
     let project;
 
     beforeEach(function() {
-      project = new TabrisProject(cwd);
+      project = new TabrisApp(cwd);
     });
 
     it('runs build scripts with platform', function() {
@@ -87,7 +87,7 @@ describe('TabrisProject', function() {
     let project;
 
     beforeEach(function() {
-      project = new TabrisProject(cwd);
+      project = new TabrisApp(cwd);
       proc.exec.callsFake(() => {
         let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
         mkdirsSync(tabrisModulePath);

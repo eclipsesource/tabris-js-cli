@@ -5,7 +5,7 @@ const log = require('./log');
 const proc = require('./proc');
 const semver = require('semver');
 
-class TabrisProject {
+class TabrisApp {
 
   constructor(path) {
     this._path = path;
@@ -29,7 +29,7 @@ class TabrisProject {
 
   createCordovaProject(destination) {
     this._copyCordovaFiles(destination);
-    this._copyJsProject(destination);
+    this._copyJsFiles(destination);
     this._installProductionDependencies(destination);
     this._installedTabrisVersion = this._getTabrisVersion(destination);
     return this;
@@ -52,8 +52,8 @@ class TabrisProject {
     copySync(`${this._path}/cordova`, destination);
   }
 
-  _copyJsProject(destination) {
-    log.command(`Copying app files to ${destination}/www/app/ ...`);
+  _copyJsFiles(destination) {
+    log.command(`Copying JavaScript files to ${destination}/www/app/ ...`);
     let tabrisignorePath = join(this._path, '.tabrisignore');
     let ig = ignore().add(['.git/', 'node_modules/', 'cordova/', relative(this._path, destination), '.tabrisignore']);
     if (existsSync(tabrisignorePath)) {
@@ -88,4 +88,4 @@ function statSafe(file) {
   }
 }
 
-module.exports = TabrisProject;
+module.exports = TabrisApp;

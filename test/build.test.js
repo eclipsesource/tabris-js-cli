@@ -68,7 +68,7 @@ const mockBinDir = join(__dirname, 'bin');
       expect(existsSync(join(cwd, 'build/cordova/foo/bar'))).to.be.true;
     });
 
-    it('copies project contents to build/cordova/www/app', function() {
+    it('copies JavaScript files to build/cordova/www/app', function() {
       mkdirsSync(join(cwd, 'src'));
       mkdirsSync(join(cwd, 'test'));
       writeFileSync(join(cwd, 'src/foo'), 'test');

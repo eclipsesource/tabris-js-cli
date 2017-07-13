@@ -2,7 +2,7 @@ const {join} = require('path');
 const {existsSync} = require('fs-extra');
 const program = require('commander');
 const {fail, handleErrors} = require('./errorHandler');
-const TabrisProject = require('./TabrisProject');
+const TabrisApp = require('./TabrisApp');
 const CordovaCli = require('./CordovaCli');
 const BuildKeyProvider = require('./BuildKeyProvider');
 const PlatformDownloader = require('./PlatformDownloader');
@@ -11,7 +11,7 @@ const {parseVariables} = require('./argumentsParser');
 const {homedir} = require('os');
 const packageJson = require('../package.json');
 
-const PROJECT_DIR = '.';
+const APP_DIR = '.';
 const CORDOVA_PROJECT_DIR = 'build/cordova';
 const CLI_DATA_DIR = join(homedir(), '.tabris-cli');
 const PLATFORMS_DIR = join(CLI_DATA_DIR, 'platforms');
@@ -50,7 +50,7 @@ function registerBuildCommand(name, description) {
       let platformEnvVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;
       let platformSpec = process.env[platformEnvVar];
       validateArguments({platform, debug: options.debug, release: options.release});
-      let {installedTabrisVersion} = new TabrisProject(PROJECT_DIR)
+      let {installedTabrisVersion} = new TabrisApp(APP_DIR)
         .runPackageJsonBuildScripts(platform)
         .createCordovaProject(CORDOVA_PROJECT_DIR)
         .validateInstalledTabrisVersion(`~${packageJson.version}`);
