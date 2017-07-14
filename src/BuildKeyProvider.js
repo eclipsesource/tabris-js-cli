@@ -24,14 +24,18 @@ class BuildKeyProvider {
         this._validateBuildKey(buildKey);
         return resolve(buildKey);
       }
-      promptly.prompt(BUILD_KEY_PROMPT_LABEL, {
-        silent: true,
-        replace: INPUT_REPLACE_CHAR,
-        validator: this._validateBuildKey
-      }).then(key => {
-        this._writeBuildKey(key);
-        resolve(key);
-      }).catch(reject);
+      this.promptBuildKey().then(resolve).catch(reject);
+    });
+  }
+
+  promptBuildKey() {
+    return promptly.prompt(BUILD_KEY_PROMPT_LABEL, {
+      silent: true,
+      replace: INPUT_REPLACE_CHAR,
+      validator: this._validateBuildKey
+    }).then(key => {
+      this._writeBuildKey(key);
+      return key;
     });
   }
 

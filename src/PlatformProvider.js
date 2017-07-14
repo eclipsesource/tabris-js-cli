@@ -30,7 +30,6 @@ module.exports = class PlatformProvider {
     }
     return this._buildKeyProvider.getBuildKey()
       .then((buildKey) => {
-        log.command(`Downloading ${platform} platform version ${version}...`);
         fs.mkdirsSync(this._platformsDir);
         return this._downloadPlatformZip(zipPath, buildKey, platform, version);
       })
@@ -48,6 +47,7 @@ module.exports = class PlatformProvider {
   }
 
   _downloadPlatformZip(platformZipPath, buildKey, platform, version) {
+    log.command(`Downloading ${platform} platform version ${version}...`);
     let options = {
       host: HOST,
       path: `${PATH}/${version}/${platform}`,
@@ -55,7 +55,9 @@ module.exports = class PlatformProvider {
     };
     return download.downloadFile(options, platformZipPath).catch(e => {
       if (e.statusCode === 401) {
-        throw new Error('Invalid build key.');
+        console.error('\nBuild key rejected. Please enter your key again.');
+        return this._buildKeyProvider.promptBuildKey()
+          .then(buildKey => this._downloadPlatformZip(platformZipPath, buildKey, platform, version));
       }
       throw new Error('Unable to download platform');
     });

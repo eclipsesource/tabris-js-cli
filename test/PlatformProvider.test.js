@@ -5,8 +5,8 @@ const https = require('https');
 const yazl = require('yazl');
 const temp = require('temp').track();
 const {expect, stub, restore, match} = require('./test');
-const log = require('../src/log');
 const PlatformProvider = require('../src/PlatformProvider');
+const log = require('../src/log');
 
 describe('PlatformProvider', function() {
 
@@ -14,6 +14,8 @@ describe('PlatformProvider', function() {
 
   beforeEach(function() {
     stub(log, 'command');
+    stub(console, 'error');
+    stub(https, 'get');
     process.env.TABRIS_BUILD_KEY = 'key';
     provider = new PlatformProvider();
   });
@@ -23,7 +25,7 @@ describe('PlatformProvider', function() {
     restore();
   });
 
-  describe('getPlatfrom', function() {
+  describe('getPlatform', function() {
 
     describe('when TABRIS_<platform>_PLATFORM is set', function() {
 
@@ -77,14 +79,34 @@ describe('PlatformProvider', function() {
         });
       });
 
-      it('fails with invalid build key on statusCode 401', function() {
+      it('prompts build key again when statusCode is 401', function() {
+        let promptBuildKey = stub(provider._buildKeyProvider, 'promptBuildKey');
+        promptBuildKey
+          .callsFake(() => {
+            fakeResponse(200);
+            return Promise.resolve('key');
+          });
         fakeResponse(401);
         return provider.getPlatform({version: 'foo', platform: 'bar'})
           .then(() => {
-            throw 'Expected rejection';
-          })
-          .catch((e) => {
-            expect(e.message).to.equal('Invalid build key.');
+            let platformPath = join(homeDir, '.tabris-cli', 'platforms', 'bar', 'foo');
+            expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
+          });
+      });
+
+      it('prompts build key more than one time when statusCode is 401', function() {
+        let promptBuildKey = stub(provider._buildKeyProvider, 'promptBuildKey');
+        promptBuildKey
+          .onCall(0).returns(Promise.resolve('key'))
+          .onCall(1).callsFake(() => {
+            fakeResponse(200);
+            return Promise.resolve('key');
+          });
+        fakeResponse(401);
+        return provider.getPlatform({version: 'foo', platform: 'bar'})
+          .then(() => {
+            let platformPath = join(homeDir, '.tabris-cli', 'platforms', 'bar', 'foo');
+            expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
           });
       });
 
@@ -114,14 +136,13 @@ describe('PlatformProvider', function() {
 });
 
 function fakeResponse(statusCode) {
-  stub(https, 'get');
   https.get
     .withArgs({
       host: 'tabrisjs.com',
       path: '/api/v1/downloads/cli/foo/bar',
       headers: {'X-Tabris-Access-Key': 'key'}
     }, match.func)
-    .callsArgWith(1, createPlatformResponseStream(statusCode))
+    .callsArgWith(1, statusCode === 200 ? createPlatformResponseStream(statusCode) : {statusCode})
     .returns({get: https.get, on: stub().returnsThis()});
 }
 
