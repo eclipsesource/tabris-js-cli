@@ -5,7 +5,7 @@ const {fail, handleErrors} = require('./errorHandler');
 const TabrisApp = require('./TabrisApp');
 const CordovaCli = require('./CordovaCli');
 const BuildKeyProvider = require('./BuildKeyProvider');
-const PlatformDownloader = require('./PlatformDownloader');
+const PlatformProvider = require('./PlatformProvider');
 const ConfigXml = require('./ConfigXml');
 const {parseVariables} = require('./argumentsParser');
 const {homedir} = require('os');
@@ -65,7 +65,7 @@ function registerBuildCommand(name, description) {
         executeCordovaCommands({name, platform, platformSpec, options});
       } else {
         new BuildKeyProvider(CLI_DATA_DIR).getBuildKey()
-          .then(buildKey => new PlatformDownloader({platform, buildKey, version: installedTabrisVersion})
+          .then(buildKey => new PlatformProvider({platform, buildKey, version: installedTabrisVersion})
               .download(PLATFORMS_DIR))
           .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, options}))
           .catch(fail);

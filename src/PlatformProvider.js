@@ -7,7 +7,7 @@ const download = require('./download');
 const PATH = '/api/v1/downloads/cli';
 const HOST = 'tabrisjs.com';
 
-module.exports = class PlatformDownloader {
+module.exports = class PlatformProvider {
 
   constructor({version, platform, buildKey}) {
     this._version = version;
