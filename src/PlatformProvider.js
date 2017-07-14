@@ -1,48 +1,57 @@
 const fs = require('fs-extra');
 const {join} = require('path');
 const log = require('./log');
+const os = require('os');
 const zip = require('./zip');
 const download = require('./download');
+const BuildKeyProvider = require('./BuildKeyProvider');
 
 const PATH = '/api/v1/downloads/cli';
 const HOST = 'tabrisjs.com';
 
 module.exports = class PlatformProvider {
 
-  constructor({version, platform, buildKey}) {
-    this._version = version;
-    this._platform = platform;
-    this._buildKey = buildKey;
+  constructor() {
+    this._cliDataDir = join(os.homedir(), '.tabris-cli');
+    this._platformsDir = join(this._cliDataDir, 'platforms');
+    this._buildKeyProvider = new BuildKeyProvider(this._cliDataDir);
   }
 
-  download(platformsDir) {
-    let zipPath = join(platformsDir, `.download-${this._platform}-${this._version}.zip`);
-    let extractedZipPath = join(platformsDir, `.extracted-${this._platform}-${this._version}`);
-    let destination = join(platformsDir, this._platform, this._version);
-    if (fs.existsSync(destination)) {
-      return Promise.resolve(destination);
+  getPlatform({version, platform}) {
+    let zipPath = join(this._platformsDir, `.download-${platform}-${version}.zip`);
+    let extractedZipPath = join(this._platformsDir, `.extracted-${platform}-${version}`);
+    let platformSpec = join(this._platformsDir, platform, version);
+    let envVarPlatformSpec = process.env[`TABRIS_${platform.toUpperCase()}_PLATFORM`];
+    if (envVarPlatformSpec) {
+      return Promise.resolve(envVarPlatformSpec);
     }
-    log.command(`Downloading ${this._platform} platform version ${this._version}...`);
-    fs.mkdirsSync(platformsDir);
-    return this._downloadPlatformZip(zipPath)
+    if (fs.existsSync(platformSpec)) {
+      return Promise.resolve(platformSpec);
+    }
+    return this._buildKeyProvider.getBuildKey()
+      .then((buildKey) => {
+        log.command(`Downloading ${platform} platform version ${version}...`);
+        fs.mkdirsSync(this._platformsDir);
+        return this._downloadPlatformZip(zipPath, buildKey, platform, version);
+      })
       .then(() => this._unzipPlatform(zipPath, extractedZipPath))
-      .then(() => fs.moveSync(join(extractedZipPath, `tabris-${this._platform}`), destination))
+      .then(() => fs.moveSync(join(extractedZipPath, `tabris-${platform}`), platformSpec))
       .then(() => {
         fs.removeSync(extractedZipPath);
         fs.removeSync(zipPath);
       })
-      .then(() => destination)
+      .then(() => platformSpec)
       .catch((e) => {
-        fs.removeSync(destination);
+        fs.removeSync(platformSpec);
         return Promise.reject(e);
       });
   }
 
-  _downloadPlatformZip(platformZipPath) {
+  _downloadPlatformZip(platformZipPath, buildKey, platform, version) {
     let options = {
       host: HOST,
-      path: `${PATH}/${this._version}/${this._platform}`,
-      headers: {'X-Tabris-Access-Key': this._buildKey}
+      path: `${PATH}/${version}/${platform}`,
+      headers: {'X-Tabris-Access-Key': buildKey}
     };
     return download.downloadFile(options, platformZipPath).catch(e => {
       if (e.statusCode === 401) {

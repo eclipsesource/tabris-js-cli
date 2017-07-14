@@ -4,17 +4,13 @@ const program = require('commander');
 const {fail, handleErrors} = require('./errorHandler');
 const TabrisApp = require('./TabrisApp');
 const CordovaCli = require('./CordovaCli');
-const BuildKeyProvider = require('./BuildKeyProvider');
 const PlatformProvider = require('./PlatformProvider');
 const ConfigXml = require('./ConfigXml');
 const {parseVariables} = require('./argumentsParser');
-const {homedir} = require('os');
 const packageJson = require('../package.json');
 
 const APP_DIR = '.';
 const CORDOVA_PROJECT_DIR = 'build/cordova';
-const CLI_DATA_DIR = join(homedir(), '.tabris-cli');
-const PLATFORMS_DIR = join(CLI_DATA_DIR, 'platforms');
 
 const PARAMS_DESCRIPTION = `
 
@@ -43,13 +39,11 @@ function registerBuildCommand(name, description) {
     .option('--verbose', 'print more verbose output')
     .description(description)
     .action(handleErrors((platform, options) => {
+      validateArguments({platform, debug: options.debug, release: options.release});
       let variableReplacements = Object.assign({
         IS_DEBUG: !!options.debug,
         IS_RELEASE: !!options.release
       }, options.replaceEnvVars && process.env, options.variables);
-      let platformEnvVar = `TABRIS_${platform.toUpperCase()}_PLATFORM`;
-      let platformSpec = process.env[platformEnvVar];
-      validateArguments({platform, debug: options.debug, release: options.release});
       let {installedTabrisVersion} = new TabrisApp(APP_DIR)
         .runPackageJsonBuildScripts(platform)
         .createCordovaProject(CORDOVA_PROJECT_DIR)
@@ -61,15 +55,9 @@ function registerBuildCommand(name, description) {
           .replaceVariables(variableReplacements)
           .writeTo(configXmlPath);
       }
-      if (platformSpec) {
-        executeCordovaCommands({name, platform, platformSpec, options});
-      } else {
-        new BuildKeyProvider(CLI_DATA_DIR).getBuildKey()
-          .then(buildKey => new PlatformProvider({platform, buildKey, version: installedTabrisVersion})
-              .download(PLATFORMS_DIR))
-          .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, options}))
-          .catch(fail);
-      }
+      new PlatformProvider().getPlatform({platform, version: installedTabrisVersion})
+        .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, options}))
+        .catch(fail);
     }));
 }
 
