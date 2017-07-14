@@ -51,7 +51,7 @@ module.exports = class PlatformProvider {
     let options = {
       host: HOST,
       path: `${PATH}/${version}/${platform}`,
-      headers: {'X-Tabris-Access-Key': buildKey}
+      headers: {'X-Tabris-Build-Key': buildKey}
     };
     return download.downloadFile(options, platformZipPath).catch(e => {
       if (e.statusCode === 401) {

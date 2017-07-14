@@ -140,7 +140,7 @@ function fakeResponse(statusCode) {
     .withArgs({
       host: 'tabrisjs.com',
       path: '/api/v1/downloads/cli/foo/bar',
-      headers: {'X-Tabris-Access-Key': 'key'}
+      headers: {'X-Tabris-Build-Key': 'key'}
     }, match.func)
     .callsArgWith(1, statusCode === 200 ? createPlatformResponseStream(statusCode) : {statusCode})
     .returns({get: https.get, on: stub().returnsThis()});
