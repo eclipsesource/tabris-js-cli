@@ -1,13 +1,6 @@
-const {join} = require('path');
-const {existsSync} = require('fs-extra');
 const program = require('commander');
-const {fail, handleErrors} = require('./errorHandler');
-const TabrisApp = require('./TabrisApp');
-const CordovaCli = require('./CordovaCli');
-const PlatformProvider = require('./PlatformProvider');
-const ConfigXml = require('./ConfigXml');
+const {handleErrors, fail} = require('./errorHandler');
 const {parseVariables} = require('./argumentsParser');
-const packageJson = require('../package.json');
 
 const APP_DIR = '.';
 const CORDOVA_PROJECT_DIR = 'build/cordova';
@@ -40,6 +33,13 @@ function registerBuildCommand(name, description) {
     .option('--verbose', 'print more verbose output')
     .description(description)
     .action(handleErrors((platform, cordovaPlatformOpts, options) => {
+      const TabrisApp = require('./TabrisApp');
+      const PlatformProvider = require('./PlatformProvider');
+      const ConfigXml = require('./ConfigXml');
+      const packageJson = require('../package.json');
+      const {join} = require('path');
+      const {existsSync} = require('fs-extra');
+
       validateArguments({platform, debug: options.debug, release: options.release});
       let variableReplacements = Object.assign({
         IS_DEBUG: !!options.debug,
@@ -63,6 +63,8 @@ function registerBuildCommand(name, description) {
 }
 
 function executeCordovaCommands({name, platform, platformSpec, options, cordovaPlatformOpts}) {
+  const CordovaCli = require('./CordovaCli');
+
   let platformAddOptions = [options.verbose && 'verbose'];
   let platformCommandOptions = [
     options.release && 'release' || options.debug && 'debug',
@@ -77,6 +79,8 @@ function executeCordovaCommands({name, platform, platformSpec, options, cordovaP
 }
 
 function validateArguments({debug, release, platform}) {
+  const {fail} = require('./errorHandler');
+
   if (debug && release) {
     fail('Cannot specify both --release and --debug');
   }

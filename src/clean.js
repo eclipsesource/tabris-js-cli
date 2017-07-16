@@ -1,4 +1,3 @@
-const {removeSync} = require('fs-extra');
 const program = require('commander');
 const {handleErrors} = require('./errorHandler');
 
@@ -8,6 +7,8 @@ program
   .command('clean')
   .description(DESCRIPTION)
   .action(handleErrors(() => {
+    const {removeSync} = require('fs-extra');
+
     console.log('Removing build folder build/cordova');
     removeSync('build/cordova');
   }));

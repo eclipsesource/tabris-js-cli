@@ -1,12 +1,5 @@
-const program = require('commander');
-const {readJsonSync, existsSync, lstat} = require('fs-extra');
-const ecstatic = require('ecstatic');
-const union = require('union');
-const {green, yellow, red, blue} = require('chalk');
-const os = require('os');
-const portscanner = require('portscanner');
-const {basename, join} = require('path');
 const {fail, handleErrors} = require('./errorHandler');
+const program = require('commander');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -23,6 +16,9 @@ program
   }));
 
 function serve(inputPath) {
+  const {join} = require('path');
+  const {readJsonSync, existsSync, lstat} = require('fs-extra');
+
   let appPath = inputPath || process.cwd();
   let addresses = getExternalAddresses();
   if (!addresses.length) {
@@ -48,6 +44,8 @@ function serve(inputPath) {
 }
 
 function serveFile(appPath, addresses) {
+  const {basename, join} = require('path');
+
   let servePackageJson = (req, res, next) => {
     if (req.url === '/package.json') {
       return res.json({main: basename(appPath)});
@@ -58,6 +56,9 @@ function serveFile(appPath, addresses) {
 }
 
 function startServer(appPath, addresses, middlewares = []) {
+  const ecstatic = require('ecstatic');
+  const union = require('union');
+
   let server = union.createServer({
     before: [requestLogger, ...middlewares, ecstatic({root: appPath})],
     onError: (err, req, res) => {
@@ -69,6 +70,8 @@ function startServer(appPath, addresses, middlewares = []) {
 }
 
 function onListening(server, addresses) {
+  const {green, yellow} = require('chalk');
+
   let port = server.address().port;
   console.log(
     yellow('Server started.\nPoint your Tabris.js client to:\n'),
@@ -82,6 +85,8 @@ function requestLogger(req, res, next) {
 }
 
 function log(req, err) {
+  const {red, blue} = require('chalk');
+
   if (!logging) {
     return;
   }
@@ -97,6 +102,8 @@ function log(req, err) {
 }
 
 function getExternalAddresses() {
+  const os = require('os');
+
   let interfaces = os.networkInterfaces();
   return Object.keys(interfaces)
     .map(key => interfaces[key].find(details => details.family === 'IPv4' && details.internal === false))
@@ -104,5 +111,7 @@ function getExternalAddresses() {
 }
 
 function findAvailablePort() {
+  const portscanner = require('portscanner');
+
   return portscanner.findAPortNotInUse(BASE_PORT, MAX_PORT, '127.0.0.1');
 }
