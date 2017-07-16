@@ -4,6 +4,7 @@
   "description": "Command line tool for Tabris.js",
   "dependencies": {
     "chalk": "^1.1.3",
+    "cli-progress": "^1.4.1",
     "commander": "^2.9.0",
     "cordova": "6.5.0",
     "ecstatic": "^2.1.0",

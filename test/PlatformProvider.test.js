@@ -117,7 +117,7 @@ describe('PlatformProvider', function() {
             throw 'Expected rejection';
           })
           .catch((e) => {
-            expect(e.message).to.equal('Unable to download platform');
+            expect(e.message).to.equal('Unable to download platform: Unexpected status code 1337');
           });
       });
 
@@ -142,7 +142,7 @@ function fakeResponse(statusCode) {
       path: '/api/v1/downloads/cli/foo/bar',
       headers: {'X-Tabris-Build-Key': 'key'}
     }, match.func)
-    .callsArgWith(1, statusCode === 200 ? createPlatformResponseStream(statusCode) : {statusCode})
+    .callsArgWith(1, statusCode === 200 ? createPlatformResponseStream(statusCode) : {statusCode, headers: {}})
     .returns({get: https.get, on: stub().returnsThis()});
 }
 
@@ -151,5 +151,6 @@ function createPlatformResponseStream(statusCode) {
   zipFile.addBuffer(Buffer.from('hello'), 'tabris-bar/foo.file');
   zipFile.end();
   zipFile.outputStream.statusCode = statusCode;
+  zipFile.outputStream.headers = {'content-length': 1000};
   return zipFile.outputStream;
 }

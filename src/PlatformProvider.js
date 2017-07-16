@@ -3,8 +3,9 @@ const {join} = require('path');
 const log = require('./log');
 const os = require('os');
 const zip = require('./zip');
-const download = require('./download');
+const {FileDownloader} = require('./download');
 const BuildKeyProvider = require('./BuildKeyProvider');
+const progress = require('cli-progress');
 
 const PATH = '/api/v1/downloads/cli';
 const HOST = 'tabrisjs.com';
@@ -53,13 +54,34 @@ module.exports = class PlatformProvider {
       path: `${PATH}/${version}/${platform}`,
       headers: {'X-Tabris-Build-Key': buildKey}
     };
-    return download.downloadFile(options, platformZipPath).catch(e => {
-      if (e.statusCode === 401) {
-        console.error('\nBuild key rejected. Please enter your key again.');
-        return this._buildKeyProvider.promptBuildKey()
-          .then(buildKey => this._downloadPlatformZip(platformZipPath, buildKey, platform, version));
-      }
-      throw new Error('Unable to download platform');
+    return new Promise((resolve, reject) => {
+      let progressBar = new progress.Bar({
+        clearOnComplete: true,
+        stopOnComplete: true,
+        format: ' {bar} {percentage}% | ETA: {eta}s | {value}/{total} MB'
+      }, progress.Presets.shades_classic);
+      new FileDownloader(options, platformZipPath)
+        .on('error', e => {
+          if (e.statusCode === 401) {
+            console.error('\nBuild key rejected. Please enter your key again.');
+            resolve(this._buildKeyProvider.promptBuildKey()
+              .then(buildKey => this._downloadPlatformZip(platformZipPath, buildKey, platform, version)));
+          } else {
+            reject(new Error('Unable to download platform: ' + e.message || e));
+          }
+        })
+        .on('done', resolve)
+        .on('progress', ({current, total}) => {
+          const MEGABYTE = 1000 * 1000;
+          let currentMb = (current / MEGABYTE).toFixed(2);
+          let totalMb = (total / MEGABYTE).toFixed(2);
+          if (!progressBar.started) {
+            progressBar.start(totalMb, currentMb);
+            return progressBar.started = true;
+          }
+          progressBar.update(currentMb);
+        })
+        .downloadFile(options, platformZipPath);
     });
   }
 
