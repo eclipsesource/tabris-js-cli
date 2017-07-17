@@ -14,7 +14,8 @@ const CORDOVA_PROJECT_DIR = 'build/cordova';
 
 const PARAMS_DESCRIPTION = `
 
-  <platform>:\t\tandroid, ios or windows
+  <platform>:\t\t\tandroid, ios or windows
+  [cordova-platform-opts...]:\tplatform-specific options passed to Cordova
 `;
 const BUILD_DESCRIPTION = `Builds a Tabris.js app. ${PARAMS_DESCRIPTION}`;
 const RUN_DESCRIPTION = `Builds a Tabris.js app and runs it on a connected device or emulator. ${PARAMS_DESCRIPTION}`;
@@ -28,7 +29,7 @@ registerBuildCommand('run', RUN_DESCRIPTION);
 
 function registerBuildCommand(name, description) {
   program
-    .command(`${name} <platform>`)
+    .command(`${name} <platform> [cordova-platform-opts...]`)
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
     .option('--cordova-build-config <path>', CORDOVA_BUILD_CONFIG_DESCRIPTION)
     .option('--debug', 'perform a debug build')
@@ -38,7 +39,7 @@ function registerBuildCommand(name, description) {
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
     .option('--verbose', 'print more verbose output')
     .description(description)
-    .action(handleErrors((platform, options) => {
+    .action(handleErrors((platform, cordovaPlatformOpts, options) => {
       validateArguments({platform, debug: options.debug, release: options.release});
       let variableReplacements = Object.assign({
         IS_DEBUG: !!options.debug,
@@ -56,12 +57,12 @@ function registerBuildCommand(name, description) {
           .writeTo(configXmlPath);
       }
       new PlatformProvider().getPlatform({platform, version: installedTabrisVersion})
-        .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, options}))
+        .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options}))
         .catch(fail);
     }));
 }
 
-function executeCordovaCommands({name, platform, platformSpec, options}) {
+function executeCordovaCommands({name, platform, platformSpec, options, cordovaPlatformOpts}) {
   let platformAddOptions = [options.verbose && 'verbose'];
   let platformCommandOptions = [
     options.release && 'release' || options.debug && 'debug',
@@ -72,7 +73,7 @@ function executeCordovaCommands({name, platform, platformSpec, options}) {
   ];
   new CordovaCli(CORDOVA_PROJECT_DIR)
     .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
-    .platformCommand(name, platform, {options: platformCommandOptions});
+    .platformCommand(name, platform, {options: platformCommandOptions, cordovaPlatformOpts});
 }
 
 function validateArguments({debug, release, platform}) {

@@ -118,6 +118,20 @@ describe('CordovaCli', function() {
       expect(proc.exec).to.have.been.calledWith('path/cordova', args);
     });
 
+    it('passes platformOpts to cordova', function() {
+      cli.platformCommand('command', 'platform', {cordovaPlatformOpts: ['foo', 'bar']});
+
+      let args = match.array.contains(['command', 'platform', '--', 'foo', 'bar']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args);
+    });
+
+    it('passes options and platformOpts to cordova', function() {
+      cli.platformCommand('command', 'platform', {options: ['baz'], cordovaPlatformOpts: ['foo']});
+
+      let args = match.array.contains(['command', 'platform', '--baz', '--', 'foo']);
+      expect(proc.exec).to.have.been.calledWith('path/cordova', args);
+    });
+
   });
 
 });

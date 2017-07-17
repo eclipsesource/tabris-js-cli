@@ -27,8 +27,8 @@ class CordovaCli {
     return this;
   }
 
-  platformCommand(command, platform, {options = []} = {}) {
-    this._execCordova([command, platform], options);
+  platformCommand(command, platform, {options = [], cordovaPlatformOpts = []} = {}) {
+    this._execCordova([command, platform], options, cordovaPlatformOpts);
     return this;
   }
 
@@ -46,9 +46,10 @@ class CordovaCli {
     return !!platforms[name];
   }
 
-  _execCordova(args, opts = []) {
+  _execCordova(args, opts = [], platformOpts = []) {
+    let nonOptionArgs = platformOpts.length ? ['--', ...platformOpts] : [];
     let options = opts.filter(truthy).map(opt => `--${opt}`);
-    proc.exec(this._cordovaPath, [...args, ...options, '--no-update-notifier'], {cwd: this._cwd});
+    proc.exec(this._cordovaPath, [...args, ...options, '--no-update-notifier', ...nonOptionArgs], {cwd: this._cwd});
   }
 
 }

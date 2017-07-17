@@ -9,8 +9,8 @@ The super tool for Tabris.js developers.
 * [Commands](#commands)
   + [`tabris init`](#tabris-init)
   + [`tabris serve [options] [path]`](#tabris-serve-options-path)
-  + [`tabris build [options] <platform>`](#tabris-build-options-platform)
-  + [`tabris run [options] <platform>`](#tabris-run-options-platform)
+  + [`tabris build [options] <platform> [cordova-platform-opts...]`](#tabris-build-options-platform-cordova-platform-opts)
+  + [`tabris run [options] <platform> [cordova-platform-opts...]`](#tabris-run-options-platform-cordova-platform-opts)
   + [`tabris clean`](#tabris-clean)
 * [License](#license)
 
@@ -40,7 +40,7 @@ The file or directory to serve the Tabris.js app from. When ommitted, the curren
 
 Enables request logging.
 
-### `tabris build [options] <platform>`
+### `tabris build [options] <platform> [cordova-platform-opts]`
 
 Builds a Tabris.js app for the given platform.
 
@@ -100,7 +100,13 @@ Do not replace environment variables in config.xml.
 
 Print more verbose output.
 
-### `tabris run [options] <platform>`
+#### cordova-platform-opts
+
+Platform-specific options passed to Cordova.
+
+*See: [Platform-specific options - Cordova CLI Reference](https://cordova.apache.org/docs/en/6.x/reference/cordova-cli/#platform-specific-options)*
+
+### `tabris run [options] <platform> [cordova-platform-opts]`
 
 Builds a Tabris.js app and runs it on a connected device or emulator.
 

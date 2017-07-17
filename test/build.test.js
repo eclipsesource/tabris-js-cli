@@ -141,6 +141,15 @@ const mockBinDir = join(__dirname, 'bin');
       );
     });
 
+    it('passes platformOpts to Cordova', function() {
+      let result = spawnSync('node', [tabris, command, 'android', '--', '--foo=bar', '--baz=foo'], opts);
+
+      expect(result.status).to.equal(0);
+      expect(result.stdout).to.contain(
+        `CORDOVA ${command} android --no-update-notifier -- --foo=bar --baz=foo [${join(cwd, 'build/cordova')}]`
+      );
+    });
+
     it('replaces given variables in config.xml', function() {
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"><name>$VAR1 $VAR2</name></widget>');
 
