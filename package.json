@@ -8,7 +8,7 @@
     "commander": "^2.9.0",
     "cordova": "6.5.0",
     "ecstatic": "^2.1.0",
-    "fs-extra": "^3.0.0",
+    "fs-extra": "^4.0.0",
     "generator-tabris-js": "2.0.0-rc2",
     "ignore": "^3.2.4",
     "portscanner": "^2.1.0",
