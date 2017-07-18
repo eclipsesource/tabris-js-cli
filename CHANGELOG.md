@@ -1,3 +1,17 @@
+## 2.0.0
+
+The serve command now checks for a valid `package.json` file.
+
+The build command now downloads the native platforms automatically and keeps them in a cache. The environment variables `TABRIS_ANDROID_PLATFORM`, `TABRIS_IOS_PLATFORM`, and `TABRIS_WINDOWS_PLATFORM` are not needed anymore. Please unset these variables to enable the download.
+
+To download the platforms, the CLI will now ask for your build key. This key is available on tabrisjs.com. Once entered, the key is stored in `~/.tabris-cli/build.key`.
+
+## 2.0.0 RC2
+
+Cordova is now a dependency of the Tabris CLI and doesn't need to be installed separately anymore.
+
+The version of `tabris-cli` is adjusted to correspond with the `tabris` module.
+
 ## 0.6.0
 
 ### tabris build/run
