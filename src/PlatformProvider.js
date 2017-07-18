@@ -1,7 +1,6 @@
 const fs = require('fs-extra');
 const {join} = require('path');
 const log = require('./log');
-const os = require('os');
 const zip = require('./zip');
 const {FileDownloader} = require('./download');
 const BuildKeyProvider = require('./BuildKeyProvider');
@@ -12,10 +11,9 @@ const HOST = 'tabrisjs.com';
 
 module.exports = class PlatformProvider {
 
-  constructor() {
-    this._cliDataDir = join(os.homedir(), '.tabris-cli');
-    this._platformsDir = join(this._cliDataDir, 'platforms');
-    this._buildKeyProvider = new BuildKeyProvider(this._cliDataDir);
+  constructor(cliDataDir) {
+    this._platformsDir = join(cliDataDir, 'platforms');
+    this._buildKeyProvider = new BuildKeyProvider(cliDataDir);
   }
 
   getPlatform({version, platform}) {

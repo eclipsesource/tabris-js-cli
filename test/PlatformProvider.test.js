@@ -1,6 +1,5 @@
 const {mkdirsSync, existsSync, readFileSync} = require('fs-extra');
 const {join} = require('path');
-const os = require('os');
 const https = require('https');
 const yazl = require('yazl');
 const temp = require('temp').track();
@@ -10,14 +9,15 @@ const log = require('../src/log');
 
 describe('PlatformProvider', function() {
 
-  let homeDir, provider;
+  let cliDataDir, provider;
 
   beforeEach(function() {
     stub(log, 'command');
     stub(console, 'error');
     stub(https, 'get');
     process.env.TABRIS_BUILD_KEY = 'key';
-    provider = new PlatformProvider();
+    cliDataDir = temp.mkdirSync('cliDataDir');
+    provider = new PlatformProvider(cliDataDir);
   });
 
   afterEach(() => {
@@ -48,13 +48,11 @@ describe('PlatformProvider', function() {
     describe('when TABRIS_<platform>_PLATFORM is not set', function() {
 
       beforeEach(function() {
-        homeDir = temp.mkdirSync('home');
-        stub(os, 'homedir').returns(homeDir);
-        provider = new PlatformProvider();
+        provider = new PlatformProvider(cliDataDir);
       });
 
       it('resolves with platform spec when platform exists at location', function() {
-        let platformPath = join(homeDir, '.tabris-cli', 'platforms', 'bar', 'foo');
+        let platformPath = join(cliDataDir, 'platforms', 'bar', 'foo');
         mkdirsSync(platformPath);
         return provider.getPlatform({version: 'foo', platform: 'bar'}).then(platform => {
           expect(platform).to.equal(platformPath);
@@ -64,7 +62,7 @@ describe('PlatformProvider', function() {
       it('downloads and extracts platform', function() {
         fakeResponse(200);
         return provider.getPlatform({version: 'foo', platform: 'bar'}).then(() => {
-          let platformPath = join(homeDir, '.tabris-cli', 'platforms', 'bar', 'foo');
+          let platformPath = join(cliDataDir, 'platforms', 'bar', 'foo');
 
           expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
         });
@@ -73,7 +71,7 @@ describe('PlatformProvider', function() {
       it('resolves with platform spec', function() {
         fakeResponse(200);
         return provider.getPlatform({version: 'foo', platform: 'bar'}).then(platform => {
-          let platformPath = join(homeDir, '.tabris-cli', 'platforms', 'bar', 'foo');
+          let platformPath = join(cliDataDir, 'platforms', 'bar', 'foo');
 
           expect(platform).to.equal(platformPath);
         });
@@ -89,7 +87,7 @@ describe('PlatformProvider', function() {
         fakeResponse(401);
         return provider.getPlatform({version: 'foo', platform: 'bar'})
           .then(() => {
-            let platformPath = join(homeDir, '.tabris-cli', 'platforms', 'bar', 'foo');
+            let platformPath = join(cliDataDir, 'platforms', 'bar', 'foo');
             expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
           });
       });
@@ -105,7 +103,7 @@ describe('PlatformProvider', function() {
         fakeResponse(401);
         return provider.getPlatform({version: 'foo', platform: 'bar'})
           .then(() => {
-            let platformPath = join(homeDir, '.tabris-cli', 'platforms', 'bar', 'foo');
+            let platformPath = join(cliDataDir, 'platforms', 'bar', 'foo');
             expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
           });
       });
@@ -124,8 +122,8 @@ describe('PlatformProvider', function() {
       it('removes temporal files', function() {
         fakeResponse(200);
         return provider.getPlatform({version: 'foo', platform: 'bar'}).then(() => {
-          expect(existsSync(join(homeDir, '.tabris-cli', 'platforms', '.extracted-bar-foo'))).to.be.false;
-          expect(existsSync(join(homeDir, '.tabris-cli', 'platforms', '.download-bar-foo.zip'))).to.be.false;
+          expect(existsSync(join(cliDataDir, 'platforms', '.extracted-bar-foo'))).to.be.false;
+          expect(existsSync(join(cliDataDir, 'platforms', '.download-bar-foo.zip'))).to.be.false;
         });
       });
 

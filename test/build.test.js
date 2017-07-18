@@ -14,16 +14,17 @@ const mockBinDir = join(__dirname, 'bin');
 
     this.timeout(10000);
 
-    let cwd, env, opts;
+    let cwd, env, opts, home;
 
     beforeEach(function() {
       let dir = temp.mkdirSync('test');
       cwd = realpathSync(dir);
-      mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/ios/${packageJson.version}`));
-      mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/android/${packageJson.version}`));
-      mkdirsSync(join(cwd, `test_home/tabris-cli/platforms/windows/${packageJson.version}`));
+      home = join(cwd, 'test_home');
+      mkdirsSync(join(home, '.tabris-cli', 'platforms', 'ios', packageJson.version));
+      mkdirsSync(join(home, '.tabris-cli', 'platforms', 'android', packageJson.version));
+      mkdirsSync(join(home, '.tabris-cli', 'platforms', 'windows', packageJson.version));
       env = {
-        HOME: join(cwd, 'test_home'),
+        HOME: home,
         PATH: mockBinDir + ':' + process.env.PATH,
         TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
         TABRIS_IOS_PLATFORM: 'path/to/tabris-ios',
@@ -79,6 +80,18 @@ const mockBinDir = join(__dirname, 'bin');
       expect(result.status).to.equal(0);
       expect(existsSync(join(cwd, 'build/cordova/www/app/src/foo'))).to.be.true;
       expect(existsSync(join(cwd, 'build/cordova/www/app/test/foo'))).to.be.true;
+    });
+
+    it('creates build-key.sha256 in build/cordova/www/app', function() {
+      writeFileSync(join(home, '.tabris-cli', 'build.key'), 'key');
+      let buildKeyHashPath = join(cwd, 'build/cordova/www/build-key.sha256');
+      let buildKeyHash = '2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683';
+
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
+
+      expect(result.stderr).to.equal('');
+      expect(result.status).to.equal(0);
+      expect(readFileSync(buildKeyHashPath, 'utf8')).to.equal(buildKeyHash);
     });
 
     it('calls cordova commands', function() {

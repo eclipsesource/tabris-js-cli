@@ -1,9 +1,14 @@
+const crypto = require('crypto');
+const os = require('os');
+const {join} = require('path');
+const {writeFile, existsSync, readFileSync} = require('fs-extra');
 const program = require('commander');
 const {handleErrors, fail} = require('./errorHandler');
 const {parseVariables} = require('./argumentsParser');
 
 const APP_DIR = '.';
 const CORDOVA_PROJECT_DIR = 'build/cordova';
+const CLI_DATA_DIR = join(os.homedir(), '.tabris-cli');
 
 const PARAMS_DESCRIPTION = `
 
@@ -56,8 +61,12 @@ function registerBuildCommand(name, description) {
           .replaceVariables(variableReplacements)
           .writeTo(configXmlPath);
       }
-      new PlatformProvider().getPlatform({platform, version: installedTabrisVersion})
-        .then(platformSpec => executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options}))
+      new PlatformProvider(CLI_DATA_DIR).getPlatform({platform, version: installedTabrisVersion})
+        .then(platformSpec => {
+          return copyBuildKeyHash().then(() =>
+            executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options})
+          );
+        })
         .catch(fail);
     }));
 }
@@ -88,3 +97,25 @@ function validateArguments({debug, release, platform}) {
     fail('Invalid platform: ' + platform);
   }
 }
+
+function copyBuildKeyHash() {
+  let buildKeyPath = join(CLI_DATA_DIR, 'build.key');
+  let buildKeyHashPath = join(CORDOVA_PROJECT_DIR, 'www', 'build-key.sha256');
+  return new Promise((resolve, reject) => {
+    if (!existsSync(buildKeyPath)) {
+      return resolve();
+    }
+    let hash = crypto.createHash('sha256');
+    hash.on('readable', () => {
+      let data = hash.read();
+      if (data) {
+        writeFile(buildKeyHashPath, data.toString('hex'))
+          .then(resolve)
+          .catch(reject);
+      }
+    });
+    hash.write(readFileSync(buildKeyPath, 'utf8').trim());
+    hash.end();
+  });
+}
+
