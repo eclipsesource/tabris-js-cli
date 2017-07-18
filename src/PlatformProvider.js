@@ -33,16 +33,11 @@ module.exports = class PlatformProvider {
         return this._downloadPlatformZip(zipPath, buildKey, platform, version);
       })
       .then(() => this._unzipPlatform(zipPath, extractedZipPath))
-      .then(() => fs.moveSync(join(extractedZipPath, `tabris-${platform}`), platformSpec))
-      .then(() => {
-        fs.removeSync(extractedZipPath);
-        fs.removeSync(zipPath);
-      })
+      .then(() => fs.move(join(extractedZipPath, `tabris-${platform}`), platformSpec))
+      .then(() => fs.remove(extractedZipPath))
+      .then(() => fs.remove(zipPath))
       .then(() => platformSpec)
-      .catch((e) => {
-        fs.removeSync(platformSpec);
-        return Promise.reject(e);
-      });
+      .catch((e) => fs.remove(platformSpec).then(() => Promise.reject(e)));
   }
 
   _downloadPlatformZip(platformZipPath, buildKey, platform, version) {
