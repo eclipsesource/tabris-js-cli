@@ -46,21 +46,34 @@ describe('TabrisApp', function() {
       mkdirsSync(join(cwd, 'www', 'app', 'node_modules', 'tabris'));
     });
 
-    it('throws if CLI version too high', function() {
+    it('does not throw if tabris has lower patch version', function() {
       tabrisApp._installedTabrisVersion = '2.0.0';
-      expect(() => tabrisApp.validateInstalledTabrisVersion('~3.0.0'))
-        .to.throw(/Please migrate your app to tabris ~3.0.0/);
+      expect(() => tabrisApp.validateInstalledTabrisVersion('2.0.1'))
+        .not.to.throw();
     });
 
-    it('throws if CLI version too low', function() {
-      tabrisApp._installedTabrisVersion = '2.0.0';
-      expect(() => tabrisApp.validateInstalledTabrisVersion('~1.0.0'))
-        .to.throw(/Make sure Tabris.js CLI is up to date./);
+    it('does not throw if tabris has higher patch version', function() {
+      tabrisApp._installedTabrisVersion = '2.0.2';
+      expect(() => tabrisApp.validateInstalledTabrisVersion('2.0.1'))
+        .not.to.throw();
     });
 
-    it('does not throw if CLI version matches version range', function() {
-      tabrisApp._installedTabrisVersion = '2.0.1';
-      expect(() => tabrisApp.validateInstalledTabrisVersion('~2.0.0')).not.to.throw();
+    it('throws if tabris version is lower', function() {
+      tabrisApp._installedTabrisVersion = '2.0.0';
+      expect(() => tabrisApp.validateInstalledTabrisVersion('2.1.3'))
+        .to.throw(/App uses incompatible tabris version: 2.0.0, 2.1.x required/);
+    });
+
+    it('throws if tabris version is higher', function() {
+      tabrisApp._installedTabrisVersion = '2.2.0';
+      expect(() => tabrisApp.validateInstalledTabrisVersion('2.1.3'))
+        .to.throw(/App uses incompatible tabris version: 2.2.0, 2.1.x required/);
+    });
+
+    it('throws if tabris version is invalid', function() {
+      tabrisApp._installedTabrisVersion = 'bogus.crap';
+      expect(() => tabrisApp.validateInstalledTabrisVersion('2.1.3'))
+        .to.throw(/App uses invalid tabris version: bogus.crap/);
     });
 
   });

@@ -35,14 +35,16 @@ class TabrisApp {
     return this;
   }
 
-  validateInstalledTabrisVersion(range) {
-    if (!semver.satisfies(this.installedTabrisVersion, range)) {
-      let message =
-        `App uses incompatible Tabris.js version ${this.installedTabrisVersion}, ${range} required.\n` +
-        (semver.gtr(this.installedTabrisVersion, range) ?
-          'Make sure Tabris.js CLI is up to date.' :
-          `Please migrate your app to tabris ${range}.`);
-      throw new Error(message);
+  validateInstalledTabrisVersion(version) {
+    let actual = this.installedTabrisVersion;
+    if (!semver.valid(actual)) {
+      throw Error('App uses invalid tabris version: ' + actual);
+    }
+    let match = semver.major(version) === semver.major(actual) &&
+                semver.minor(version) === semver.minor(actual);
+    if (!match) {
+      let required = [semver.major(version), semver.minor(version), 'x'].join('.');
+      throw new Error(`App uses incompatible tabris version: ${actual}, ${required} required.\n`);
     }
     return this;
   }

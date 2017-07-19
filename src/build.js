@@ -53,7 +53,7 @@ function registerBuildCommand(name, description) {
       let {installedTabrisVersion} = new TabrisApp(APP_DIR)
         .runPackageJsonBuildScripts(platform)
         .createCordovaProject(CORDOVA_PROJECT_DIR)
-        .validateInstalledTabrisVersion(`~${packageJson.version}`);
+        .validateInstalledTabrisVersion(packageJson.version);
       let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
       if (existsSync(configXmlPath)) {
         ConfigXml.readFrom(configXmlPath)
