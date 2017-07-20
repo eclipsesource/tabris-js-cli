@@ -7,7 +7,7 @@ const BuildKeyProvider = require('./BuildKeyProvider');
 const progress = require('cli-progress');
 
 const PATH = '/api/v1/downloads/cli';
-const HOST = 'tabrisjs.com';
+const HOST = process.env.TABRIS_HOST || 'tabrisjs.com';
 
 module.exports = class PlatformProvider {
 
