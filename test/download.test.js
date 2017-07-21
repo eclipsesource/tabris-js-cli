@@ -1,7 +1,7 @@
 const {join} = require('path');
 const temp = require('temp').track();
 const {expect, stub, restore} = require('./test');
-const {FileDownloader} = require('../src/download');
+const {FileDownloader} = require('../src/helpers/download');
 const https = require('https');
 const stream = require('stream');
 

@@ -3,7 +3,7 @@ const {realpathSync, writeFileSync, createWriteStream, readFileSync, outputFileS
 const {join} = require('path');
 const temp = require('temp').track();
 const {expect} = require('./test');
-const {unzip} = require('../src/zip');
+const {unzip} = require('../src/helpers/zip');
 
 describe('zip', function() {
 

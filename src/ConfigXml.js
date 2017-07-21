@@ -1,7 +1,7 @@
 const {join} = require('path');
 const {writeFileSync, readFileSync} = require('fs-extra');
 const {Parser, Builder} = require('xml2js');
-const log = require('./log');
+const log = require('./helpers/log');
 
 module.exports = class ConfigXml {
 

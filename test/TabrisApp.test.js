@@ -1,8 +1,8 @@
 const {mkdirsSync, mkdirSync, existsSync, removeSync, writeFileSync, realpathSync} = require('fs-extra');
 const {join} = require('path');
 const temp = require('temp').track();
-const proc = require('../src/proc');
-const log = require('../src/log');
+const proc = require('../src/helpers/proc');
+const log = require('../src/helpers/log');
 const {expect, stub, restore} = require('./test');
 const TabrisApp = require('../src/TabrisApp');
 

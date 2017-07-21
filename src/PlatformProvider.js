@@ -1,8 +1,8 @@
 const fs = require('fs-extra');
 const {join} = require('path');
-const log = require('./log');
-const zip = require('./zip');
-const {FileDownloader} = require('./download');
+const log = require('./helpers/log');
+const zip = require('./helpers/zip');
+const {FileDownloader} = require('./helpers/download');
 const BuildKeyProvider = require('./BuildKeyProvider');
 const progress = require('cli-progress');
 

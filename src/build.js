@@ -3,8 +3,8 @@ const os = require('os');
 const {join} = require('path');
 const {writeFile, existsSync, readFileSync} = require('fs-extra');
 const program = require('commander');
-const {handleErrors, fail} = require('./errorHandler');
-const {parseVariables} = require('./argumentsParser');
+const {handleErrors, fail} = require('./helpers/errorHandler');
+const {parseVariables} = require('./helpers/argumentsParser');
 
 const APP_DIR = '.';
 const CORDOVA_PROJECT_DIR = 'build/cordova';
@@ -88,7 +88,7 @@ function executeCordovaCommands({name, platform, platformSpec, options, cordovaP
 }
 
 function validateArguments({debug, release, platform}) {
-  const {fail} = require('./errorHandler');
+  const {fail} = require('./helpers/errorHandler');
 
   if (debug && release) {
     fail('Cannot specify both --release and --debug');

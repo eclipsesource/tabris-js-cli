@@ -1,5 +1,5 @@
 const program = require('commander');
-const {handleErrors} = require('./errorHandler');
+const {handleErrors} = require('./helpers/errorHandler');
 
 program.command('init')
   .description('Create a new Tabris.js app in the current directory.')

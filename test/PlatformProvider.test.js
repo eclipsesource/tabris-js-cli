@@ -5,7 +5,7 @@ const yazl = require('yazl');
 const temp = require('temp').track();
 const {expect, stub, restore, match} = require('./test');
 const PlatformProvider = require('../src/PlatformProvider');
-const log = require('../src/log');
+const log = require('../src/helpers/log');
 
 describe('PlatformProvider', function() {
 

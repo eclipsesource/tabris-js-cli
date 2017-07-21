@@ -1,8 +1,8 @@
 const {copySync, statSync, readFileSync, existsSync} = require('fs-extra');
 const {relative, join} = require('path');
 const ignore = require('ignore');
-const log = require('./log');
-const proc = require('./proc');
+const log = require('./helpers/log');
+const proc = require('./helpers/proc');
 const semver = require('semver');
 
 class TabrisApp {

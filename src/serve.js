@@ -1,4 +1,4 @@
-const {fail, handleErrors} = require('./errorHandler');
+const {fail, handleErrors} = require('./helpers/errorHandler');
 const program = require('commander');
 
 const BASE_PORT = 8080;

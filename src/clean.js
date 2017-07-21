@@ -1,5 +1,5 @@
 const program = require('commander');
-const {handleErrors} = require('./errorHandler');
+const {handleErrors} = require('./helpers/errorHandler');
 
 const DESCRIPTION = 'Cleans build artifacts.';
 

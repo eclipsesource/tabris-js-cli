@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const {realpathSync, mkdirSync, mkdirsSync, writeFileSync} = require('fs-extra');
 const temp = require('temp').track();
-const proc = require('../src/proc');
+const proc = require('../src/helpers/proc');
 const {join} = require('path');
 const {expect, stub, restore, match} = require('./test');
 const CordovaCli = require('../src/CordovaCli');

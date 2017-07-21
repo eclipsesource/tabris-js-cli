@@ -1,4 +1,4 @@
-const {parseVariables} = require('../src/argumentsParser');
+const {parseVariables} = require('../src/helpers/argumentsParser');
 const {expect} = require('./test');
 
 describe('argumentsParser', function() {
