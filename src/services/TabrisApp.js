@@ -1,4 +1,4 @@
-const {copySync, statSync, readFileSync, existsSync} = require('fs-extra');
+const {copySync, statSync, readFileSync, readJsonSync, existsSync} = require('fs-extra');
 const {relative, join} = require('path');
 const ignore = require('ignore');
 const semver = require('semver');
@@ -11,6 +11,9 @@ class TabrisApp {
     this._path = path;
     if (!existsSync(`${path}/package.json`)) {
       throw 'Could not find package.json';
+    }
+    if (!readJsonSync(`${path}/package.json`).main) {
+      throw 'package.json must contain a "main" field';
     }
     if (!existsSync(`${path}/cordova`)) {
       throw 'Could not find cordova directory';

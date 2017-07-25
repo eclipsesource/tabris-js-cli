@@ -15,7 +15,7 @@ describe('TabrisApp', function() {
     stub(proc, 'execSync');
     let dir = temp.mkdirSync('test');
     cwd = realpathSync(dir);
-    writeFileSync(join(cwd, 'package.json'), '{}');
+    writeFileSync(join(cwd, 'package.json'), '{"main": "foo.js"}');
     mkdirSync(join(cwd, 'cordova'));
   });
 
@@ -27,6 +27,12 @@ describe('TabrisApp', function() {
       removeSync(join(cwd, 'package.json'));
 
       expect(() => new TabrisApp(cwd)).to.throw('Could not find package.json');
+    });
+
+    it('fails if package.json does not contain a main field', function() {
+      writeFileSync(join(cwd, 'package.json'), '{}');
+
+      expect(() => new TabrisApp(cwd)).to.throw('package.json must contain a "main" field');
     });
 
     it('fails if cordova/ is missing', function() {

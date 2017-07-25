@@ -32,7 +32,7 @@ const mockBinDir = join(__dirname, 'bin');
       };
       opts = {cwd, env, encoding: 'utf8'};
       mkdirsSync(join(cwd, 'cordova'));
-      writeFileSync(join(cwd, 'package.json'), '{}');
+      writeFileSync(join(cwd, 'package.json'), '{"main": "foo.js"}');
       mkdirsSync(join(cwd, 'test_install/node_modules/tabris'));
       writeFileSync(join(cwd, 'test_install/node_modules/tabris/package.json'),
         `{"version": "${packageJson.version}"}`);
