@@ -11,7 +11,7 @@ class CordovaCli {
   }
 
   _resolveCordovaPath() {
-    let binPath = proc.exec('npm', ['bin'], {cwd: __dirname, stdio: 'pipe'});
+    let binPath = proc.execSync('npm', ['bin'], {cwd: __dirname, stdio: 'pipe'});
     let dir = binPath.stdout.toString().trim();
     this._cordovaPath = join(dir, 'cordova');
   }
@@ -49,7 +49,7 @@ class CordovaCli {
   _execCordova(args, opts = [], platformOpts = []) {
     let nonOptionArgs = platformOpts.length ? ['--', ...platformOpts] : [];
     let options = opts.filter(truthy).map(opt => `--${opt}`);
-    proc.exec(this._cordovaPath, [...args, ...options, '--no-update-notifier', ...nonOptionArgs], {cwd: this._cwd});
+    proc.execSync(this._cordovaPath, [...args, ...options, '--no-update-notifier', ...nonOptionArgs], {cwd: this._cwd});
   }
 
 }

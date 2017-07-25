@@ -22,8 +22,8 @@ class TabrisApp {
   }
 
   runPackageJsonBuildScripts(platform) {
-    proc.exec('npm', ['run', '--if-present', `build:${platform}`]);
-    proc.exec('npm', ['run', '--if-present', 'build']);
+    proc.execSync('npm', ['run', '--if-present', `build:${platform}`]);
+    proc.execSync('npm', ['run', '--if-present', 'build']);
     return this;
   }
 
@@ -71,7 +71,7 @@ class TabrisApp {
   }
 
   _installProductionDependencies(destination) {
-    proc.exec('npm', ['install', '--production'], {cwd: join(destination, 'www/app')});
+    proc.execSync('npm', ['install', '--production'], {cwd: join(destination, 'www/app')});
   }
 
   _getTabrisVersion(cordovaProjectPath) {
