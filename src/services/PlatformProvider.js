@@ -1,10 +1,10 @@
-const fs = require('fs-extra');
 const {join} = require('path');
-const log = require('./helpers/log');
-const zip = require('./helpers/zip');
-const {FileDownloader} = require('./helpers/download');
-const BuildKeyProvider = require('./BuildKeyProvider');
+const fs = require('fs-extra');
 const progress = require('cli-progress');
+const log = require('../helpers/log');
+const zip = require('../helpers/zip');
+const {FileDownloader} = require('../helpers/download');
+const BuildKeyProvider = require('./BuildKeyProvider');
 
 const PATH = '/api/v1/downloads/cli';
 const HOST = process.env.TABRIS_HOST || 'tabrisjs.com';

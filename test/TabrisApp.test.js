@@ -4,7 +4,7 @@ const temp = require('temp').track();
 const proc = require('../src/helpers/proc');
 const log = require('../src/helpers/log');
 const {expect, stub, restore} = require('./test');
-const TabrisApp = require('../src/TabrisApp');
+const TabrisApp = require('../src/services/TabrisApp');
 
 describe('TabrisApp', function() {
 

@@ -1,5 +1,5 @@
-const fs = require('fs-extra');
 const {join, dirname} = require('path');
+const fs = require('fs-extra');
 const promptly = require('promptly');
 
 const BUILD_KEY_PROMPT_LABEL = 'Build key (https://tabrisjs.com/settings/account):';

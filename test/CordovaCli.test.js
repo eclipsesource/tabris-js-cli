@@ -4,7 +4,7 @@ const temp = require('temp').track();
 const proc = require('../src/helpers/proc');
 const {join} = require('path');
 const {expect, stub, restore, match} = require('./test');
-const CordovaCli = require('../src/CordovaCli');
+const CordovaCli = require('../src/services/CordovaCli');
 
 describe('CordovaCli', function() {
 

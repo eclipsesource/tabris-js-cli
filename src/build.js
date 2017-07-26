@@ -38,9 +38,9 @@ function registerBuildCommand(name, description) {
     .option('--verbose', 'print more verbose output')
     .description(description)
     .action(handleErrors((platform, cordovaPlatformOpts, options) => {
-      const TabrisApp = require('./TabrisApp');
-      const PlatformProvider = require('./PlatformProvider');
-      const ConfigXml = require('./ConfigXml');
+      const TabrisApp = require('./services/TabrisApp');
+      const PlatformProvider = require('./services/PlatformProvider');
+      const ConfigXml = require('./services/ConfigXml');
       const packageJson = require('../package.json');
       const {join} = require('path');
       const {existsSync} = require('fs-extra');
@@ -72,7 +72,7 @@ function registerBuildCommand(name, description) {
 }
 
 function executeCordovaCommands({name, platform, platformSpec, options, cordovaPlatformOpts}) {
-  const CordovaCli = require('./CordovaCli');
+  const CordovaCli = require('./services/CordovaCli');
 
   let platformAddOptions = [options.verbose && 'verbose'];
   let platformCommandOptions = [

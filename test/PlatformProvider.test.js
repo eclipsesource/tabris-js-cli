@@ -4,7 +4,7 @@ const https = require('https');
 const yazl = require('yazl');
 const temp = require('temp').track();
 const {expect, stub, restore, match} = require('./test');
-const PlatformProvider = require('../src/PlatformProvider');
+const PlatformProvider = require('../src/services/PlatformProvider');
 const log = require('../src/helpers/log');
 
 describe('PlatformProvider', function() {

@@ -1,7 +1,7 @@
 const {join} = require('path');
 const fs = require('fs-extra');
 const {existsSync, readFileSync} = require('fs-extra');
-const proc = require('./helpers/proc');
+const proc = require('../helpers/proc');
 
 class CordovaCli {
 
