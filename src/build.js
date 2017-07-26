@@ -26,6 +26,7 @@ registerBuildCommand('build', BUILD_DESCRIPTION);
 registerBuildCommand('run', RUN_DESCRIPTION);
 
 function registerBuildCommand(name, description) {
+  let buildFn = (...args) => build(name, ...args);
   program
     .command(`${name} <platform> [cordova-platform-opts...]`)
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
@@ -37,38 +38,40 @@ function registerBuildCommand(name, description) {
     .option('--no-replace-env-vars', 'do not replace environment variables in config.xml')
     .option('--verbose', 'print more verbose output')
     .description(description)
-    .action(handleErrors((platform, cordovaPlatformOpts, options) => {
-      const TabrisApp = require('./services/TabrisApp');
-      const PlatformProvider = require('./services/PlatformProvider');
-      const ConfigXml = require('./services/ConfigXml');
-      const packageJson = require('../package.json');
-      const {join} = require('path');
-      const {existsSync} = require('fs-extra');
+    .action(handleErrors(buildFn));
+}
 
-      validateArguments({platform, debug: options.debug, release: options.release});
-      let variableReplacements = Object.assign({
-        IS_DEBUG: !!options.debug,
-        IS_RELEASE: !!options.release
-      }, options.replaceEnvVars && process.env, options.variables);
-      let {installedTabrisVersion} = new TabrisApp(APP_DIR)
-        .runPackageJsonBuildScripts(platform)
-        .createCordovaProject(CORDOVA_PROJECT_DIR)
-        .validateInstalledTabrisVersion(packageJson.version);
-      let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
-      if (existsSync(configXmlPath)) {
-        ConfigXml.readFrom(configXmlPath)
-          .adjustContentPath()
-          .replaceVariables(variableReplacements)
-          .writeTo(configXmlPath);
-      }
-      new PlatformProvider(CLI_DATA_DIR).getPlatform({platform, version: installedTabrisVersion})
-        .then(platformSpec => {
-          return copyBuildKeyHash().then(() =>
-            executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options})
-          );
-        })
-        .catch(fail);
-    }));
+function build(name, platform, cordovaPlatformOpts, options) {
+  const TabrisApp = require('./services/TabrisApp');
+  const PlatformProvider = require('./services/PlatformProvider');
+  const ConfigXml = require('./services/ConfigXml');
+  const packageJson = require('../package.json');
+  const {join} = require('path');
+  const {existsSync} = require('fs-extra');
+
+  validateArguments({platform, debug: options.debug, release: options.release});
+  let variableReplacements = Object.assign({
+    IS_DEBUG: !!options.debug,
+    IS_RELEASE: !!options.release
+  }, options.replaceEnvVars && process.env, options.variables);
+  let {installedTabrisVersion} = new TabrisApp(APP_DIR)
+    .runPackageJsonBuildScripts(platform)
+    .createCordovaProject(CORDOVA_PROJECT_DIR)
+    .validateInstalledTabrisVersion(packageJson.version);
+  let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
+  if (existsSync(configXmlPath)) {
+    ConfigXml.readFrom(configXmlPath)
+      .adjustContentPath()
+      .replaceVariables(variableReplacements)
+      .writeTo(configXmlPath);
+  }
+  new PlatformProvider(CLI_DATA_DIR).getPlatform({platform, version: installedTabrisVersion})
+    .then(platformSpec => {
+      return copyBuildKeyHash().then(() =>
+        executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options})
+      );
+    })
+    .catch(fail);
 }
 
 function executeCordovaCommands({name, platform, platformSpec, options, cordovaPlatformOpts}) {

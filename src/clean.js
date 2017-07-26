@@ -6,9 +6,10 @@ const DESCRIPTION = 'Cleans build artifacts.';
 program
   .command('clean')
   .description(DESCRIPTION)
-  .action(handleErrors(() => {
-    const {removeSync} = require('fs-extra');
+  .action(handleErrors(clean));
 
-    console.log('Removing build folder build/cordova');
-    removeSync('build/cordova');
-  }));
+function clean() {
+  const {removeSync} = require('fs-extra');
+  console.log('Removing build folder build/cordova');
+  removeSync('build/cordova');
+}
