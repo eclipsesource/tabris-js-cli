@@ -102,9 +102,9 @@ function validateArguments({debug, release, platform}) {
 }
 
 function copyBuildKeyHash() {
-  let buildKeyPath = join(CLI_DATA_DIR, 'build.key');
-  let buildKeyHashPath = join(CORDOVA_PROJECT_DIR, 'www', 'build-key.sha256');
   return new Promise((resolve, reject) => {
+    let buildKeyPath = join(CLI_DATA_DIR, 'build.key');
+    let buildKeyHashPath = join(CORDOVA_PROJECT_DIR, 'www', 'build-key.sha256');
     if (!existsSync(buildKeyPath)) {
       return resolve();
     }
