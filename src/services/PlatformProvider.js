@@ -16,32 +16,32 @@ module.exports = class PlatformProvider {
     this._buildKeyProvider = new BuildKeyProvider(cliDataDir);
   }
 
-  getPlatform({version, platform}) {
+  getPlatform(platform) {
     return new Promise((resolve, reject) => {
-      let platformSpec = join(this._platformsDir, platform, version);
-      let envVarPlatformSpec = process.env[`TABRIS_${platform.toUpperCase()}_PLATFORM`];
+      let platformSpec = join(this._platformsDir, platform.name, platform.version);
+      let envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
       if (envVarPlatformSpec) {
         resolve(envVarPlatformSpec);
       } else if (fs.existsSync(platformSpec)) {
         resolve(platformSpec);
       } else {
-        this._downloadPlatform({version, platform})
+        this._downloadPlatform(platform)
           .then(resolve)
           .catch(reject);
       }
     });
   }
 
-  _downloadPlatform({version, platform}) {
+  _downloadPlatform(platform) {
     return new Promise((resolve, reject) => {
-      let platformSpec = join(this._platformsDir, platform, version);
-      let zipPath = join(this._platformsDir, `.download-${platform}-${version}.zip`);
-      let extractedZipPath = join(this._platformsDir, `.extracted-${platform}-${version}`);
+      let platformSpec = join(this._platformsDir, platform.name, platform.version);
+      let zipPath = join(this._platformsDir, `.download-${platform.name}-${platform.version}.zip`);
+      let extractedZipPath = join(this._platformsDir, `.extracted-${platform.name}-${platform.version}`);
       return fs.mkdirs(this._platformsDir)
         .then(() => this._buildKeyProvider.getBuildKey())
-        .then(buildKey => this._downloadPlatformZip(zipPath, buildKey, platform, version))
+        .then(buildKey => this._downloadPlatformZip(zipPath, buildKey, platform))
         .then(() => this._unzipPlatform(zipPath, extractedZipPath))
-        .then(() => fs.move(join(extractedZipPath, `tabris-${platform}`), platformSpec))
+        .then(() => fs.move(join(extractedZipPath, `tabris-${platform.name}`), platformSpec))
         .then(() => fs.remove(extractedZipPath))
         .then(() => fs.remove(zipPath))
         .then(() => resolve(platformSpec))
@@ -49,12 +49,12 @@ module.exports = class PlatformProvider {
     });
   }
 
-  _downloadPlatformZip(platformZipPath, buildKey, platform, version) {
+  _downloadPlatformZip(platformZipPath, buildKey, platform) {
     return new Promise((resolve, reject) => {
-      log.command(`Downloading ${platform} platform version ${version}...`);
+      log.command(`Downloading ${platform.name} platform version ${platform.version}...`);
       let options = {
         host: HOST,
-        path: `${PATH}/${version}/${platform}`,
+        path: `${PATH}/${platform.version}/${platform.name}`,
         headers: {'X-Tabris-Build-Key': buildKey}
       };
       let progressBar = new progress.Bar({
@@ -67,7 +67,7 @@ module.exports = class PlatformProvider {
           if (e.statusCode === 401) {
             console.error('\nBuild key rejected. Please enter your key again.');
             resolve(this._buildKeyProvider.promptBuildKey()
-              .then(buildKey => this._downloadPlatformZip(platformZipPath, buildKey, platform, version)));
+              .then(buildKey => this._downloadPlatformZip(platformZipPath, buildKey, platform)));
           } else {
             fs.removeSync(platformZipPath);
             reject(new Error('Unable to download platform: ' + e.message || e));

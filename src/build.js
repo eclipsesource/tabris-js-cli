@@ -65,7 +65,7 @@ function build(name, platform, cordovaPlatformOpts, options) {
       .replaceVariables(variableReplacements)
       .writeTo(configXmlPath);
   }
-  new PlatformProvider(CLI_DATA_DIR).getPlatform({platform, version: installedTabrisVersion})
+  new PlatformProvider(CLI_DATA_DIR).getPlatform({name: platform, version: installedTabrisVersion})
     .then(platformSpec => {
       return copyBuildKeyHash().then(() =>
         executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options})
