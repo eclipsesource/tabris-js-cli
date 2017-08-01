@@ -5,6 +5,7 @@ const log = require('../helpers/log');
 const zip = require('../helpers/zip');
 const {FileDownloader} = require('../helpers/download');
 const BuildKeyProvider = require('./BuildKeyProvider');
+const PlatformsCache = require('./PlatformsCache');
 
 const PATH = '/api/v1/downloads/cli';
 const HOST = process.env.TABRIS_HOST || 'tabrisjs.com';
@@ -14,16 +15,16 @@ module.exports = class PlatformProvider {
   constructor(cliDataDir) {
     this._platformsDir = join(cliDataDir, 'platforms');
     this._buildKeyProvider = new BuildKeyProvider(cliDataDir);
+    this._platformsCache = new PlatformsCache(cliDataDir);
   }
 
   getPlatform(platform) {
     return new Promise((resolve, reject) => {
-      let platformSpec = join(this._platformsDir, platform.name, platform.version);
       let envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
       if (envVarPlatformSpec) {
         resolve(envVarPlatformSpec);
-      } else if (fs.existsSync(platformSpec)) {
-        resolve(platformSpec);
+      } else if (this._platformsCache.has(platform)) {
+        resolve(this._platformsCache.get(platform));
       } else {
         this._downloadPlatform(platform)
           .then(resolve)
@@ -34,18 +35,21 @@ module.exports = class PlatformProvider {
 
   _downloadPlatform(platform) {
     return new Promise((resolve, reject) => {
-      let platformSpec = join(this._platformsDir, platform.name, platform.version);
       let zipPath = join(this._platformsDir, `.download-${platform.name}-${platform.version}.zip`);
       let extractedZipPath = join(this._platformsDir, `.extracted-${platform.name}-${platform.version}`);
+      let platformDir = join(extractedZipPath, `tabris-${platform.name}`);
       return fs.mkdirs(this._platformsDir)
         .then(() => this._buildKeyProvider.getBuildKey())
         .then(buildKey => this._downloadPlatformZip(zipPath, buildKey, platform))
         .then(() => this._unzipPlatform(zipPath, extractedZipPath))
-        .then(() => fs.move(join(extractedZipPath, `tabris-${platform.name}`), platformSpec))
+        .then(() => this._platformsCache.set(platform, platformDir))
         .then(() => fs.remove(extractedZipPath))
         .then(() => fs.remove(zipPath))
-        .then(() => resolve(platformSpec))
-        .catch((e) => fs.remove(platformSpec).then(() => reject(e)));
+        .then(() => {
+          this._platformsCache.prune();
+          resolve(this._platformsCache.get(platform));
+        })
+        .catch(e => reject(e));
     });
   }
 
