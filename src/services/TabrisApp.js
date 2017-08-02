@@ -5,6 +5,14 @@ const semver = require('semver');
 const log = require('../helpers/log');
 const proc = require('../helpers/proc');
 
+const DEFAULT_IGNORES = [
+  '.git/',
+  '.tabrisignore',
+  'node_modules/',
+  'build/',
+  'cordova/'
+];
+
 class TabrisApp {
 
   constructor(path) {
@@ -60,7 +68,7 @@ class TabrisApp {
   _copyJsFiles(destination) {
     log.command(`Copying JavaScript files to ${destination}/www/app/ ...`);
     let tabrisignorePath = join(this._path, '.tabrisignore');
-    let ig = ignore().add(['.git/', 'node_modules/', 'cordova/', relative(this._path, destination), '.tabrisignore']);
+    let ig = ignore().add([relative(this._path, destination), ...DEFAULT_IGNORES]);
     if (existsSync(tabrisignorePath)) {
       ig.add(readFileSync(tabrisignorePath).toString());
     }

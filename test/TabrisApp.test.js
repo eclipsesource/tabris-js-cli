@@ -148,10 +148,11 @@ describe('TabrisApp', function() {
       project.createCordovaProject(join(cwd, 'destination'));
 
       expect(existsSync(join(cwd, 'destination/www/app/.git'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/.tabrisignore'))).to.be.false;
       expect(existsSync(join(cwd, 'destination/www/app/destination'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/www/app/build'))).to.be.false;
       expect(existsSync(join(cwd, 'destination/www/app/cordova'))).to.be.false;
       expect(existsSync(join(cwd, 'destination/www/app/node_modules/foo'))).to.be.false;
-      expect(existsSync(join(cwd, 'destination/www/app/.tabrisignore'))).to.be.false;
     });
 
     it('excludes .tabrisignore contents from copying to destination/www/app', function() {
