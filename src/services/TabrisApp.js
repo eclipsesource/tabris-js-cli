@@ -17,13 +17,13 @@ class TabrisApp {
 
   constructor(path) {
     this._path = path;
-    if (!existsSync(`${path}/package.json`)) {
+    if (!existsSync(join(path, 'package.json'))) {
       throw 'Could not find package.json';
     }
-    if (!readJsonSync(`${path}/package.json`).main) {
+    if (!readJsonSync(join(path, 'package.json')).main) {
       throw 'package.json must contain a "main" field';
     }
-    if (!existsSync(`${path}/cordova`)) {
+    if (!existsSync(join(path, 'cordova'))) {
       throw 'Could not find cordova directory';
     }
   }
@@ -62,17 +62,22 @@ class TabrisApp {
 
   _copyCordovaFiles(destination) {
     log.command(`Copying Cordova files to ${destination} ...`);
-    copySync(`${this._path}/cordova`, destination);
+    let excludedPaths = ['www', 'platform', 'plugins']
+      .map(subdir => join(this._path, 'cordova', subdir));
+    copySync(join(this._path, 'cordova'), destination, {
+      filter: path => !excludedPaths.includes(path)
+    });
   }
 
   _copyJsFiles(destination) {
-    log.command(`Copying JavaScript files to ${destination}/www/app/ ...`);
+    let appDir = join(destination, 'www', 'app');
+    log.command(`Copying JavaScript files to ${appDir} ...`);
     let tabrisignorePath = join(this._path, '.tabrisignore');
     let ig = ignore().add([relative(this._path, destination), ...DEFAULT_IGNORES]);
     if (existsSync(tabrisignorePath)) {
       ig.add(readFileSync(tabrisignorePath).toString());
     }
-    copySync(this._path, join(destination, 'www/app'), {
+    copySync(this._path, appDir, {
       filter: (path) => {
         let stats = statSafe(path);
         let dirPath = stats && stats.isDirectory() && !path.endsWith('/') ? path + '/' : path;
@@ -82,7 +87,7 @@ class TabrisApp {
   }
 
   _installProductionDependencies(destination) {
-    proc.execSync('npm', ['install', '--production'], {cwd: join(destination, 'www/app')});
+    proc.execSync('npm', ['install', '--production'], {cwd: join(destination, 'www', 'app')});
   }
 
   _getTabrisVersion(cordovaProjectPath) {

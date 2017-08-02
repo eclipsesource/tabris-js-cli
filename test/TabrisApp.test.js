@@ -135,6 +135,22 @@ describe('TabrisApp', function() {
       expect(existsSync(join(cwd, 'destination/foo/bar'))).to.be.true;
     });
 
+    it('excludes cordova build artifacts from copying to destination/cordova', function() {
+      mkdirSync(join(cwd, 'cordova/foo'));
+      writeFileSync(join(cwd, 'cordova/foo/bar'), 'test');
+      mkdirSync(join(cwd, 'cordova/www'));
+      writeFileSync(join(cwd, 'cordova/www/bar'), 'test');
+      mkdirSync(join(cwd, 'cordova/platform'));
+      mkdirSync(join(cwd, 'cordova/plugins'));
+
+      project.createCordovaProject(join(cwd, 'destination'));
+
+      expect(existsSync(join(cwd, 'destination/foo/bar'))).to.be.true;
+      expect(existsSync(join(cwd, 'destination/www/bar'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/platform'))).to.be.false;
+      expect(existsSync(join(cwd, 'destination/plugins'))).to.be.false;
+    });
+
     it('excludes default blacklisted contents from copying to destination/www/app', function() {
       mkdirSync(join(cwd, '.git'));
       mkdirSync(join(cwd, 'build'));
