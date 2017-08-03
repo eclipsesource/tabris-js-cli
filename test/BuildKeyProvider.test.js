@@ -89,7 +89,7 @@ describe('BuildKeyProvider', function() {
 
       it('prints input label', function() {
         let promise = provider.getBuildKey().then(() => {
-          expect(process.stdout.write).to.have.been.calledWith('Build key (https://tabrisjs.com/settings/account): ');
+          expect(process.stdout.write).to.have.been.calledWithMatch(/build key:/);
         });
         sendLine(VALID_KEY);
         return promise;

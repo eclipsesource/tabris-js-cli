@@ -2,7 +2,13 @@ const {join, dirname} = require('path');
 const fs = require('fs-extra');
 const promptly = require('promptly');
 
-const BUILD_KEY_PROMPT_LABEL = 'Build key (https://tabrisjs.com/settings/account):';
+const BUILD_KEY_PROMPT = `
+A build key is required to obtain the required bits from the Tabris.js servers.
+You can find your personal build key on your profile page on tabrisjs.com:
+
+  https://tabrisjs.com/settings/account
+
+Please enter your build key:`;
 const BUILD_KEY_ENV_VAR = 'TABRIS_BUILD_KEY';
 const BUILD_KEY_VALIDATION_REGEX = /^[a-zA-Z0-9-]{36}$/;
 const INPUT_REPLACE_CHAR = '●';
@@ -29,7 +35,7 @@ class BuildKeyProvider {
   }
 
   promptBuildKey() {
-    return promptly.prompt(BUILD_KEY_PROMPT_LABEL, {
+    return promptly.prompt(BUILD_KEY_PROMPT, {
       silent: true,
       replace: INPUT_REPLACE_CHAR,
       validator: this._validateBuildKey
