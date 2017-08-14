@@ -64,16 +64,16 @@ describe('TabrisApp', function() {
         .not.to.throw();
     });
 
-    it('throws if tabris version is lower', function() {
-      tabrisApp._installedTabrisVersion = '2.0.0';
+    it('throws if tabris major version is lower', function() {
+      tabrisApp._installedTabrisVersion = '1.5.0';
       expect(() => tabrisApp.validateInstalledTabrisVersion('2.1.3'))
-        .to.throw(/App uses incompatible tabris version: 2.0.0, 2.1.x required/);
+        .to.throw(/App uses incompatible tabris version: 1.5.0, 2.x.x required/);
     });
 
-    it('throws if tabris version is higher', function() {
-      tabrisApp._installedTabrisVersion = '2.2.0';
+    it('throws if tabris major version is higher', function() {
+      tabrisApp._installedTabrisVersion = '3.0.0';
       expect(() => tabrisApp.validateInstalledTabrisVersion('2.1.3'))
-        .to.throw(/App uses incompatible tabris version: 2.2.0, 2.1.x required/);
+        .to.throw(/App uses incompatible tabris version: 3.0.0, 2.x.x required/);
     });
 
     it('throws if tabris version is invalid', function() {

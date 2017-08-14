@@ -51,10 +51,9 @@ class TabrisApp {
     if (!semver.valid(actual)) {
       throw Error('App uses invalid tabris version: ' + actual);
     }
-    let match = semver.major(version) === semver.major(actual) &&
-                semver.minor(version) === semver.minor(actual);
+    let match = semver.major(version) === semver.major(actual);
     if (!match) {
-      let required = [semver.major(version), semver.minor(version), 'x'].join('.');
+      let required = [semver.major(version), 'x', 'x'].join('.');
       throw new Error(`App uses incompatible tabris version: ${actual}, ${required} required.\n`);
     }
     return this;
