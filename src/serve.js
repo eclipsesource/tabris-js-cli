@@ -5,7 +5,8 @@ const {green, yellow, red, blue} = require('chalk');
 program
   .command('serve [path]')
   .option('-l, --logging', 'enable request logging')
-  .description('Serves a Tabris.js app from a directory or a file.')
+  .description('Serves a Tabris.js app from a directory or a file. If a ' +
+    'build script is present in package.json, it is executed beforehand.')
   .action(handleErrors(serve));
 
 function serve(inputPath, options) {

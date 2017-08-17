@@ -3,8 +3,9 @@ const {writeFileSync} = require('fs-extra');
 const temp = require('temp').track();
 const portscanner = require('portscanner');
 const fetch = require('node-fetch');
-const {expect} = require('./test');
+const {expect, stub, restore} = require('./test');
 const Server = require('../src/services/Server');
+const proc = require('../src/helpers/proc');
 
 
 describe('Server', function() {
@@ -14,7 +15,10 @@ describe('Server', function() {
   beforeEach(function() {
     server = new Server();
     path = temp.mkdirSync('foo');
+    stub(proc, 'execSync');
   });
+
+  afterEach(restore);
 
   describe('externalAddresses', function() {
 
@@ -66,6 +70,14 @@ describe('Server', function() {
       return server.serve(path).then(expectFail, err => {
         expect(err.message).to.equal('package.json must contain a "main" field');
       });
+    });
+
+    it('runs build script', function() {
+      writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
+      return server.serve(path)
+        .then(() => {
+          expect(proc.execSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
+        });
     });
 
     it('starts a server', function() {

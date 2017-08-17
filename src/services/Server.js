@@ -5,6 +5,7 @@ const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
 const union = require('union');
 const portscanner = require('portscanner');
+const proc = require('../helpers/proc');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -33,6 +34,7 @@ module.exports = class Server extends EventEmitter {
         if (!readJsonSync(packageJsonPath).main) {
           throw new Error('package.json must contain a "main" field');
         }
+        proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: basePath});
         return this._startServer(basePath);
       } else if (stats.isFile()) {
         return this._serveFile(basePath);

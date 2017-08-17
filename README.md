@@ -28,7 +28,7 @@ Creates a new Tabris.js app in the current directory.
 
 ### `tabris serve [options] [path]`
 
-Starts a server the [Tabris.js developer app](https://tabrisjs.com/documentation/2.0/developer-app) can be pointed to.
+Starts a server the [Tabris.js developer app](https://tabrisjs.com/documentation/2.0/developer-app) can be pointed to. If a build script is present in package.json, it is executed beforehand.
 
 #### path
 
