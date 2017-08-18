@@ -12,6 +12,11 @@ const MAX_PORT = 65535;
 
 module.exports = class Server extends EventEmitter {
 
+  constructor({watch = false} = {}) {
+    super();
+    this._watch = watch;
+  }
+
   static get externalAddresses() {
     let interfaces = os.networkInterfaces();
     return Object.keys(interfaces)
@@ -34,7 +39,11 @@ module.exports = class Server extends EventEmitter {
         if (!readJsonSync(packageJsonPath).main) {
           throw new Error('package.json must contain a "main" field');
         }
-        proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: basePath});
+        if (this._watch) {
+          proc.exec('npm', ['run', '--if-present', 'watch'], {cwd: basePath});
+        } else {
+          proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: basePath});
+        }
         return this._startServer(basePath);
       } else if (stats.isFile()) {
         return this._serveFile(basePath);

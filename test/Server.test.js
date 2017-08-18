@@ -16,6 +16,7 @@ describe('Server', function() {
     server = new Server();
     path = temp.mkdirSync('foo');
     stub(proc, 'execSync');
+    stub(proc, 'exec');
   });
 
   afterEach(restore);
@@ -77,6 +78,16 @@ describe('Server', function() {
       return server.serve(path)
         .then(() => {
           expect(proc.execSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
+        });
+    });
+
+    it('runs watch script when watch option given', function() {
+      server =  new Server({watch: true});
+      writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
+      return server.serve(path)
+        .then(() => {
+          expect(proc.execSync).not.to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
+          expect(proc.exec).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {cwd: path});
         });
     });
 

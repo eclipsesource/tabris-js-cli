@@ -6,62 +6,71 @@ const {expect, stub, restore, match} = require('./test');
 
 describe('proc', function() {
 
-  describe('execSync', function() {
+  ['exec', 'execSync'].forEach(fn => {
 
-    let status, platform;
+    let spawnFn = fn === 'exec' ? 'spawn' : 'spawnSync';
 
-    beforeEach(function() {
-      status = 0;
-      platform = 'linux';
-      stub(log, 'command');
-      stub(os, 'platform').callsFake(() => platform);
-      stub(childProcess, 'spawnSync').callsFake(() => ({status}));
-    });
+    describe(fn, function() {
 
-    afterEach(restore);
+      let status, platform;
 
-    it('spawns command with options', function() {
-      proc.execSync('foo', ['ba r', 'bak'], {option: 'value'});
-
-      expect(childProcess.spawnSync).to.have.been.calledWithMatch('foo', ['ba r', 'bak'], {
-        stdio: 'inherit',
-        shell: false,
-        option: 'value'
+      beforeEach(function() {
+        status = 0;
+        platform = 'linux';
+        stub(log, 'command');
+        stub(os, 'platform').callsFake(() => platform);
+        stub(childProcess, 'spawnSync').callsFake(() => ({status}));
+        stub(childProcess, 'spawn');
       });
-    });
 
-    it('runs command inside of a shell on Windows', function() {
-      platform = 'win32';
+      afterEach(restore);
 
-      proc.execSync('foo', ['bar'], {option: 'value'});
+      it('spawns command with options', function() {
+        proc[fn]('foo', ['ba r', 'bak'], {option: 'value'});
 
-      expect(childProcess.spawnSync).to.have.been.calledWithMatch(match.any, match.any, {
-        shell: true
+        expect(childProcess[spawnFn]).to.have.been.calledWithMatch('foo', ['ba r', 'bak'], {
+          stdio: 'inherit',
+          shell: false,
+          option: 'value'
+        });
       });
-    });
 
-    it('throws an error when process exits with non 0 status', function() {
-      status = 123;
+      it('runs command inside of a shell on Windows', function() {
+        platform = 'win32';
 
-      expect(() => {
-        proc.execSync('foo', ['bar'], {option: 'value'});
-      }).to.throw('The command foo exited with 123');
-    });
+        proc[fn]('foo', ['bar'], {option: 'value'});
 
-    it('normalizes command on Windows', function() {
-      platform = 'win32';
+        expect(childProcess[spawnFn]).to.have.been.calledWithMatch(match.any, match.any, {
+          shell: true
+        });
+      });
 
-      proc.execSync('fo o', ['bar'], {option: 'value'});
+      it('normalizes command on Windows', function() {
+        platform = 'win32';
 
-      expect(childProcess.spawnSync).to.have.been.calledWithMatch('"fo o"');
-    });
+        proc[fn]('fo o', ['bar'], {option: 'value'});
 
-    it('normalizes arguments on Windows', function() {
-      platform = 'win32';
+        expect(childProcess[spawnFn]).to.have.been.calledWithMatch('"fo o"');
+      });
 
-      proc.execSync('foo', ['bar', 'ba k'], {option: 'value'});
+      it('normalizes arguments on Windows', function() {
+        platform = 'win32';
 
-      expect(childProcess.spawnSync).to.have.been.calledWithMatch(match.any, ['bar', '"ba k"']);
+        proc[fn]('foo', ['bar', 'ba k'], {option: 'value'});
+
+        expect(childProcess[spawnFn]).to.have.been.calledWithMatch(match.any, ['bar', '"ba k"']);
+      });
+
+      if (fn === 'execSync') {
+        it('throws an error when process exits with non 0 status', function() {
+          status = 123;
+
+          expect(() => {
+            proc[fn]('foo', ['bar'], {option: 'value'});
+          }).to.throw('The command foo exited with 123');
+        });
+      }
+
     });
 
   });

@@ -5,6 +5,7 @@ const {green, yellow, red, blue} = require('chalk');
 program
   .command('serve [path]')
   .option('-l, --logging', 'enable request logging')
+  .option('-w, --watch', 'execute the "watch" instead of the "build" script of the app before serving')
   .description('Serves a Tabris.js app from a directory or a file. If a ' +
     'build script is present in package.json, it is executed beforehand.')
   .action(handleErrors(serve));
@@ -12,7 +13,7 @@ program
 function serve(inputPath, options) {
   const Server = require('./services/Server');
 
-  let server = new Server();
+  let server = new Server({watch: options.watch});
   if (options.logging) {
     server.on('request', (req, err) => {
       if (err) {

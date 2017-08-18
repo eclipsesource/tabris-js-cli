@@ -40,6 +40,16 @@ describe('serve', function() {
       });
   });
 
+  it('runs watch script when -w option given', function() {
+    writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
+    serve = spawn('node', ['./src/tabris', 'serve', '-w', path], {env});
+
+    return waitForStdout(serve, 3)
+      .then(stdout => {
+        expect(stdout).to.contain(`NPM run --if-present watch [${path}]`);
+      });
+  });
+
   it('starts a server on a given directory', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
     serve = spawn('node', ['./src/tabris', 'serve', path], {env});

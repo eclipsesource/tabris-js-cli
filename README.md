@@ -40,6 +40,10 @@ The file or directory to serve the Tabris.js app from. When ommitted, the curren
 
 Enables request logging.
 
+##### `-w, --watch`
+
+Executes the _watch_ instead of the _build_ script given in the package.json of the app before serving. The _watch_ script can be a long-running task.
+
 ### `tabris build [options] <platform> [cordova-platform-opts]`
 
 Builds a Tabris.js app for the given platform.
