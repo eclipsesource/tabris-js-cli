@@ -49,11 +49,17 @@ function build(name, platform, cordovaPlatformOpts, options) {
   const {join} = require('path');
   const {existsSync} = require('fs-extra');
 
-  validateArguments({platform, debug: options.debug, release: options.release});
+  let {
+    debug = !('debug' in options) && !('release' in options) ? true : false,
+    release,
+    replaceEnvVars,
+    variables
+  } = options;
+  validateArguments({platform, debug, release});
   let variableReplacements = Object.assign({
-    IS_DEBUG: !!options.debug,
-    IS_RELEASE: !!options.release
-  }, options.replaceEnvVars && process.env, options.variables);
+    IS_DEBUG: !!debug,
+    IS_RELEASE: !!release
+  }, replaceEnvVars && process.env, variables);
   let {installedTabrisVersion} = new TabrisApp(APP_DIR)
     .runPackageJsonBuildScripts(platform)
     .createCordovaProject(CORDOVA_PROJECT_DIR)

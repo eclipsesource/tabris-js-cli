@@ -182,6 +182,15 @@ const mockBinDir = join(__dirname, 'bin');
       expect(configXmlContents).to.contain('<name>foo bar</name>');
     });
 
+    it('replaces IS_DEBUG and IS_RELEASE in default build', function() {
+      writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget><name>$IS_DEBUG $IS_RELEASE</name></widget>');
+
+      spawnSync('node', [tabris, command, 'android'], opts);
+
+      let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
+      expect(configXmlContents).to.contain('<name>true false</name>');
+    });
+
     it('replaces IS_DEBUG and IS_RELEASE in debug build', function() {
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget><name>$IS_DEBUG $IS_RELEASE</name></widget>');
 
