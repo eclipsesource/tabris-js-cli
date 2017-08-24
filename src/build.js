@@ -47,7 +47,6 @@ function build(name, platform, cordovaPlatformOpts, options) {
   const ConfigXml = require('./services/ConfigXml');
   const packageJson = require('../package.json');
   const {join} = require('path');
-  const {existsSync} = require('fs-extra');
 
   let {
     debug = !('debug' in options) && !('release' in options) ? true : false,
@@ -65,12 +64,10 @@ function build(name, platform, cordovaPlatformOpts, options) {
     .createCordovaProject(CORDOVA_PROJECT_DIR)
     .validateInstalledTabrisVersion(packageJson.version);
   let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
-  if (existsSync(configXmlPath)) {
-    ConfigXml.readFrom(configXmlPath)
-      .adjustContentPath()
-      .replaceVariables(variableReplacements)
-      .writeTo(configXmlPath);
-  }
+  ConfigXml.readFrom(configXmlPath)
+    .adjustContentPath()
+    .replaceVariables(variableReplacements)
+    .writeTo(configXmlPath);
   new PlatformProvider(CLI_DATA_DIR).getPlatform({name: platform, version: installedTabrisVersion})
     .then(platformSpec => {
       return copyBuildKeyHash().then(() =>
@@ -99,11 +96,15 @@ function executeCordovaCommands({name, platform, platformSpec, options, cordovaP
 function validateArguments({debug, release, platform}) {
   const {fail} = require('./helpers/errorHandler');
 
+  let configXmlPath = join(APP_DIR, 'cordova', 'config.xml');
   if (debug && release) {
     fail('Cannot specify both --release and --debug');
   }
   if (!['android', 'ios', 'windows'].includes(platform)) {
     fail('Invalid platform: ' + platform);
+  }
+  if (!existsSync(configXmlPath)) {
+    fail(`config.xml does not exist at ${configXmlPath}`);
   }
 }
 

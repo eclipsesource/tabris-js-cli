@@ -1,5 +1,5 @@
 const {join} = require('path');
-const {readFileSync, writeFileSync, existsSync, realpathSync, mkdirsSync} = require('fs-extra');
+const {readFileSync, writeFileSync, existsSync, realpathSync, mkdirsSync, removeSync} = require('fs-extra');
 const {spawnSync} = require('child_process');
 const expect = require('chai').expect;
 const temp = require('temp').track();
@@ -32,6 +32,7 @@ const mockBinDir = join(__dirname, 'bin');
       };
       opts = {cwd, env, encoding: 'utf8'};
       mkdirsSync(join(cwd, 'cordova'));
+      writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"></widget>');
       writeFileSync(join(cwd, 'package.json'), '{"main": "foo.js"}');
       mkdirsSync(join(cwd, 'test_install/node_modules/tabris'));
       writeFileSync(join(cwd, 'test_install/node_modules/tabris/package.json'),
@@ -57,6 +58,15 @@ const mockBinDir = join(__dirname, 'bin');
       let result = spawnSync('node', [tabris, command, 'android', '--debug', '--release'], opts);
 
       expect(result.stderr.trim()).to.equal('Cannot specify both --release and --debug');
+    });
+
+    it('fails when config.xml is missing', function() {
+      removeSync(join(cwd, 'cordova', 'config.xml'));
+
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
+
+      expect(result.stderr.trim()).to.equal('config.xml does not exist at cordova/config.xml');
+      expect(result.status).to.equal(1);
     });
 
     it('copies cordova/ contents to build/cordova', function() {
