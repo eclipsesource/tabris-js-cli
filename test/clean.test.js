@@ -25,16 +25,18 @@ describe('clean', function() {
 
     let result = spawnSync('node', [tabris, 'clean'], opts);
 
-    expect(result.status).to.equal(0);
+    expect(result.stderr).to.equal('');
     expect(result.stdout).to.contain('Removing build folder build/cordova') ;
     expect(existsSync(join(cwd, 'build/cordova'))).to.be.false;
+    expect(result.status).to.equal(0);
   });
 
   it('does not fail when folder does not exist', function() {
     let result = spawnSync('node', [tabris, 'clean'], opts);
 
-    expect(result.status).to.equal(0);
+    expect(result.stderr).to.equal('');
     expect(result.stdout).to.contain('Removing build folder build/cordova') ;
+    expect(result.status).to.equal(0);
   });
 
 });

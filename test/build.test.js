@@ -43,6 +43,7 @@ const mockBinDir = join(__dirname, 'bin');
       let result = spawnSync('node', [tabris, command, 'foo'], opts);
 
       expect(result.stderr.trim()).to.equal('Invalid platform: foo');
+      expect(result.status).to.equal(1);
     });
 
     for (let platform of ['android', 'ios', 'windows']) {
@@ -58,6 +59,7 @@ const mockBinDir = join(__dirname, 'bin');
       let result = spawnSync('node', [tabris, command, 'android', '--debug', '--release'], opts);
 
       expect(result.stderr.trim()).to.equal('Cannot specify both --release and --debug');
+      expect(result.status).to.equal(1);
     });
 
     it('fails when config.xml is missing', function() {
@@ -75,8 +77,9 @@ const mockBinDir = join(__dirname, 'bin');
 
       let result = spawnSync('node', [tabris, command, 'android'], opts);
 
-      expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
       expect(existsSync(join(cwd, 'build/cordova/foo/bar'))).to.be.true;
+      expect(result.status).to.equal(0);
     });
 
     it('copies JavaScript files to build/cordova/www/app', function() {
@@ -87,9 +90,10 @@ const mockBinDir = join(__dirname, 'bin');
 
       let result = spawnSync('node', [tabris, command, 'android'], opts);
 
-      expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
       expect(existsSync(join(cwd, 'build/cordova/www/app/src/foo'))).to.be.true;
       expect(existsSync(join(cwd, 'build/cordova/www/app/test/foo'))).to.be.true;
+      expect(result.status).to.equal(0);
     });
 
     it('creates build-key.sha256 in build/cordova/www/app', function() {
@@ -100,77 +104,83 @@ const mockBinDir = join(__dirname, 'bin');
       let result = spawnSync('node', [tabris, command, 'android'], opts);
 
       expect(result.stderr).to.equal('');
-      expect(result.status).to.equal(0);
       expect(readFileSync(buildKeyHashPath, 'utf8')).to.equal(buildKeyHash);
+      expect(result.status).to.equal(0);
     });
 
     it('calls cordova commands', function() {
       let result = spawnSync('node', [tabris, command, 'android'], opts);
 
-      expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
       expect(result.stdout).to.contain(
         `CORDOVA platform add path/to/tabris-android --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
       expect(result.stdout).to.contain(
         `CORDOVA ${command} android --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
+      expect(result.status).to.equal(0);
     });
 
     it('passes --buildConfig to Cordova', function() {
       let result = spawnSync('node', [tabris, command, 'android', '--cordova-build-config=foo'], opts);
 
-      expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
       expect(result.stdout).to.contain(
         `CORDOVA platform add path/to/tabris-android --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
       expect(result.stdout).to.contain(
         `CORDOVA ${command} android --buildConfig=foo --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
+      expect(result.status).to.equal(0);
     });
 
     it('passes --device to Cordova', function() {
       let result = spawnSync('node', [tabris, command, 'android', '--device'], opts);
 
-      expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
       expect(result.stdout).to.contain(
         `CORDOVA platform add path/to/tabris-android --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
       expect(result.stdout).to.contain(
         `CORDOVA ${command} android --device --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
+      expect(result.status).to.equal(0);
     });
 
     it('passes --emulator to Cordova', function() {
       let result = spawnSync('node', [tabris, command, 'android', '--emulator'], opts);
 
-      expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
       expect(result.stdout).to.contain(
         `CORDOVA platform add path/to/tabris-android --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
       expect(result.stdout).to.contain(
         `CORDOVA ${command} android --emulator --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
+      expect(result.status).to.equal(0);
     });
 
     it('passes --verbose to Cordova', function() {
       let result = spawnSync('node', [tabris, command, 'android', '--verbose'], opts);
 
-      expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
       expect(result.stdout).to.contain(
         `CORDOVA platform add path/to/tabris-android --verbose --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
       expect(result.stdout).to.contain(
         `CORDOVA ${command} android --verbose --no-update-notifier [${join(cwd, 'build/cordova')}]`
       );
+      expect(result.status).to.equal(0);
     });
 
     it('passes platformOpts to Cordova', function() {
       let result = spawnSync('node', [tabris, command, 'android', '--', '--foo=bar', '--baz=foo'], opts);
 
-      expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
       expect(result.stdout).to.contain(
         `CORDOVA ${command} android --no-update-notifier -- --foo=bar --baz=foo [${join(cwd, 'build/cordova')}]`
       );
+      expect(result.status).to.equal(0);
     });
 
     it('replaces given variables in config.xml', function() {
@@ -254,6 +264,7 @@ const mockBinDir = join(__dirname, 'bin');
 
       let result = spawnSync('node', [tabris, command, 'android'], opts);
 
+      expect(result.stderr).to.equal('');
       expect(result.status).to.equal(0);
     });
 
