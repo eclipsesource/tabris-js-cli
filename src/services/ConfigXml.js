@@ -7,6 +7,8 @@ module.exports = class ConfigXml {
 
   constructor(contents) {
     this._contents = contents;
+    this._parsedXml = this._parseXml(this._contents);
+    this._validateContents();
   }
 
   static readFrom(path) {
@@ -26,6 +28,12 @@ module.exports = class ConfigXml {
     return this._contents;
   }
 
+  _validateContents() {
+    if (!this._parsedXml.widget) {
+      throw new Error('Missing or empty <widget> element in config.xml');
+    }
+  }
+
   replaceVariables(vars) {
     if (!vars) {
       return this;
@@ -36,23 +44,13 @@ module.exports = class ConfigXml {
   }
 
   adjustContentPath() {
-    let parser = new Parser({trim: true});
-    let builder = new Builder();
-    parser.parseString(this._contents, (err, root) => {
-      if (err) {
-        throw new Error('Could not parse config.xml: ' + err.message);
-      }
-      if (!root.widget) {
-        throw new Error('Missing or empty <widget> element in config.xml');
-      }
-      if (root.widget.content) {
-        let src = root.widget.content[0].$.src;
-        root.widget.content[0].$.src = join('app', src);
-      } else {
-        root.widget.content = [{$: {src: 'app/package.json'}}];
-      }
-      this._contents = builder.buildObject(root);
-    });
+    if (this._parsedXml.widget.content) {
+      let src = this._parsedXml.widget.content[0].$.src;
+      this._parsedXml.widget.content[0].$.src = join('app', src);
+    } else {
+      this._parsedXml.widget.content = [{$: {src: 'app/package.json'}}];
+    }
+    this._contents = new Builder().buildObject(this._parsedXml);
     return this;
   }
 
@@ -65,6 +63,18 @@ module.exports = class ConfigXml {
       }
       throw e;
     }
+  }
+
+  _parseXml(xml) {
+    let result;
+    new Parser({trim: true, async: false})
+      .parseString(xml, (err, root) => {
+        if (err) {
+          throw new Error('Could not parse config.xml: ' + err.message);
+        }
+        result = root;
+      });
+    return result;
   }
 
 };
