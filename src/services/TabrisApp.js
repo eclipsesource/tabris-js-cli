@@ -1,5 +1,5 @@
 const {copySync, statSync, readFileSync, readJsonSync, existsSync} = require('fs-extra');
-const {relative, join} = require('path');
+const {relative, join, sep} = require('path');
 const ignore = require('ignore');
 const semver = require('semver');
 const log = require('../helpers/log');
@@ -9,8 +9,8 @@ const DEFAULT_IGNORES = [
   '.git/',
   '.tabrisignore',
   'node_modules/',
-  'build/',
-  'cordova/'
+  './build/',
+  './cordova/'
 ];
 
 class TabrisApp {
@@ -77,10 +77,11 @@ class TabrisApp {
       ig.add(readFileSync(tabrisignorePath).toString());
     }
     copySync(this._path, appDir, {
-      filter: (path) => {
-        let stats = statSafe(path);
-        let dirPath = stats && stats.isDirectory() && !path.endsWith('/') ? path + '/' : path;
-        return !ig.ignores(dirPath);
+      filter: (filePath) => {
+        let stats = statSafe(filePath);
+        let appRelativeFilePath = `.${sep}${relative(this._path, filePath)}`;
+        appRelativeFilePath += stats && stats.isDirectory() && !appRelativeFilePath.endsWith(sep) ? sep : '';
+        return !ig.ignores(appRelativeFilePath);
       }
     });
   }

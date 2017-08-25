@@ -171,6 +171,18 @@ describe('TabrisApp', function() {
       expect(existsSync(join(cwd, 'destination/www/app/node_modules/foo'))).to.be.false;
     });
 
+    it('does not exclude cordova/ and build/ from app subdirectories', function() {
+      mkdirsSync(join(cwd, 'subdir', 'build'));
+      mkdirsSync(join(cwd, 'subdir', 'cordova'));
+      writeFileSync(join(cwd, 'subdir/build/foo'), 'test');
+      writeFileSync(join(cwd, 'subdir/cordova/foo'), 'test');
+
+      project.createCordovaProject(join(cwd, 'destination'));
+
+      expect(existsSync(join(cwd, 'destination', 'www', 'app', 'subdir', 'build', 'foo'))).to.be.true;
+      expect(existsSync(join(cwd, 'destination', 'www', 'app', 'subdir', 'cordova', 'foo'))).to.be.true;
+    });
+
     it('excludes .tabrisignore contents from copying to destination/www/app', function() {
       mkdirSync(join(cwd, 'test'));
       mkdirSync(join(cwd, 'dist'));
