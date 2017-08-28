@@ -186,77 +186,103 @@ const mockBinDir = join(__dirname, 'bin');
     it('replaces given variables in config.xml', function() {
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"><name>$VAR1 $VAR2</name></widget>');
 
-      spawnSync('node', [tabris, command, 'android', '--variables', 'VAR1=foo,VAR2=bar'], opts);
+      let result = spawnSync('node', [tabris, command, 'android', '--variables', 'VAR1=foo,VAR2=bar'], opts);
 
+      expect(result.stderr).to.equal('');
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.contain('<name>foo bar</name>');
+      expect(result.status).to.equal(0);
     });
 
     it('replaces environment variables in config.xml', function() {
       Object.assign(env, {VAR1: 'foo', VAR2: 'bar'});
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"><name>$VAR1 $VAR2</name></widget>');
 
-      spawnSync('node', [tabris, command, 'android'], opts);
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
 
+      expect(result.stderr).to.equal('');
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.contain('<name>foo bar</name>');
+      expect(result.status).to.equal(0);
     });
 
     it('replaces IS_DEBUG and IS_RELEASE in default build', function() {
-      writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget><name>$IS_DEBUG $IS_RELEASE</name></widget>');
+      writeFileSync(join(cwd, 'cordova', 'config.xml'),
+        '<widget id="test"><name>$IS_DEBUG $IS_RELEASE</name></widget>');
 
-      spawnSync('node', [tabris, command, 'android'], opts);
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
 
+      expect(result.stderr).to.equal('');
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.contain('<name>true false</name>');
+      expect(result.status).to.equal(0);
     });
 
     it('replaces IS_DEBUG and IS_RELEASE in debug build', function() {
-      writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget><name>$IS_DEBUG $IS_RELEASE</name></widget>');
+      writeFileSync(join(cwd, 'cordova', 'config.xml'),
+        '<widget id="test"><name>$IS_DEBUG $IS_RELEASE</name></widget>');
 
-      spawnSync('node', [tabris, command, 'android', '--debug'], opts);
+      let result = spawnSync('node', [tabris, command, 'android', '--debug'], opts);
 
+      expect(result.stderr).to.equal('');
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.contain('<name>true false</name>');
+      expect(result.status).to.equal(0);
     });
 
     it('replaces IS_DEBUG and IS_RELEASE in release build', function() {
-      writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget><name>$IS_DEBUG $IS_RELEASE</name></widget>');
+      writeFileSync(join(cwd, 'cordova', 'config.xml'),
+        '<widget id="test"><name>$IS_DEBUG $IS_RELEASE</name></widget>');
 
-      spawnSync('node', [tabris, command, 'android', '--release'], opts);
+      let result = spawnSync('node', [tabris, command, 'android', '--release'], opts);
 
+      expect(result.stderr).to.equal('');
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.contain('<name>false true</name>');
+      expect(result.status).to.equal(0);
     });
 
     it('replaces environment variables and given variables in config.xml', function() {
       Object.assign(env, {VAR1: 'foo', VAR2: 'bar'});
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"><name>$VAR1 $VAR2 $VAR3</name></widget>');
 
-      spawnSync('node', [tabris, command, 'android', '--variables', 'VAR3=baz'], opts);
+      let result = spawnSync('node', [tabris, command, 'android', '--variables', 'VAR3=baz'], opts);
 
+      expect(result.stderr).to.equal('');
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.contain('<name>foo bar baz</name>');
+      expect(result.status).to.equal(0);
     });
 
     it('given variables have precedence over environment variables', function() {
       Object.assign(env, {VAR1: 'foo', VAR2: 'bar'});
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"><name>$VAR1 $VAR2</name></widget>');
 
-      spawnSync('node', [tabris, command, 'android', '--variables', 'VAR1=baz'], opts);
+      let result = spawnSync('node', [tabris, command, 'android', '--variables', 'VAR1=baz'], opts);
 
+      expect(result.stderr).to.equal('');
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.contain('<name>baz bar</name>');
+      expect(result.status).to.equal(0);
     });
 
     it('does not replace environment variables when --no-replace-env-vars is given', function() {
       Object.assign(env, {VAR1: 'foo', VAR2: 'bar'});
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"><name>$VAR1 $VAR2 $VAR3</name></widget>');
 
-      spawnSync('node', [tabris, command, 'android', '--no-replace-env-vars', '--variables', 'VAR3=baz'], opts);
+      let result = spawnSync('node', [
+        tabris,
+        command,
+        'android',
+        '--no-replace-env-vars',
+        '--variables',
+        'VAR3=baz'
+      ], opts);
 
+      expect(result.stderr).to.equal('');
       let configXmlContents = readFileSync(join(cwd, 'build/cordova/config.xml')).toString();
       expect(configXmlContents).to.contain('<name>$VAR1 $VAR2 baz</name>');
+      expect(result.status).to.equal(0);
     });
 
     it('does not fail when config.xml exists, but no --variables given', function() {

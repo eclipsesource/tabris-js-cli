@@ -27,8 +27,13 @@ describe('ConfigXml', function() {
       expect(() => new ConfigXml('This is not XML!')).to.throw(Error, 'Could not parse config.xml');
     });
 
-    it('fails on invalid input', function() {
+    it('fails when the <widget> element in config.xml is missing', function() {
       expect(() => new ConfigXml('<foo></foo>')).to.throw(Error, 'Missing or empty <widget> element in config.xml');
+    });
+
+    it('fails when the id attribute of the <widget> element in config.xml is missing', function() {
+      expect(() => new ConfigXml('<widget>foo</widget>'))
+        .to.throw(Error, '"id" attribute of <widget> element in config.xml missing');
     });
 
   });

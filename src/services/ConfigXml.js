@@ -32,6 +32,9 @@ module.exports = class ConfigXml {
     if (!this._parsedXml.widget) {
       throw new Error('Missing or empty <widget> element in config.xml');
     }
+    if (!(this._parsedXml.widget.$ && this._parsedXml.widget.$.id)) {
+      throw new Error('"id" attribute of <widget> element in config.xml missing');
+    }
   }
 
   replaceVariables(vars) {
