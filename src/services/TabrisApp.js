@@ -9,8 +9,8 @@ const DEFAULT_IGNORES = [
   '.git/',
   '.tabrisignore',
   'node_modules/',
-  './build/',
-  './cordova/'
+  '/build/',
+  '/cordova/'
 ];
 
 class TabrisApp {
@@ -79,7 +79,7 @@ class TabrisApp {
     copySync(this._path, appDir, {
       filter: (filePath) => {
         let stats = statSafe(filePath);
-        let appRelativeFilePath = `.${sep}${relative(this._path, filePath)}`;
+        let appRelativeFilePath = relative(this._path, filePath);
         appRelativeFilePath += stats && stats.isDirectory() && !appRelativeFilePath.endsWith(sep) ? sep : '';
         return !ig.ignores(appRelativeFilePath);
       }

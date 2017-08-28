@@ -196,6 +196,16 @@ describe('TabrisApp', function() {
       expect(existsSync(join(cwd, 'destination/www/app/dist'))).to.be.false;
     });
 
+    it('excludes folders with leading slash from copying to destination/www/app', function() {
+      mkdirSync(join(cwd, 'test'));
+      writeFileSync(join(cwd, 'test/foo'), 'test');
+      writeFileSync(join(cwd, '.tabrisignore'), '/test/');
+
+      project.createCordovaProject(join(cwd, 'destination'));
+
+      expect(existsSync(join(cwd, 'destination/www/app/test'))).to.be.false;
+    });
+
     it('installs production dependencies in destination/www/app', function() {
       let destination = join(cwd, 'destination');
 
