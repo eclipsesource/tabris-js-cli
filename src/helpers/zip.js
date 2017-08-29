@@ -27,8 +27,8 @@ function unzip(source, destination) {
             let writeStream = fs.createWriteStream(entryDestination);
             writeStream.on('error', () => reject(ERROR_UNZIPPING_FILE));
             readStream.on('error', () => reject(ERROR_UNZIPPING_FILE));
+            readStream.on('end', () => zipfile.readEntry());
             readStream.pipe(writeStream);
-            zipfile.readEntry();
           });
         }
       });
