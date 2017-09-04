@@ -1,3 +1,42 @@
+## 2.1.0
+
+Update generator dependency to a version compatible with Tabris.js 2.1.0.
+
+## 2.0.6
+
+* Fix folders in .gitignore starting with leading slash from not being exluded from the built app.
+* Improve error handling for missing widget ID in config.xml
+* Fix a problem causing Windows platform files downloaded by the CLI to be cut-off
+
+## 2.0.5
+
+* Fix build on Windows for user paths containing spaces.
+* Let `tabris serve` run the _build_ script of the app before starting the server.
+* Keep only the latest nightly platform in the cache to prevent nightly platforms from stacking up.
+* Implement a watch option (`-w/--watch`) for `tabris serve`. It executes the _watch_ instead of the _build_ script of the app.
+* Set `$IS_DEBUG` variable to `true` for builds without given option `--release` or `--debug`. This enables the developer console for those builds by default.
+* Improve error handling for non-existing config.xml
+* Don't exclude `build/` and `cordova/` folders in app subfolders from the built app.
+
+## 2.0.4
+
+* Ensure package.json contains a "main" field before starting a build.
+* Exclude `build/`, `cordova/www`, `cordova/plugins` and `cordova/platforms` from being copied to the built app.
+* Improve build prompt message clarifying what the build key is used for and where it can be obtained.
+* Disable minor `tabris` module version check to be able to build e.g. 2.0.x and 2.1.0-dev versions with the latest CLI.
+
+## 2.0.3
+
+Update generator dependency to fix bad author and email in generated config.xml.
+
+## 2.0.2
+
+Lessen the tabris version check to validate only the major.minor version of the installed tabris module. This allows building e.g. 2.0.1 apps with 2.0.0 CLI.
+
+## 2.0.1
+
+Update generator dependency to fix a critical bug affecting the `tabris init` command.
+
 ## 2.0.0
 
 The serve command now checks for a valid `package.json` file.
