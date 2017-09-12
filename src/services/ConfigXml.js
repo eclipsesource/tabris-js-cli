@@ -1,4 +1,3 @@
-const {join} = require('path');
 const {writeFileSync, readFileSync} = require('fs-extra');
 const {Parser, Builder} = require('xml2js');
 const log = require('../helpers/log');
@@ -49,9 +48,9 @@ module.exports = class ConfigXml {
   adjustContentPath() {
     if (this._parsedXml.widget.content) {
       let src = this._parsedXml.widget.content[0].$.src;
-      this._parsedXml.widget.content[0].$.src = join('app', src);
+      this._parsedXml.widget.content[0].$.src = this._join('app', src);
     } else {
-      this._parsedXml.widget.content = [{$: {src: 'app/package.json'}}];
+      this._parsedXml.widget.content = [{$: {src: this._join('app', 'package.json')}}];
     }
     this._contents = new Builder().buildObject(this._parsedXml);
     return this;
@@ -78,6 +77,11 @@ module.exports = class ConfigXml {
         result = root;
       });
     return result;
+  }
+
+  _join(...segments) {
+    // segments of config.xml paths must be separated by forward slashes on all platforms
+    return segments.join('/');
   }
 
 };
