@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const os = require('os');
 const {join} = require('path');
 const {writeFile, existsSync, readFileSync} = require('fs-extra');
-const program = require('commander');
+const commander = require('commander');
 const {handleErrors, fail} = require('./helpers/errorHandler');
 const {parseVariables} = require('./helpers/argumentsParser');
 
@@ -17,8 +17,8 @@ const PARAMS_DESCRIPTION = `
 `;
 const BUILD_DESCRIPTION = `Builds a Tabris.js app. ${PARAMS_DESCRIPTION}`;
 const RUN_DESCRIPTION = `Builds a Tabris.js app and runs it on a connected device or emulator. ${PARAMS_DESCRIPTION}`;
-const VARIABLES_DESCRIPTION = `comma separated list of variable replacements in config.xml
-\t\t\t\te.g. --variables FOO=bar replaces all "$FOO" with "bar".`;
+const VARIABLES_DESCRIPTION = 'comma separated list of variable replacements in config.xml\n\t\t\t\t   ' +
+  'e.g. --variables FOO=bar replaces all "$FOO" with "bar".';
 const CORDOVA_BUILD_CONFIG_DESCRIPTION =
   'path to a build configuration file passed to Cordova (relative to cordova/ directory)';
 
@@ -27,7 +27,7 @@ registerBuildCommand('run', RUN_DESCRIPTION);
 
 function registerBuildCommand(name, description) {
   let buildFn = (...args) => build(name, ...args);
-  program
+  let program = commander
     .command(`${name} <platform> [cordova-platform-opts...]`)
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
     .option('--cordova-build-config <path>', CORDOVA_BUILD_CONFIG_DESCRIPTION)
@@ -39,6 +39,11 @@ function registerBuildCommand(name, description) {
     .option('--verbose', 'print more verbose output')
     .description(description)
     .action(handleErrors(buildFn));
+  if (name === 'build') {
+    program.option('--arch <arch>',
+      'Architecture to build the app for. Can be one of "x64", "x86" and "arm".\n\t\t\t\t   ' +
+      'Supported only for Windows builds.');
+  }
 }
 
 function build(name, platform, cordovaPlatformOpts, options) {
@@ -54,7 +59,7 @@ function build(name, platform, cordovaPlatformOpts, options) {
     replaceEnvVars,
     variables
   } = options;
-  validateArguments({platform, debug, release});
+  validateArguments({command: name, platform, debug, release, options});
   let variableReplacements = Object.assign({
     IS_DEBUG: !!debug,
     IS_RELEASE: !!release
@@ -86,14 +91,15 @@ function executeCordovaCommands({name, platform, platformSpec, options, cordovaP
     options.device && 'device',
     options.emulator && 'emulator',
     options.cordovaBuildConfig && `buildConfig=${options.cordovaBuildConfig}`,
-    options.verbose && 'verbose'
+    options.verbose && 'verbose',
+    options.arch && `archs=${options.arch}`
   ];
   new CordovaCli(CORDOVA_PROJECT_DIR)
     .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
     .platformCommand(name, platform, {options: platformCommandOptions, cordovaPlatformOpts});
 }
 
-function validateArguments({debug, release, platform}) {
+function validateArguments({command, debug, release, platform, options}) {
   const {fail} = require('./helpers/errorHandler');
 
   let configXmlPath = join(APP_DIR, 'cordova', 'config.xml');
@@ -102,6 +108,22 @@ function validateArguments({debug, release, platform}) {
   }
   if (!['android', 'ios', 'windows'].includes(platform)) {
     fail('Invalid platform: ' + platform);
+  }
+  if (command === 'build') {
+    if (options.arch && platform !== 'windows') {
+      fail('--arch is only supported for Windows builds');
+    }
+    if (platform === 'windows') {
+      if (!options.arch) {
+        fail('--arch must be given for Windows builds');
+      }
+      if (options.arch && options.arch.includes(' ')) {
+        fail('--arch only accepts a single architecture');
+      }
+      if (options.arch && !['x86', 'x64', 'arm'].includes(options.arch)) {
+        fail('--arch can only be one of "x86", "x64" and "arm"');
+      }
+    }
   }
   if (!existsSync(configXmlPath)) {
     fail(`config.xml does not exist at ${configXmlPath}`);
