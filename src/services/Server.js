@@ -81,7 +81,7 @@ module.exports = class Server extends EventEmitter {
         next();
       };
       this._server = union.createServer({
-        before: [requestLogger, ...middlewares, ecstatic({root: appPath})],
+        before: [requestLogger, ...middlewares, ecstatic({root: appPath, showDir: false})],
         onError: (err, req, res) => {
           this.emit('request', req, err);
           res.end();
