@@ -44,6 +44,10 @@ function registerBuildCommand(name, description) {
       'Architecture to build the app for. Can be one of "x64", "x86" and "arm".\n\t\t\t\t   ' +
       'Supported only for Windows builds.');
   }
+  if (name === 'run') {
+    program.option('--target <id>', 'the id of the target device to deploy the app to');
+    program.option('--list-targets', 'show a list of available targets to use with --target');
+  }
 }
 
 function build(name, platform, cordovaPlatformOpts, options) {
@@ -92,7 +96,9 @@ function executeCordovaCommands({name, platform, platformSpec, options, cordovaP
     options.emulator && 'emulator',
     options.cordovaBuildConfig && `buildConfig=${options.cordovaBuildConfig}`,
     options.verbose && 'verbose',
-    options.arch && `archs=${options.arch}`
+    options.arch && `archs=${options.arch}`,
+    options.target && `target=${options.target}`,
+    options.listTargets && 'list'
   ];
   new CordovaCli(CORDOVA_PROJECT_DIR)
     .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
@@ -150,4 +156,3 @@ function copyBuildKeyHash() {
     hash.end();
   });
 }
-

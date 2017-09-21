@@ -347,6 +347,36 @@ const mockBinDir = join(__dirname, 'bin');
 
     }
 
+    if (command === 'run') {
+
+      it('passes --target to Cordova', function() {
+        let result = spawnSync('node', [tabris, 'run', 'android', '--target=foo'], opts);
+
+        expect(result.stderr).to.equal('');
+        expect(result.stdout).to.contain(
+          `CORDOVA platform add path/to/tabris-android --no-update-notifier [${join(cwd, 'build/cordova')}]`
+        );
+        expect(result.stdout).to.contain(
+          `CORDOVA ${command} android --target=foo --no-update-notifier [${join(cwd, 'build/cordova')}]`
+        );
+        expect(result.status).to.equal(0);
+      });
+
+      it('passes --list to Cordova', function() {
+        let result = spawnSync('node', [tabris, 'run', 'android', '--list-targets'], opts);
+
+        expect(result.stderr).to.equal('');
+        expect(result.stdout).to.contain(
+          `CORDOVA platform add path/to/tabris-android --no-update-notifier [${join(cwd, 'build/cordova')}]`
+        );
+        expect(result.stdout).to.contain(
+          `CORDOVA ${command} android --list --no-update-notifier [${join(cwd, 'build/cordova')}]`
+        );
+        expect(result.status).to.equal(0);
+      });
+
+    }
+
   });
 
 });

@@ -55,6 +55,8 @@ To speed up the build, pre-compiled build artifacts are kept in a build cache an
 
 *See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
 
+#### options
+
 ##### `--arch`
 
 Architecture to build the app for. Can be one of "x64", "x86" and "arm".
@@ -68,6 +70,16 @@ Builds a Tabris.js app and runs it on a connected device or emulator.
 *See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
 
 *See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
+
+#### options
+
+##### `--target <id>`
+
+The ID of the target device to deploy the app to. See `--list-targets`.
+
+##### `--list-targets`
+
+Show a list of available targets to use with `--target <id>`.
 
 ### `tabris clean`
 
