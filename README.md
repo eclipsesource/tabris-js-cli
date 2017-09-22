@@ -115,9 +115,17 @@ Platform-specific options passed to Cordova.
 
 Builds a Tabris.js app and runs it on a connected device or emulator.
 
-Uses same parameters as `tabris build`.
+Includes the parameters of `tabris build`.
 
 *See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
+
+#### options
+
+##### `--arch`
+
+Architecture to build the app for. Can be one of "x64", "x86" and "arm".
+
+_Supported only for Windows builds._
 
 ### `tabris clean`
 
