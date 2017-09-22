@@ -12,6 +12,7 @@ The super tool for Tabris.js developers.
   + [`tabris build [options] <platform> [cordova-platform-opts...]`](#tabris-build-options-platform-cordova-platform-opts)
   + [`tabris run [options] <platform> [cordova-platform-opts...]`](#tabris-run-options-platform-cordova-platform-opts)
   + [`tabris clean`](#tabris-clean)
+  + [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)
 * [License](#license)
 
 ## Installation
@@ -51,6 +52,28 @@ Builds a Tabris.js app for the given platform.
 To speed up the build, pre-compiled build artifacts are kept in a build cache and are reused in subsequent builds. To clean up the build cache, e.g. after updating Cordova plug-ins, run `tabris clean`.
 
 *See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
+
+*See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
+
+##### `--arch`
+
+Architecture to build the app for. Can be one of "x64", "x86" and "arm".
+
+_Supported only for Windows builds._
+
+### `tabris run [options] <platform> [cordova-platform-opts]`
+
+Builds a Tabris.js app and runs it on a connected device or emulator.
+
+*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
+
+*See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
+
+### `tabris clean`
+
+Removes build artifacts.
+
+### Common `tabris run` and `tabris build` parameters
 
 #### platform
 
@@ -110,26 +133,6 @@ Print more verbose output.
 Platform-specific options passed to Cordova.
 
 *See: [Platform-specific options - Cordova CLI Reference](https://cordova.apache.org/docs/en/6.x/reference/cordova-cli/#platform-specific-options)*
-
-### `tabris run [options] <platform> [cordova-platform-opts]`
-
-Builds a Tabris.js app and runs it on a connected device or emulator.
-
-Includes the parameters of `tabris build`.
-
-*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
-
-#### options
-
-##### `--arch`
-
-Architecture to build the app for. Can be one of "x64", "x86" and "arm".
-
-_Supported only for Windows builds._
-
-### `tabris clean`
-
-Removes build artifacts.
 
 ## License
 
