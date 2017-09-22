@@ -61,8 +61,9 @@ One of `ios`, `android` or `windows`.
 *Default options*:
 
   * `--debug`
-  * `--emulator`
   * `--cordova-build-config=./build.json`
+
+_Note: when neither `--emulator` nor `--device` is specified and a device is connected, the app will be built for a device. If no device is connected, the app will be built for an emulator._
 
 ##### `--variables <replacements>`
 
