@@ -1,3 +1,9 @@
+## 2.1.1
+
+* Make "tabris init" install the latest patch version of the Tabris.js 2.1 release.
+* Fix wrong app path declared in config.xml on Windows. It included incompatible path separators.
+* Fix an issue causing modules ending on '.js' no to be loaded correctly when using "tabris serve".
+
 ## 2.1.0
 
 Update generator dependency to a version compatible with Tabris.js 2.1.0.
