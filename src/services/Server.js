@@ -1,5 +1,5 @@
 const os = require('os');
-const {relative, join} = require('path');
+const {posix, join} = require('path');
 const EventEmitter = require('events');
 const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
@@ -65,7 +65,7 @@ module.exports = class Server extends EventEmitter {
   _serveFile(appPath) {
     let servePackageJson = (req, res, next) => {
       if (req.url === '/package.json') {
-        return res.json({main: relative(this._cwd, appPath)});
+        return res.json({main: posix.relative(this._cwd, appPath)});
       }
       next();
     };
