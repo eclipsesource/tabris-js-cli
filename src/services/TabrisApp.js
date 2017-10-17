@@ -8,7 +8,7 @@ const proc = require('../helpers/proc');
 const DEFAULT_IGNORES = [
   '.git/',
   '.tabrisignore',
-  'node_modules/',
+  '/node_modules/',
   '/build/',
   '/cordova/'
 ];
