@@ -1,3 +1,8 @@
+## 2.1.2
+
+* Fix serving snippets from subdirectories of the current working directory. Previously, only serving snippets from the current working directory was possible.
+* Only exclude node_modules directory in the root app directory from being copied to the built app. Tabris.js CLI is only responsible for installation of production Node dependencies in the root app directory.
+
 ## 2.1.1
 
 * Make "tabris init" install the latest patch version of the Tabris.js 2.1 release.
