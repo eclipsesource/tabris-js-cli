@@ -1,4 +1,4 @@
-const {join, basename} = require('path');
+const {join, relative, basename} = require('path');
 const {writeFileSync} = require('fs-extra');
 const temp = require('temp').track();
 const portscanner = require('portscanner');
@@ -13,8 +13,8 @@ describe('Server', function() {
   let server, path;
 
   beforeEach(function() {
-    server = new Server();
     path = temp.mkdirSync('foo');
+    server = new Server({cwd: path});
     stub(proc, 'execSync');
     stub(proc, 'exec');
   });
@@ -82,7 +82,7 @@ describe('Server', function() {
     });
 
     it('runs watch script when watch option given', function() {
-      server =  new Server({watch: true});
+      server =  new Server({cwd: path, watch: true});
       writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
       return server.serve(path)
         .then(() => {
@@ -102,7 +102,7 @@ describe('Server', function() {
 
     it('uses next unused port', function() {
       writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-      let server2 = new Server();
+      let server2 = new Server({cwd: path});
       return server.serve(path).then(() => {
         return server2.serve(path).then(() => {
           expect(server.port).to.be.ok;
@@ -126,11 +126,24 @@ describe('Server', function() {
     it('delivers a synthetic package.json for a file', function() {
       let file = join(path, 'foo.js');
       writeFileSync(file, 'content');
+      server = new Server({cwd: path});
       return server.serve(file)
         .then(() => fetch(`http://127.0.0.1:${server.port}/package.json`))
         .then(response => response.json())
         .then(json => {
           expect(json.main).to.equal(basename(file));
+        });
+    });
+
+    it('delivers a synthetic package.json for a file relative to given directory', function() {
+      let file = join(path, 'foo.js');
+      writeFileSync(file, 'content');
+      server = new Server({cwd: join(path, '..')});
+      return server.serve(file)
+        .then(() => fetch(`http://127.0.0.1:${server.port}/package.json`))
+        .then(response => response.json())
+        .then(json => {
+          expect(json.main).to.equal(relative(join(path, '..'), file));
         });
     });
 

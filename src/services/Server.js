@@ -1,5 +1,5 @@
 const os = require('os');
-const {basename, join} = require('path');
+const {relative, join} = require('path');
 const EventEmitter = require('events');
 const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
@@ -12,9 +12,10 @@ const MAX_PORT = 65535;
 
 module.exports = class Server extends EventEmitter {
 
-  constructor({watch = false} = {}) {
+  constructor({cwd, watch = false}) {
     super();
     this._watch = watch;
+    this._cwd = cwd;
   }
 
   static get externalAddresses() {
@@ -64,11 +65,11 @@ module.exports = class Server extends EventEmitter {
   _serveFile(appPath) {
     let servePackageJson = (req, res, next) => {
       if (req.url === '/package.json') {
-        return res.json({main: basename(appPath)});
+        return res.json({main: relative(this._cwd, appPath)});
       }
       next();
     };
-    return this._startServer(join(appPath, '..'), [servePackageJson]);
+    return this._startServer(this._cwd, [servePackageJson]);
   }
 
   _startServer(appPath, middlewares = []) {
