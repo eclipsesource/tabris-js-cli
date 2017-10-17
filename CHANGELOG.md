@@ -1,3 +1,7 @@
+## 2.1.3
+
+* Fix serving snippets on Windows when a file with a relative path is given. Previously, wrong path separators were used.
+
 ## 2.1.2
 
 * Fix serving snippets from subdirectories of the current working directory. Previously, only serving snippets from the current working directory was possible.

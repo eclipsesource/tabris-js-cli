@@ -1,6 +1,6 @@
 {
   "name": "tabris-cli",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Command line tool for Tabris.js",
   "dependencies": {
     "chalk": "^1.1.3",
