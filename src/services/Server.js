@@ -12,10 +12,9 @@ const MAX_PORT = 65535;
 
 module.exports = class Server extends EventEmitter {
 
-  constructor({cwd, watch = false}) {
+  constructor({watch = false} = {}) {
     super();
     this._watch = watch;
-    this._cwd = cwd;
   }
 
   static get externalAddresses() {
@@ -69,14 +68,14 @@ module.exports = class Server extends EventEmitter {
       }
       next();
     };
-    return this._startServer(this._cwd, [servePackageJson]);
+    return this._startServer(process.cwd(), [servePackageJson]);
   }
 
   _getMainPath(appPath) {
     if (os.platform() === 'win32') { // TODO: workaround for https://github.com/nodejs/node/issues/13683
-      return relative(this._cwd, appPath).replace(/\\/g, '/');
+      return relative(process.cwd(), appPath).replace(/\\/g, '/');
     }
-    return relative(this._cwd, appPath);
+    return relative(process.cwd(), appPath);
   }
 
   _startServer(appPath, middlewares = []) {

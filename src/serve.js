@@ -13,7 +13,7 @@ program
 function serve(inputPath, options) {
   const Server = require('./services/Server');
 
-  let server = new Server({watch: options.watch, cwd: process.cwd()});
+  let server = new Server({watch: options.watch});
   if (options.logging) {
     server.on('request', (req, err) => {
       if (err) {
