@@ -1,5 +1,5 @@
 const os = require('os');
-const {posix, join} = require('path');
+const {join, relative} = require('path');
 const EventEmitter = require('events');
 const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
@@ -65,11 +65,18 @@ module.exports = class Server extends EventEmitter {
   _serveFile(appPath) {
     let servePackageJson = (req, res, next) => {
       if (req.url === '/package.json') {
-        return res.json({main: posix.relative(this._cwd, appPath)});
+        return res.json({main: this._getMainPath(appPath)});
       }
       next();
     };
     return this._startServer(this._cwd, [servePackageJson]);
+  }
+
+  _getMainPath(appPath) {
+    if (os.platform() === 'win32') { // TODO: workaround for https://github.com/nodejs/node/issues/13683
+      return relative(this._cwd, appPath).replace(/\\/g, '/');
+    }
+    return relative(this._cwd, appPath);
   }
 
   _startServer(appPath, middlewares = []) {
