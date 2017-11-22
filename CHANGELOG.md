@@ -1,3 +1,14 @@
+## 2.2.0
+
+* Support serving snippets from subdirectories of the current working directory. Previously, only serving snippets from the current working directory was possible.
+* Only exclude node_modules directory in the root app directory from being copied to the built app. Tabris.js CLI is only responsible for installation of production Node dependencies in the root app directory.
+* Compile the project in the "test" task of the Tabris.js project template. Some compilation errors may not get caught by the linter.
+* Make "tabris init" install the latest patch version of the current Tabris.js release.
+* Fix an issue causing modules ending on '.js' not to be loaded correctly when using "tabris serve".
+* Fix wrong generated package.json "main" file path when serving snippets on Windows.
+* Fix serving snippets on Windows when a file with a relative path is given. Previously, wrong path separators were used.
+* Fix wrong app path declared in config.xml on Windows. It included incompatible path separators.
+
 ## 2.1.0
 
 Update generator dependency to a version compatible with Tabris.js 2.1.0.
