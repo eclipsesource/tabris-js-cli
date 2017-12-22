@@ -1,3 +1,7 @@
+## 2.3.0
+
+Update generator dependency to a version compatible with Tabris.js 2.3.0.
+
 ## 2.2.0
 
 * Support serving snippets from subdirectories of the current working directory. Previously, only serving snippets from the current working directory was possible.
