@@ -22,6 +22,9 @@ class BuildKeyProvider {
 
   getBuildKey() {
     return new Promise((resolve, reject) => {
+      if (!process.env[BUILD_KEY_ENV_VAR] && !process.stdout.isTTY) {
+        throw new Error('TABRIS_BUILD_KEY must be set when Tabris.js CLI is not running within a TTY context.');
+      }
       if (process.env[BUILD_KEY_ENV_VAR]) {
         return resolve(process.env[BUILD_KEY_ENV_VAR]);
       }
