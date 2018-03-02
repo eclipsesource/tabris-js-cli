@@ -1,3 +1,7 @@
+## 2.4.0
+
+Improve error handling for non-interactive shells.
+
 ## 2.3.0
 
 Update generator dependency to a version compatible with Tabris.js 2.3.0.
