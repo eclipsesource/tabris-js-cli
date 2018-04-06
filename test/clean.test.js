@@ -20,14 +20,15 @@ describe('clean', function() {
     opts = {cwd, env, encoding: 'utf8'};
   });
 
-  it('removes build/cordova folder', function() {
+  it('removes build folder', function() {
     mkdirsSync(join(cwd, 'build/cordova'));
 
     let result = spawnSync('node', [tabris, 'clean'], opts);
 
     expect(result.stderr).to.equal('');
-    expect(result.stdout).to.contain('Removing build folder build/cordova') ;
+    expect(result.stdout).to.contain('Removing build/ folder') ;
     expect(existsSync(join(cwd, 'build/cordova'))).to.be.false;
+    expect(existsSync(join(cwd, 'build'))).to.be.false;
     expect(result.status).to.equal(0);
   });
 
@@ -35,7 +36,7 @@ describe('clean', function() {
     let result = spawnSync('node', [tabris, 'clean'], opts);
 
     expect(result.stderr).to.equal('');
-    expect(result.stdout).to.contain('Removing build folder build/cordova') ;
+    expect(result.stdout).to.contain('Removing build/ folder') ;
     expect(result.status).to.equal(0);
   });
 

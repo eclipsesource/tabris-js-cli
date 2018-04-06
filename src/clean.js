@@ -10,6 +10,6 @@ program
 
 function clean() {
   const {removeSync} = require('fs-extra');
-  console.log('Removing build folder build/cordova');
-  removeSync('build/cordova');
+  console.log('Removing build/ folder');
+  removeSync('build');
 }
