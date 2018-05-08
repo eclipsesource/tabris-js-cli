@@ -27,6 +27,10 @@ module.exports = class ConfigXml {
     return this._contents;
   }
 
+  get widgetId() {
+    return this._parsedXml.widget.$.id;
+  }
+
   _validateContents() {
     if (!this._parsedXml.widget) {
       throw new Error('Missing or empty <widget> element in config.xml');

@@ -56,6 +56,18 @@ describe('ConfigXml', function() {
 
   });
 
+  describe('get widgetId', function() {
+
+    it('returns widget ID', function() {
+      writeFileSync(join(cwd, 'config.xml'), createContent());
+
+      let configXml = ConfigXml.readFrom(join(cwd, 'config.xml'));
+
+      expect(configXml.widgetId).to.equal('test');
+    });
+
+  });
+
   describe('replaceVariables', function() {
 
     it('does not fail when variables undefined', function() {
