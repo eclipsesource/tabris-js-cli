@@ -1,3 +1,7 @@
+## 2.5.0
+
+`tabris clean` will now remove the whole "build/" directory with all of its contents. Previously, it only removed "build/cordova".
+
 ## 2.4.0
 
 Improve error handling for non-interactive shells.
