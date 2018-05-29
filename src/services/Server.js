@@ -1,11 +1,13 @@
 const os = require('os');
 const {join, relative} = require('path');
 const EventEmitter = require('events');
-const {readJsonSync, existsSync, lstat} = require('fs-extra');
+const {readFileSync, readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
 const union = require('union');
 const portscanner = require('portscanner');
 const proc = require('../helpers/proc');
+const WebSocket = require('ws');
+const DebugServer = require('./DebugServer');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -15,6 +17,7 @@ module.exports = class Server extends EventEmitter {
   constructor({watch = false} = {}) {
     super();
     this._watch = watch;
+    this._debugServer = null;
   }
 
   static get externalAddresses() {
@@ -27,6 +30,10 @@ module.exports = class Server extends EventEmitter {
 
   get port() {
     return this._server ? this._server.address().port : null;
+  }
+
+  get wsPort() {
+    return this._debugServer ? this._debugServer.port : null;
   }
 
   serve(basePath) {
@@ -83,26 +90,50 @@ module.exports = class Server extends EventEmitter {
       if (!Server.externalAddresses.length) {
         throw new Error('No remotely accessible network interfaces');
       }
+
       let requestLogger = (req, res, next) => {
         this.emit('request', req);
         next();
       };
+
+      let serveBootJs = (req, res, next) => {
+        if (req.url === '/node_modules/tabris/boot.min.js') {
+          return res.text(this._getBootJsWithDebug(appPath));
+        }
+        next();
+      };
+
       this._server = union.createServer({
-        before: [requestLogger, ...middlewares, ecstatic({root: appPath, showDir: false})],
+        before: [requestLogger, ...middlewares, serveBootJs, ecstatic({root: appPath, showDir: false})],
         onError: (err, req, res) => {
           this.emit('request', req, err);
           res.end();
         }
       });
+
       this._findAvailablePort().then(port => {
         this._server.listen(port, (err) => {
           if (err) {
             throw err;
           }
-          resolve();
         });
+        return this._findAvailablePort();
+      }).then(port => {
+        const _webSocketServer = new WebSocket.Server({port});
+        this._debugServer = new DebugServer(_webSocketServer);
+        this._debugServer.start();
+        resolve();
       });
     });
+  }
+
+  _getBootJsWithDebug(appPath) {
+    let localBootMinJs = readFileSync(join(appPath, 'node_modules', 'tabris', 'boot.min.js'), 'utf8');
+    let debugClient = readFileSync(join(__dirname, '..', '..', 'resources', 'debugClient.js'), 'utf8');
+    const hosts = Server.externalAddresses;
+    debugClient = debugClient.replace(new RegExp('{{WebSocketUrl}}', 'g'), `ws://${hosts[0]}:${this.wsPort}`);
+    debugClient = debugClient.replace(new RegExp('{{SessionId}}', 'g'), this._debugServer.getNewSessionId());
+    return localBootMinJs + '\n' + debugClient;
   }
 
   _findAvailablePort() {

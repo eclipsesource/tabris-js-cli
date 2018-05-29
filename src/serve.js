@@ -24,8 +24,11 @@ function serve(inputPath, options) {
     });
   }
   server.serve(inputPath || process.cwd()).then(() => {
+    const webSocketHost = Server.externalAddresses[0];
     console.info(yellow('Server started.\nPoint your Tabris.js client to:\n'),
-      Server.externalAddresses.map(address => green(`  http://${address}:${server.port}`)).join('\n'));
+      Server.externalAddresses.map(address => green(`  http://${address}:${server.port}`)).join('\n'),
+      '\n',
+      yellow(`Debug WebSocket: ws://${webSocketHost}:${server.wsPort}`));
   }).catch((err) => {
     fail(err);
   });
