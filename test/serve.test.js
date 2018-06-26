@@ -34,7 +34,7 @@ describe('serve', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
     serve = spawn('node', ['./src/tabris', 'serve', path], {env});
 
-    return waitForStdout(serve, 3)
+    return waitForStdout(serve)
       .then(stdout => {
         expect(stdout).to.contain(`NPM run --if-present build [${path}]`);
       });
@@ -44,7 +44,7 @@ describe('serve', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
     serve = spawn('node', ['./src/tabris', 'serve', '-w', path], {env});
 
-    return waitForStdout(serve, 3)
+    return waitForStdout(serve)
       .then(stdout => {
         expect(stdout).to.contain(`NPM run --if-present watch [${path}]`);
       });
@@ -54,7 +54,7 @@ describe('serve', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
     serve = spawn('node', ['./src/tabris', 'serve', path], {env});
 
-    return waitForStdout(serve, 3)
+    return waitForStdout(serve)
       .then(stdout => getPortFromStdout(stdout))
       .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
       .then(response => response.json())
@@ -68,8 +68,8 @@ describe('serve', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
     serve = spawn('node', [srcFile, 'serve'], {cwd: path, env});
 
-    return waitForStdout(serve, 3)
-      .then(stdout => getPortFromStdout(stdout))
+    return waitForStdout(serve)
+      .then(stdout => getPortFromStdout(stdout, 20))
       .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
       .then(response => response.json())
       .then(data =>
@@ -95,13 +95,13 @@ describe('serve', function() {
         .then(log =>
           expect(log).to.contain('GET /package.json')
         );
-    });
+    }).timeout(3000);
 
     it('request errors are logged to the console', function() {
       writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
       serve = spawn('node', ['./src/tabris', 'serve', path, '-l'], {env});
 
-      return waitForStdout(serve, 3)
+      return waitForStdout(serve)
         .then(stdout => getPortFromStdout(stdout))
         .then(port => Promise.all([
           waitForStderr(serve),
@@ -132,20 +132,18 @@ function waitForStderr(process) {
   return new Promise(resolve => process.stderr.once('data', data => resolve(data)));
 }
 
-function waitForStdout(process, lines = 1) {
-  let readLines = 0;
+function waitForStdout(process, timeout = 800) {
   let stdout = '';
+  process.stdout.on('data', data => {
+    stdout += data;
+  });
   return new Promise(resolve => {
-    process.stdout.on('data', data => {
-      stdout += data;
-      readLines++;
-      if (readLines >= lines) {
-        resolve(stdout);
-      }
-    });
+    setTimeout(() => resolve(stdout), timeout);
   });
 }
 
 function getPortFromStdout(stdout) {
-  return stdout.toString().match(/.*http:.*:(\d+).*/)[1];
+  let ports = stdout.toString().match(/.*http:.*:(\d+).*/);
+  expect(ports).to.be.a('array', 'No ports found in stdout');
+  return ports[1];
 }
