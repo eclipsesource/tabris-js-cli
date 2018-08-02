@@ -37,6 +37,10 @@ The file or directory to serve the Tabris.js app from. When ommitted, the curren
 
 #### options
 
+##### `-i, --interactive`
+
+Enable interactive console for JavaScript input.
+
 ##### `-l, --logging`
 
 Enables request logging.

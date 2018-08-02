@@ -24,6 +24,14 @@ module.exports = class DebugConnection {
     this._webSocket.close(code);
   }
 
+  send(command) {
+    if (command && this._isAlive) {
+      this._webSocket.send(command);
+      return true;
+    }
+    return false;
+  }
+
   get isAlive() {
     return this._isAlive;
   }

@@ -16,7 +16,7 @@ module.exports = class DebugServer {
       const requestUrl = webSocket.url || req.url;
       const sessionId = url.parse(requestUrl, true).query.id;
       if (this._isMostRecentSession(sessionId)) {
-        this.clientOutdatedConnection();
+        this._clientOutdatedConnection();
         this._connection = new DebugConnection({sessionId, webSocket});
       }
     });
@@ -28,6 +28,13 @@ module.exports = class DebugServer {
     this._webSocketServer = null;
   }
 
+  send(command) {
+    if (this._connection) {
+      return this._connection.send(command);
+    }
+    return false;
+  }
+
   getNewSessionId() {
     return ++this._sessionId;
   }
@@ -36,8 +43,8 @@ module.exports = class DebugServer {
     return this._webSocketServer.options.port;
   }
 
-  clientOutdatedConnection() {
-    if (this.isConnectionAlive() && !this._isMostRecentSession(this._connection.sessionId)) {
+  _clientOutdatedConnection() {
+    if (this._isConnectionAlive() && !this._isMostRecentSession(this._connection.sessionId)) {
       this._connection.close(OUTDATED_CONNECTION_CLOSURE);
     }
   }
@@ -46,7 +53,7 @@ module.exports = class DebugServer {
     return id.toString() === this._sessionId.toString();
   }
 
-  isConnectionAlive() {
+  _isConnectionAlive() {
     return this._connection && this._connection.isAlive;
   }
 

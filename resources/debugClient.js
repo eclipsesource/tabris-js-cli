@@ -91,10 +91,17 @@
       this._webSocket.onopen = () => {
         this._send({type: 'connect', parameter: {
           platform: tabris.device.platform,
-          model: tabris.device.model,
+          model: tabris.device.model
         }});
         this._attempts = 0;
         this._sendBufferedMessages();
+      };
+      this._webSocket.onmessage = event => {
+        try {
+          console.log(new Function('return (' + event.data + ')')());
+        } catch (ex) {
+          console.warn(ex);
+        }
       };
     }
 

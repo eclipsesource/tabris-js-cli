@@ -2,9 +2,11 @@ const {handleErrors, fail} = require('./helpers/errorHandler');
 const program = require('commander');
 const {red, blue} = require('chalk');
 const ServerInfo = require('./services/ServerInfo');
+const RemoteConsoleUI = require('./services/RemoteConsoleUI');
 
 program
   .command('serve [path]')
+  .option('-i, --interactive', 'enable interactive console for JavaScript input')
   .option('-l, --logging', 'enable request logging')
   .option('-w, --watch', 'execute the "watch" instead of the "build" script of the app before serving')
   .description('Serves a Tabris.js app from a directory or a file. If a ' +
@@ -20,7 +22,12 @@ function serve(inputPath, options) {
     server.on('request', logRequest);
   }
   server.serve(inputPath || process.cwd())
-      .then(() => new ServerInfo(server, externalAddresses).show())
+      .then(() => {
+        if (options.interactive) {
+          new RemoteConsoleUI(server._debugServer);
+        }
+        new ServerInfo(server, externalAddresses).show();
+      })
       .catch(fail);
 }
 
