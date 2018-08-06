@@ -1,16 +1,25 @@
+const os = require('os');
 const {red} = require('chalk');
+const {join} = require('path');
 const readline = require('readline');
+const {CLIHistory, DIRECTION_NEXT, DIRECTION_PREV} = require('./CLIHistory');
 
 module.exports = class RemoteConsoleUI {
 
   constructor(debugServer) {
     this._debugServer = debugServer;
+    this._cliHistory = new CLIHistory(join(os.homedir(), '.tabris-cli', 'cli_history.log'));
     this._readline = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
       prompt: 'JS> '
     }).on('line', line => this._submitCommand(line))
       .on('close', () => process.exit(0));
+    this._readline.input.on('keypress', (e, key) => {
+      if (key.name === 'up' || key.name === 'down') {
+        this._updateInput(key.name === 'up' ? DIRECTION_PREV : DIRECTION_NEXT);
+      }
+    });
     this._wrapConsoleObject();
   }
 
@@ -20,11 +29,20 @@ module.exports = class RemoteConsoleUI {
       if (command === 'exit') {
         process.exit(0);
       }
+      this._cliHistory.addToHistory(command);
       if (!this._debugServer.send(command)) {
         console.log(red('Command could not be sent'));
       }
     }
     this._readline.prompt();
+  }
+
+  _updateInput(direction) {
+    this._cliHistory.moveHistory(direction);
+    const command = this._cliHistory.currentHistory;
+    this._readline.line = command;
+    this._readline.cursor = command.length;
+    this._readline.prompt(true);
   }
 
   _wrapConsoleObject() {
