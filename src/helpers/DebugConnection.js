@@ -1,4 +1,4 @@
-const {yellow, red, blue, white} = require('colors');
+const {yellow, red, blue} = require('chalk');
 
 const STATE_CONNECTED = 'connected';
 const STATE_DISCONNECTED = 'disconnected';
@@ -62,10 +62,10 @@ module.exports = class DebugConnection {
     const parameter = clientMessage.parameter;
     switch (parameter.level) {
       case 'log':
-        console.log(white(parameter.message));
+        console.log(parameter.message);
         break;
       case 'info':
-        console.log(white(parameter.message));
+        console.log(parameter.message);
         break;
       case 'error':
         console.log(red(parameter.message));
