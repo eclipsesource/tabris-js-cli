@@ -8,11 +8,9 @@ module.exports = class ServerInfo {
   }
 
   show(outputCallBack = console.log) {
-    const webSocketHost = this.externalAddresses[0];
     return this.selectAddressForQRCode().then((address) => {
       this.generateQRCode(this.createURL(address, this.server.port), outputCallBack);
       console.log(yellow(`Available URLs:\n${this.determineAvailableURLs(this.externalAddresses, this.server.port)}`));
-      console.log(yellow(`Debug WebSocket: ws://${webSocketHost}:${this.server.wsPort}`));
     });
   }
 

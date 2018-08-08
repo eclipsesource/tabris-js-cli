@@ -11,9 +11,12 @@
   global.debugClient = {
 
     start: () => {
+      const serverUrl = tabris.app
+        .getResourceLocation('package.json')
+        .match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i)[1];
       const webSocketFactory = {
         createWebSocket() {
-          return new WebSocket('{{WebSocketUrl}}/?id={{SessionId}}', '');
+          return new WebSocket(`ws://${serverUrl}/?id={{SessionId}}`, '');
         }
       };
       const rc = new global.debugClient.RemoteConsole(webSocketFactory, '{{SessionId}}');

@@ -32,10 +32,6 @@ module.exports = class Server extends EventEmitter {
     return this._server ? this._server.address().port : null;
   }
 
-  get wsPort() {
-    return this._debugServer ? this._debugServer.port : null;
-  }
-
   serve(basePath) {
     return lstat(basePath).then((stats) => {
       if (stats.isDirectory()) {
@@ -116,13 +112,11 @@ module.exports = class Server extends EventEmitter {
           if (err) {
             throw err;
           }
+          const _webSocketServer = new WebSocket.Server({server: this._server});
+          this._debugServer = new DebugServer(_webSocketServer);
+          this._debugServer.start();
+          resolve();
         });
-        return this._findAvailablePort();
-      }).then(port => {
-        const _webSocketServer = new WebSocket.Server({port});
-        this._debugServer = new DebugServer(_webSocketServer);
-        this._debugServer.start();
-        resolve();
       });
     });
   }
@@ -130,8 +124,6 @@ module.exports = class Server extends EventEmitter {
   _getBootJsWithDebug(appPath) {
     let localBootMinJs = readFileSync(join(appPath, 'node_modules', 'tabris', 'boot.min.js'), 'utf8');
     let debugClient = readFileSync(join(__dirname, '..', '..', 'resources', 'debugClient.js'), 'utf8');
-    const hosts = Server.externalAddresses;
-    debugClient = debugClient.replace(new RegExp('{{WebSocketUrl}}', 'g'), `ws://${hosts[0]}:${this.wsPort}`);
     debugClient = debugClient.replace(new RegExp('{{SessionId}}', 'g'), this._debugServer.getNewSessionId());
     return localBootMinJs + '\n' + debugClient;
   }

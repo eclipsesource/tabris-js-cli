@@ -115,17 +115,6 @@ describe('serve', function() {
 
   });
 
-  it('print debug websocket address on run', function() {
-    let {path} = temp.openSync('foo');
-    serve = spawn('node', ['./src/tabris', 'serve', path], {env});
-
-    return waitForStdout(serve)
-      .then(stdout => stdout.toString())
-      .then(log =>
-        expect(log).to.match(/Debug WebSocket: ws:\/\/(?:[0-9]{1,3}\.){3}[0-9]{1,3}\:[0-9]{2,4}/)
-      );
-  });
-
 });
 
 function waitForStderr(process) {
