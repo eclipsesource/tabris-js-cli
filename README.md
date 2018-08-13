@@ -37,6 +37,10 @@ The file or directory to serve the Tabris.js app from. When ommitted, the curren
 
 #### options
 
+##### `-a, --auto-reload`
+
+Auto reload the application when a source file is modified.
+
 ##### `-i, --interactive`
 
 Enable interactive console for JavaScript input.

@@ -3,9 +3,11 @@ const program = require('commander');
 const {red, blue} = require('chalk');
 const ServerInfo = require('./services/ServerInfo');
 const RemoteConsoleUI = require('./services/RemoteConsoleUI');
+const Watcher = require('./services/Watcher');
 
 program
   .command('serve [path]')
+  .option('-a, --auto-reload', 'auto reload the application when a source file is modified')
   .option('-i, --interactive', 'enable interactive console for JavaScript input')
   .option('-l, --logging', 'enable request logging')
   .option('-w, --watch', 'execute the "watch" instead of the "build" script of the app before serving')
@@ -25,6 +27,9 @@ function serve(inputPath, options) {
       .then(() => {
         if (options.interactive) {
           new RemoteConsoleUI(server._debugServer);
+        }
+        if (options.autoReload) {
+          new Watcher(server).start();
         }
         new ServerInfo(server, externalAddresses).show();
       })
