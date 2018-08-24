@@ -2,7 +2,8 @@ const {join} = require('path');
 const {readFileSync, writeFileSync, existsSync, realpathSync, mkdirsSync, removeSync} = require('fs-extra');
 const {spawnSync} = require('child_process');
 const expect = require('chai').expect;
-const temp = require('temp').track();
+const temp = require('temp');//.track();
+const {platform} = require('os');
 const packageJson = require('../package.json');
 
 const tabris = join(__dirname, '../src/tabris');
@@ -25,7 +26,9 @@ const mockBinDir = join(__dirname, 'bin');
       mkdirsSync(join(home, '.tabris-cli', 'platforms', 'windows', packageJson.version));
       env = {
         HOME: home,
-        PATH: mockBinDir + ':' + process.env.PATH,
+        USERPROFILE: home,
+        APPDATA: 'appdata',
+        PATH: mockBinDir + (platform() === 'win32' ? ';' : ':') + process.env.PATH,
         TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
         TABRIS_IOS_PLATFORM: 'path/to/tabris-ios',
         TABRIS_WINDOWS_PLATFORM: 'path/to/tabris-windows'
@@ -52,6 +55,7 @@ const mockBinDir = join(__dirname, 'bin');
         let isWindows = platform === 'windows';
         let isBuild = command === 'build';
         let archArgument = isBuild && isWindows && '--arch=x86';
+
         let result = spawnSync('node', [tabris, command, platform, archArgument].filter(truthy), opts);
 
         expect(result.stderr).to.equal('');
@@ -71,7 +75,7 @@ const mockBinDir = join(__dirname, 'bin');
 
       let result = spawnSync('node', [tabris, command, 'android'], opts);
 
-      expect(result.stderr.trim()).to.equal('config.xml does not exist at cordova/config.xml');
+      expect(result.stderr.trim()).to.match(/config\.xml does not exist at cordova.config\.xml/);
       expect(result.status).to.equal(1);
     });
 

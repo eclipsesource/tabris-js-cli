@@ -29,8 +29,10 @@
   },
   "scripts": {
     "mocha": "NODE_ENV=test mocha",
+    "mocha:win": "set NODE_ENV=test&mocha",
     "lint": "eslint .",
-    "test": "npm run mocha && npm run lint"
+    "test": "npm run mocha && npm run lint",
+    "test:win": "npm run mocha:win && npm run lint"
   },
   "repository": {
     "type": "git",

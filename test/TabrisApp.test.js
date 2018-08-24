@@ -5,6 +5,7 @@ const proc = require('../src/helpers/proc');
 const log = require('../src/helpers/log');
 const {expect, stub, restore} = require('./test');
 const TabrisApp = require('../src/services/TabrisApp');
+const path = require('path');
 
 describe('TabrisApp', function() {
 
@@ -212,7 +213,7 @@ describe('TabrisApp', function() {
       project.createCordovaProject(destination);
 
       expect(proc.execSync)
-        .to.have.been.calledWith('npm', ['install', '--production'], {cwd: `${destination}/www/app`});
+        .to.have.been.calledWith('npm', ['install', '--production'], {cwd: path.join(destination, 'www', 'app')});
     });
 
   });

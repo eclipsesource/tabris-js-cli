@@ -4,6 +4,7 @@ const temp = require('temp').track();
 const {expect} = require('./test');
 const spawn = require('child_process').spawn;
 const fetch = require('node-fetch');
+const {platform} = require('os');
 
 describe('serve', function() {
 
@@ -12,7 +13,9 @@ describe('serve', function() {
 
   beforeEach(function() {
     path = realpathSync(temp.mkdirSync('foo'));
-    env = {PATH: mockBinDir + ':' + process.env.PATH};
+    env = {
+      PATH: mockBinDir + (platform() === 'win32' ? ';' : ':') + process.env.PATH,
+    };
   });
 
   afterEach(() => {

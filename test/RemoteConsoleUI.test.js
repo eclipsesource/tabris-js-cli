@@ -99,10 +99,10 @@ describe('Remote Console UI', function() {
           remoteConsoleUI._readline.emit('line', command);
         }, 500);
         return waitForCalls(console.log, 3)
-          .then(log =>
-            expect(log).to.contain('connected')
-            && expect(log).to.contain('10')
-          );
+           .then(log => {
+             expect(log).to.contain('connected');
+             expect(log).to.contain('10');
+           });
       });
 
       it('print object value without console log method', function() {
