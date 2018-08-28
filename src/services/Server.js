@@ -1,5 +1,5 @@
 const os = require('os');
-const {join, relative} = require('path');
+const {join} = require('path');
 const EventEmitter = require('events');
 const {readFileSync, readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
@@ -32,14 +32,14 @@ module.exports = class Server extends EventEmitter {
     return this._server ? this._server.address().port : null;
   }
 
-  serve(basePath) {
+  serve(basePath, main) {
     return lstat(basePath).then((stats) => {
       if (stats.isDirectory()) {
         let packageJsonPath = join(basePath, 'package.json');
         if (!existsSync(packageJsonPath)) {
           throw new Error('Directory must contain package.json');
         }
-        if (!readJsonSync(packageJsonPath).main) {
+        if (!readJsonSync(packageJsonPath).main && !main) {
           throw new Error('package.json must contain a "main" field');
         }
         if (this._watch) {
@@ -47,11 +47,9 @@ module.exports = class Server extends EventEmitter {
         } else {
           proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: basePath});
         }
-        return this._startServer(basePath);
-      } else if (stats.isFile()) {
-        return this._serveFile(basePath);
+        return this._startServer(basePath, main);
       } else {
-        throw new Error('Path must be a directory or a file.');
+        throw new Error('Project must be a directory.');
       }
     }).catch((err) => {
       if (!basePath) {
@@ -64,24 +62,16 @@ module.exports = class Server extends EventEmitter {
     });
   }
 
-  _serveFile(appPath) {
-    let servePackageJson = (req, res, next) => {
-      if (req.url === '/package.json') {
-        return res.json({main: this._getMainPath(appPath)});
-      }
-      next();
-    };
-    return this._startServer(process.cwd(), [servePackageJson]);
-  }
-
-  _getMainPath(appPath) {
-    if (os.platform() === 'win32') { // TODO: workaround for https://github.com/nodejs/node/issues/13683
-      return relative(process.cwd(), appPath).replace(/\\/g, '/');
+  _startServer(appPath, main) {
+    const middlewares = [];
+    if (main) {
+      middlewares.push((req, res, next) => {
+        if (req.url === '/package.json') {
+          return res.json({main});
+        }
+        next();
+      });
     }
-    return relative(process.cwd(), appPath);
-  }
-
-  _startServer(appPath, middlewares = []) {
     return new Promise((resolve) => {
       if (!Server.externalAddresses.length) {
         throw new Error('No remotely accessible network interfaces');

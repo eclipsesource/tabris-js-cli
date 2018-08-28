@@ -27,15 +27,19 @@ Creates a new Tabris.js app in the current directory.
 
 *See: [Quick Start Guide - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/getting-started.html)*
 
-### `tabris serve [options] [path]`
+### `tabris serve [options]`
 
 Starts a server the [Tabris.js developer app](https://tabrisjs.com/documentation/2.0/developer-app) can be pointed to. If a build script is present in package.json, it is executed beforehand.
 
-#### path
-
-The file or directory to serve the Tabris.js app from. When ommitted, the current working directory is served.
-
 #### options
+
+##### `-p [path], --project [path]`
+
+The directory to serve the Tabris.js app from. Needs to contain a package.json and installed "tabris" module. When omitted, the current working directory is served.
+
+##### `-m [module], --main [module]`
+
+Overrides the "main" field of package.json. The argument must be a valid module id relative to the project root, e.g. "dist/main.js".
 
 ##### `-a, --auto-reload`
 

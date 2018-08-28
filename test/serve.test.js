@@ -15,6 +15,10 @@ describe('serve', function() {
   let serve, path, env;
   const mockBinDir = join(__dirname, 'bin');
 
+  function writePackageJson(content = '{"main": "foo.js"}') {
+    writeFileSync(join(path, 'package.json'), content);
+  }
+
   beforeEach(function() {
     path = realpathSync(temp.mkdirSync('foo'));
     env = {
@@ -30,17 +34,37 @@ describe('serve', function() {
     restore();
   });
 
-  it('fails when file does not exist', function() {
-    serve = spawn('node', ['./src/tabris', 'serve', 'foobar.js'], {env});
+  it('fails when current working directory does not contain package.json', function() {
+    let srcFile = resolve('./src/tabris');
+    serve = spawn('node', [srcFile, 'serve'], {cwd: path, env});
 
     return waitForStderr(serve).then((data) => {
-      expect(data.toString()).to.match(/No such file or directory: foobar.js/);
+      expect(data.toString()).to.match(/must contain package.json/);
+    });
+  }).timeout(8000);
+
+  it('fails when given project directory does not contain package.json', function() {
+    serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
+
+    return waitForStderr(serve).then((data) => {
+      expect(data.toString()).to.match(/must contain package.json/);
+    });
+  }).timeout(8000);
+
+  it('fails when given project path is not a directory', function() {
+    writePackageJson();
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-p', join(path, 'package.json')], {env});
+
+    return waitForStderr(serve).then((data) => {
+      expect(data.toString()).to.match(/Project must be a directory/);
     });
   }).timeout(8000);
 
   it('runs build script', function() {
-    writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-    serve = spawn('node', ['./src/tabris', 'serve', path], {env});
+    writePackageJson();
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
     return waitForStdout(serve)
       .then(stdout => {
@@ -49,8 +73,9 @@ describe('serve', function() {
   }).timeout(8000);
 
   it('runs watch script when -w option given', function() {
-    writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-    serve = spawn('node', ['./src/tabris', 'serve', '-w', path], {env});
+    writePackageJson();
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path], {env});
 
     return waitForStdout(serve)
       .then(stdout => {
@@ -58,9 +83,10 @@ describe('serve', function() {
       });
   }).timeout(8000);
 
-  it('starts a server on a given directory', function() {
-    writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-    serve = spawn('node', ['./src/tabris', 'serve', path], {env});
+  it('starts a server on a directory given with -p', function() {
+    writePackageJson();
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
     return waitForStdout(serve)
       .then(stdout => getPortFromStdout(stdout))
@@ -71,9 +97,24 @@ describe('serve', function() {
       );
   }).timeout(8000);
 
-  it('starts a server on cwd if path argument missing', function() {
+  it('starts a server on a directory given with --project', function() {
+    writePackageJson();
+
+    serve = spawn('node', ['./src/tabris', 'serve', '--project', path], {env});
+
+    return waitForStdout(serve)
+      .then(stdout => getPortFromStdout(stdout))
+      .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
+      .then(response => response.json())
+      .then(data =>
+        expect(data.main).to.equal('foo.js')
+      );
+  }).timeout(8000);
+
+  it('starts a server on cwd if project argument is missing', function() {
     let srcFile = resolve('./src/tabris');
-    writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
+    writePackageJson();
+
     serve = spawn('node', [srcFile, 'serve'], {cwd: path, env});
 
     return waitForStdout(serve)
@@ -85,11 +126,63 @@ describe('serve', function() {
       );
   }).timeout(8000);
 
+  it('delivers a synthetic package.json when -m switch is used', function() {
+    // NOTE: currently does not check the module actually exists, this is done by the client
+    let srcFile = resolve('./src/tabris');
+    let file = join(path, 'foo.js');
+    writeFileSync(file, 'content');
+    writePackageJson('{}');
+
+    serve = spawn('node', [srcFile, 'serve', '-m', 'foo.js'], {cwd: path, env});
+
+    return waitForStdout(serve)
+    .then(stdout => getPortFromStdout(stdout, 20))
+    .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
+    .then(response => response.json())
+    .then(data =>
+      expect(data.main).to.equal('foo.js')
+    );
+  }).timeout(8000);
+
+  it('delivers a synthetic package.json when --main switch is used', function() {
+    let srcFile = resolve('./src/tabris');
+    let file = join(path, 'foo.js');
+    writeFileSync(file, 'content');
+    writePackageJson('{}');
+
+    serve = spawn('node', [srcFile, 'serve', '--main', 'foo.js'], {cwd: path, env});
+
+    return waitForStdout(serve)
+    .then(stdout => getPortFromStdout(stdout, 20))
+    .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
+    .then(response => response.json())
+    .then(data =>
+      expect(data.main).to.equal('foo.js')
+    );
+  }).timeout(8000);
+
+  it('delivers a synthetic package.json when -m and -p switches are used', function() {
+    let file = join(path, 'bar.js');
+    writeFileSync(file, 'content');
+    writePackageJson();
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-m', 'bar.js'], {env});
+
+    return waitForStdout(serve)
+    .then(stdout => getPortFromStdout(stdout, 20))
+    .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
+    .then(response => response.json())
+    .then(data =>
+      expect(data.main).to.equal('bar.js')
+    );
+  }).timeout(8000);
+
   describe('when logging is enabled', function() {
 
     it('requests are logged to the console', function() {
-      let {path} = temp.openSync('foo');
-      serve = spawn('node', ['./src/tabris', 'serve', path, '-l'], {env});
+      writePackageJson();
+
+      serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-l'], {env});
 
       return waitForStdout(serve, 10000)
         .then(stdout => getPortFromStdout(stdout))
@@ -106,8 +199,8 @@ describe('serve', function() {
     }).timeout(30000);
 
     it('request errors are logged to the console', function() {
-      writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-      serve = spawn('node', ['./src/tabris', 'serve', path, '-l'], {env});
+      writePackageJson();
+      serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-l'], {env});
 
       return waitForStdout(serve, 10000)
         .then(stdout => getPortFromStdout(stdout))
@@ -134,7 +227,10 @@ function waitForStdout(process, timeout = 2000) {
   process.stdout.on('data', data => {
     stdout += data;
   });
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
+    process.stderr.once('data', data => {
+      reject(new Error(data.toString()));
+    });
     setTimeout(() => resolve(stdout), timeout);
   });
 }

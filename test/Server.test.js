@@ -1,4 +1,4 @@
-const {join, relative, basename} = require('path');
+const {join} = require('path');
 const {writeFileSync, realpathSync} = require('fs-extra');
 const temp = require('temp');
 const portscanner = require('portscanner');
@@ -124,44 +124,6 @@ describe('Server', function() {
         .then(response => response.text())
         .then(text => {
           expect(text).to.equal('content');
-        });
-    });
-
-    it('delivers a synthetic package.json for a file with absolute path', function() {
-      let file = join(path, 'foo.js');
-      writeFileSync(file, 'content');
-      server = new Server();
-      return server.serve(file)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/package.json`))
-        .then(response => response.json())
-        .then(json => {
-          expect(json.main).to.equal(basename(file));
-        });
-    });
-
-    it('delivers a synthetic package.json for a file with relative path', function() {
-      let file = join(path, 'foo.js');
-      writeFileSync(file, 'content');
-      server = new Server();
-      return server.serve('./foo.js')
-        .then(() => fetch(`http://127.0.0.1:${server.port}/package.json`))
-        .then(response => response.json())
-        .then(json => {
-          expect(json.main).to.equal(basename(file));
-        });
-    });
-
-    it('delivers a synthetic package.json when the served file is located in a subdirectory of the cwd', function() {
-      let file = join(path, 'foo.js');
-      process.chdir(join(path, '..'));
-      writeFileSync(file, 'content');
-      server = new Server();
-      return server.serve(file)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/package.json`))
-        .then(response => response.json())
-        .then(json => {
-          // Currently failing on windows, but working in production
-          expect(json.main).to.equal(relative(join(path, '..'), file));
         });
     });
 

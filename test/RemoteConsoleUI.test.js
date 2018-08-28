@@ -25,7 +25,7 @@ describe('Remote Console UI', function() {
 
   it('enable interactive console when option -i is given', function() {
     let {path} = temp.openSync('foo');
-    serve = spawn('node', ['./src/tabris', 'serve', path, '-i']);
+    serve = spawn('node', ['./src/tabris', 'serve', '-m', path, '-i']);
 
     return waitForStdout(serve, 2700)
       .then(log =>
@@ -35,7 +35,7 @@ describe('Remote Console UI', function() {
 
   it('when device is not connected', function() {
     let {path} = temp.openSync('foo');
-    serve = spawn('node', ['./src/tabris', 'serve', path, '-i']);
+    serve = spawn('node', ['./src/tabris', 'serve', '-m', path, '-i']);
     const command = 'test command';
     serve.stdin.write(`${command}\n`);
 
