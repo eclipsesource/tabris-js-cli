@@ -121,24 +121,6 @@ describe('DebugServer', () => {
         );
     });
 
-    it('don\'t print message after close', function() {
-      const rc = createRemoteConsole(debugServer, webSocketFactory);
-      const message = 'log message',
-        messageAfterClose = 'message after close';
-      rc.debug(message);
-      rc._webSocket.close(1000);
-      setTimeout(() => {
-        rc.log(messageAfterClose);
-      }, 1100);
-      return waitForCalls(console.log, 3)
-        .then(log =>
-          expect(log).to.contains('connected')
-          && expect(log).to.contain('disconnected')
-          && expect(log).to.contain(message)
-          && expect(log).not.to.contain(messageAfterClose)
-        );
-    });
-
   });
 
 });

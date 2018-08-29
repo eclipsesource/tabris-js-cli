@@ -42,7 +42,7 @@ describe('Watcher', function() {
       });
   }).timeout(3000);
 
-  it('don\'t send reload command when changed file is not watched', function() {
+  it('do not send reload command when changed file is not watched', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
     writeFileSync(join(path, 'foo.js'), 'console.log("test")');
     return server.serve(path)
@@ -58,7 +58,7 @@ describe('Watcher', function() {
           }, 1500);
         });
       });
-  }).timeout(2000);
+  }).timeout(3000);
 
 });
 
