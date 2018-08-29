@@ -1,13 +1,10 @@
 const https = require('https');
-const fs = require('fs-extra');
+const {createWriteStream, removeSync} = require('fs-extra');
 const EventEmitter = require('events');
 
 class FileDownloader extends EventEmitter {
 
   downloadFile(options, destination) {
-    let writeStream = fs.createWriteStream(destination);
-    writeStream.on('error', error => this._handleError(error));
-    writeStream.on('finish', () => writeStream.close(() => this._handleSuccess()));
     https
       .get(options, response => {
         let contentLength = parseInt(response.headers['content-length']);
@@ -15,9 +12,12 @@ class FileDownloader extends EventEmitter {
         if (response.statusCode !== 200) {
           let error = new Error('Unexpected status code ' + response.statusCode);
           error.statusCode = response.statusCode;
-          return this._handleError(error);
+          return this._handleError(error, destination);
         }
-        response.on('error', error => this._handleError(error));
+        let writeStream = createWriteStream(destination);
+        writeStream.on('error', error => this._handleError(error, destination));
+        writeStream.on('finish', () => writeStream.close(() => this._handleSuccess()));
+        response.on('error', error => this._handleError(error, destination));
         response.on('data', (chunk) => {
           this.emit('progress', {
             current: downloadedBytes += chunk.length,
@@ -26,7 +26,7 @@ class FileDownloader extends EventEmitter {
         });
         response.pipe(writeStream);
       })
-      .on('error', error => this._handleError(error));
+      .on('error', error => this._handleError(error, destination));
     return this;
   }
 
@@ -34,7 +34,8 @@ class FileDownloader extends EventEmitter {
     this.emit('done');
   }
 
-  _handleError(e = new Error('Error downloading file')) {
+  _handleError(e = new Error('Error downloading file'), destination) {
+    removeSync(destination);
     this.emit('error', e);
   }
 

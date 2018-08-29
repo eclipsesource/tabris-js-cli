@@ -73,7 +73,6 @@ module.exports = class PlatformProvider {
             resolve(this._buildKeyProvider.promptBuildKey()
               .then(buildKey => this._downloadPlatformZip(platformZipPath, buildKey, platform)));
           } else {
-            fs.removeSync(platformZipPath);
             reject(new Error('Unable to download platform: ' + e.message || e));
           }
         })

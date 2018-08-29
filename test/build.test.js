@@ -2,7 +2,7 @@ const {join} = require('path');
 const {readFileSync, writeFileSync, existsSync, realpathSync, mkdirsSync, removeSync} = require('fs-extra');
 const {spawnSync} = require('child_process');
 const expect = require('chai').expect;
-const temp = require('temp');//.track();
+const temp = require('temp').track();
 const {platform} = require('os');
 const packageJson = require('../package.json');
 
