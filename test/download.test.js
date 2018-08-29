@@ -20,9 +20,10 @@ describe('download', function() {
     fileDownloader = new FileDownloader();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    restore();
     try {
-      temp.cleanupSync();
+      await temp.cleanup();
     } catch(ex) {
       console.warn('Could not delete temporary test folder:');
       console.warn(dir);
@@ -30,7 +31,6 @@ describe('download', function() {
         console.info('This is a currently unresolvable windows/node issue.');
       }
     }
-    restore();
   });
 
   describe('downloadFile', function() {
