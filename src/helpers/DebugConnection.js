@@ -2,7 +2,7 @@ const {yellow, red, blue} = require('chalk');
 
 const STATE_CONNECTED = 'connected';
 const STATE_DISCONNECTED = 'disconnected';
-const STATE_CHECK_INTERVAL = process.env.NODE_ENV === 'test' ? 500 : 2000;
+const STATE_CHECK_INTERVAL = process.env.NODE_ENV === 'test' ? 500 : 5000;
 const TYPE_CONNECTION = 'connect';
 
 module.exports = class DebugConnection {
