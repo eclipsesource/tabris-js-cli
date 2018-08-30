@@ -8,6 +8,10 @@ interface ClientMessage {
 };
 
 interface LogParameter {
+    messages: LogMessage[];
+}
+
+interface LogMessage {
     level: 'debug' | 'log' | 'info' | 'warn' | 'error';
     message: string;
 };

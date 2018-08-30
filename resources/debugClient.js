@@ -2,7 +2,9 @@
 (function() {
 
   const AUTO_RECONNECT_INTERVAL = 2000;
-  const MAX_ATTEMPTS = 5;
+  const SEND_INTERVAL = 500;
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const MAX_SEND_ATTEMPTS = 5;
   const NORMAL_CLOSURE = 1000;
   const OUTDATED_CONNECTION_CLOSURE = 4900;
   const OUTDATED_CONNECTION_MESSAGE = 'Connection to debug websocket was closed.';
@@ -37,45 +39,30 @@
       this._webSocketFactory = webSocketFactory;
       this._webSocket = null;
       this._sessionId = sessionId;
-      this._attempts = 0;
+      this._reconnectAttempts = 0;
+      this._sendAttempts = 0;
       this._buffer = [];
       this._connect();
     }
 
     log(data) {
-      this._sendBuffered({type: 'log', parameter: {level: 'log', message: data}});
+      this._sendBuffered({level: 'log', message: data});
     }
 
     info(data) {
-      this._sendBuffered({type: 'log', parameter: {level: 'info', message: data}});
+      this._sendBuffered({level: 'info', message: data});
     }
 
     error(data) {
-      this._sendBuffered({type: 'log', parameter: {level: 'error', message: data}});
+      this._sendBuffered({level: 'error', message: data});
     }
 
     warn(data) {
-      this._sendBuffered({type: 'log', parameter: {level: 'warn', message: data}});
+      this._sendBuffered({level: 'warn', message: data});
     }
 
     debug(data) {
-      this._sendBuffered({type: 'log', parameter: {level: 'debug', message: data}});
-    }
-
-    _sendBuffered(clientMessage) {
-      if (this._isConnectionOpen()) {
-        this._send(clientMessage);
-      } else {
-        this._addToBuffer(clientMessage);
-      }
-    }
-
-    _isConnectionOpen() {
-      return this._webSocket && this._webSocket.readyState === WebSocket.OPEN;
-    }
-
-    _addToBuffer(event) {
-      this._buffer.push(event);
+      this._sendBuffered({level: 'debug', message: data});
     }
 
     _connect() {
@@ -92,12 +79,15 @@
         }
       };
       this._webSocket.onopen = () => {
-        this._send({type: 'connect', parameter: {
+        if (this._send({type: 'connect', parameter: {
           platform: tabris.device.platform,
           model: tabris.device.model
-        }});
-        this._attempts = 0;
-        this._sendBufferedMessages();
+        }})) {
+          this._reconnectAttempts = 0;
+          this._sendBufferedMessages();
+        } else {
+          this._reconnect();
+        }
       };
       this._webSocket.onmessage = event => {
         try {
@@ -110,26 +100,52 @@
 
     _reconnect() {
       this._webSocket = null;
-      if (++this._attempts <= MAX_ATTEMPTS) {
+      if (++this._reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
         this._connect();
       } else {
         console.error(CONNECTION_PROBLEM_MESSAGE);
       }
     }
 
-    _sendBufferedMessages() {
-      for(let i = 0; i < this._buffer.length; ++i) {
-        this._send(this._buffer[i]);
+    _sendBuffered(clientMessage) {
+      if (this._isConnectionOpen()) {
+        this._send({type: 'log', parameter: {messages: [clientMessage]}});
+      } else {
+        this._addToBuffer(clientMessage);
       }
-      this._buffer = [];
+    }
+
+    _addToBuffer(event) {
+      this._buffer.push(event);
+    }
+
+    _sendBufferedMessages() {
+      if (this._send({type: 'log', parameter: {messages: this._buffer}})) {
+        this._sendAttempts = 0;
+        this._buffer = [];
+      } else {
+        if (++this._sendAttempts < MAX_SEND_ATTEMPTS) {
+          setTimeout(() => {
+            this._sendBufferedMessages();
+          }, SEND_INTERVAL);
+        }
+      }
     }
 
     _send({type, parameter}) {
-      this._webSocket.send(JSON.stringify({
-        sessionId: this._sessionId,
-        type,
-        parameter
-      }));
+      try {
+        this._webSocket.send(JSON.stringify({
+          sessionId: this._sessionId,
+          type,
+          parameter
+        }));
+        return true;
+      } catch (ex) {}
+      return false;
+    }
+
+    _isConnectionOpen() {
+      return this._webSocket && this._webSocket.readyState === WebSocket.OPEN;
     }
 
   };

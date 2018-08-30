@@ -4,13 +4,17 @@ const STATE_CONNECTED = 'connected';
 const STATE_DISCONNECTED = 'disconnected';
 const STATE_CHECK_INTERVAL = process.env.NODE_ENV === 'test' ? 500 : 5000;
 const TYPE_CONNECTION = 'connect';
+const TYPE_LOG = 'log';
 
 module.exports = class DebugConnection {
 
   constructor({sessionId, webSocket}) {
     this._sessionId = sessionId;
     this._webSocket = webSocket;
-    this._device = null;
+    this._device = {
+      platform: '',
+      model: ''
+    };
     this._isAlive = true;
     this._interval = null;
     this._webSocket.on('pong', () => this._isAlive = true);
@@ -44,22 +48,19 @@ module.exports = class DebugConnection {
     this._webSocket.on('message', (message) => {
       try {
         const clientMessage = JSON.parse(message);
-        if (this._isConnectionRequest(clientMessage.type)) {
+        if (clientMessage.type === TYPE_CONNECTION) {
           this._device = clientMessage.parameter;
           this._printClientState(STATE_CONNECTED);
-        } else {
-          this._printClientMessage(clientMessage);
+        } else if (clientMessage.type === TYPE_LOG) {
+          for (const bufferedMessage of clientMessage.parameter.messages) {
+            this._printClientMessage(bufferedMessage);
+          }
         }
       } catch (ex) {}
     });
   }
 
-  _isConnectionRequest(type) {
-    return type === TYPE_CONNECTION;
-  }
-
-  _printClientMessage(clientMessage) {
-    const parameter = clientMessage.parameter;
+  _printClientMessage(parameter) {
     switch (parameter.level) {
       case 'log':
         console.log(parameter.message);
