@@ -1,6 +1,6 @@
 const {mkdirsSync, mkdirSync, existsSync, removeSync, writeFileSync, realpathSync} = require('fs-extra');
 const {join} = require('path');
-const temp = require('temp').track();
+const temp = require('temp');
 const proc = require('../src/helpers/proc');
 const log = require('../src/helpers/log');
 const {expect, stub, restore} = require('./test');
@@ -20,7 +20,7 @@ describe('TabrisApp', function() {
     mkdirSync(join(cwd, 'cordova'));
   });
 
-  afterEach(() => restore());
+  afterEach(restore);
 
   describe('constructor', function() {
 

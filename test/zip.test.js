@@ -1,8 +1,8 @@
 const yazl = require('yazl');
 const {realpathSync, writeFileSync, createWriteStream, readFileSync, outputFileSync} = require('fs-extra');
 const {join} = require('path');
-const temp = require('temp').track();
-const {expect} = require('./test');
+const temp = require('temp');
+const {expect, restore} = require('./test');
 const {unzip} = require('../src/helpers/zip');
 
 describe('zip', function() {
@@ -15,6 +15,8 @@ describe('zip', function() {
       let dir = temp.mkdirSync('test');
       cwd = realpathSync(dir);
     });
+
+    afterEach(restore);
 
     it('rejects when zip is an invalid file', function() {
       let path = join(cwd, 'invalidZip.zip');

@@ -1,6 +1,6 @@
 const {readFileSync, writeFileSync} = require('fs-extra');
 const {join} = require('path');
-const temp = require('temp').track();
+const temp = require('temp');
 const ConfigXml = require('../src/services/ConfigXml');
 const {expect, stub, restore} = require('./test');
 

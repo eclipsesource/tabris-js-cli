@@ -12,7 +12,7 @@ function unzip(source, destination) {
       }
       zipfile.readEntry();
       zipfile.on('error', () => reject(ERROR_UNZIPPING_FILE));
-      zipfile.on('close', () => resolve());
+      zipfile.on('close', () => setTimeout(resolve, 100)); // on windows close may take a few ms after returning
       zipfile.on('entry', (entry) => {
         let entryDestination = join(destination, entry.fileName);
         if (/\/$/.test(entry.fileName)) { // directory

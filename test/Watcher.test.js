@@ -1,4 +1,4 @@
-const temp = require('temp').track();
+const temp = require('temp');
 const fetch = require('node-fetch');
 const {join} = require('path');
 const Server = require('../src/services/Server');
@@ -21,9 +21,9 @@ describe('Watcher', function() {
   });
 
   afterEach(function() {
-    restore();
     process.chdir(oldCwd);
     watcher.stop();
+    restore();
   });
 
   it('send reload command when file is watched', function() {

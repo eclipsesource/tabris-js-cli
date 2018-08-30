@@ -1,8 +1,9 @@
 const {join} = require('path');
 const {existsSync, realpathSync, mkdirsSync} = require('fs-extra');
 const {spawnSync} = require('child_process');
-const temp = require('temp').track();
+const temp = require('temp');
 const expect = require('chai').expect;
+const {restore} = require('./test');
 
 const tabris = join(__dirname, '../src/tabris');
 const mockBinDir = join(__dirname, 'bin');
@@ -19,6 +20,8 @@ describe('clean', function() {
     env = {PATH: mockBinDir + ':' + process.env.PATH};
     opts = {cwd, env, encoding: 'utf8'};
   });
+
+  afterEach(restore);
 
   it('removes build folder', function() {
     mkdirsSync(join(cwd, 'build/cordova'));

@@ -1,10 +1,14 @@
 const {join,resolve} = require('path');
 const {writeFileSync, realpathSync} = require('fs-extra');
-const temp = require('temp').track();
-const {expect} = require('./test');
+const temp = require('temp');
+const {expect, restore} = require('./test');
 const spawn = require('child_process').spawn;
 const fetch = require('node-fetch');
 const {platform} = require('os');
+
+// General note: On windows "spawn" can be unexpectedly slow.
+// Therefore waitForStdout gets very long timeout, and as consequence
+// the tests themselves get longer timeouts as well.
 
 describe('serve', function() {
 
@@ -23,6 +27,7 @@ describe('serve', function() {
       serve.kill();
     }
     serve = null;
+    restore();
   });
 
   it('fails when file does not exist', function() {
@@ -31,7 +36,7 @@ describe('serve', function() {
     return waitForStderr(serve).then((data) => {
       expect(data.toString()).to.match(/No such file or directory: foobar.js/);
     });
-  });
+  }).timeout(8000);
 
   it('runs build script', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
@@ -41,7 +46,7 @@ describe('serve', function() {
       .then(stdout => {
         expect(stdout).to.contain(`NPM run --if-present build [${path}]`);
       });
-  });
+  }).timeout(8000);
 
   it('runs watch script when -w option given', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
@@ -51,7 +56,7 @@ describe('serve', function() {
       .then(stdout => {
         expect(stdout).to.contain(`NPM run --if-present watch [${path}]`);
       });
-  });
+  }).timeout(8000);
 
   it('starts a server on a given directory', function() {
     writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
@@ -64,7 +69,7 @@ describe('serve', function() {
       .then(data =>
         expect(data.main).to.equal('foo.js')
       );
-  });
+  }).timeout(8000);
 
   it('starts a server on cwd if path argument missing', function() {
     let srcFile = resolve('./src/tabris');
@@ -78,7 +83,7 @@ describe('serve', function() {
       .then(data =>
         expect(data.main).to.equal('foo.js')
       );
-  });
+  }).timeout(8000);
 
   describe('when logging is enabled', function() {
 
@@ -86,11 +91,11 @@ describe('serve', function() {
       let {path} = temp.openSync('foo');
       serve = spawn('node', ['./src/tabris', 'serve', path, '-l'], {env});
 
-      return waitForStdout(serve)
+      return waitForStdout(serve, 10000)
         .then(stdout => getPortFromStdout(stdout))
         .then(port => {
           return Promise.all([
-            waitForStdout(serve),
+            waitForStdout(serve, 10000),
             fetch(`http://127.0.0.1:${port}/package.json`)
           ]);
         })
@@ -98,23 +103,23 @@ describe('serve', function() {
         .then(log =>
           expect(log).to.contain('GET /package.json')
         );
-    }).timeout(3000);
+    }).timeout(30000);
 
     it('request errors are logged to the console', function() {
       writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
       serve = spawn('node', ['./src/tabris', 'serve', path, '-l'], {env});
 
-      return waitForStdout(serve)
+      return waitForStdout(serve, 10000)
         .then(stdout => getPortFromStdout(stdout))
         .then(port => Promise.all([
-          waitForStderr(serve),
+          waitForStderr(serve, 10000),
           fetch(`http://127.0.0.1:${port}/non-existent`)
         ]))
         .then(([stderr]) => stderr.toString())
         .then(log =>
           expect(log).to.contain('GET /non-existent 404: "Not found"')
         );
-    });
+    }).timeout(30000);
 
   });
 
@@ -124,7 +129,7 @@ function waitForStderr(process) {
   return new Promise(resolve => process.stderr.once('data', data => resolve(data)));
 }
 
-function waitForStdout(process, timeout = 800) {
+function waitForStdout(process, timeout = 2000) {
   let stdout = '';
   process.stdout.on('data', data => {
     stdout += data;
@@ -135,7 +140,7 @@ function waitForStdout(process, timeout = 800) {
 }
 
 function getPortFromStdout(stdout) {
-  let ports = stdout.toString().match(/.*http:.*:(\d+).*/);
-  expect(ports).to.be.a('array', 'No ports found in stdout');
+  let ports = stdout.match(/.*http:.*:(\d+).*/);
+  expect(ports).to.be.a('array', 'No ports found in stdout: ' + stdout);
   return ports[1];
 }

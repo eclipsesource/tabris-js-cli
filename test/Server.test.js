@@ -1,12 +1,11 @@
 const {join, relative, basename} = require('path');
 const {writeFileSync, realpathSync} = require('fs-extra');
-const temp = require('temp').track();
+const temp = require('temp');
 const portscanner = require('portscanner');
 const fetch = require('node-fetch');
 const {expect, stub, restore} = require('./test');
 const Server = require('../src/services/Server');
 const proc = require('../src/helpers/proc');
-
 
 describe('Server', function() {
 
@@ -22,8 +21,8 @@ describe('Server', function() {
   });
 
   afterEach(function() {
-    restore();
     process.chdir(oldCwd);
+    restore();
   });
 
   describe('externalAddresses', function() {
@@ -161,6 +160,7 @@ describe('Server', function() {
         .then(() => fetch(`http://127.0.0.1:${server.port}/package.json`))
         .then(response => response.json())
         .then(json => {
+          // Currently failing on windows, but working in production
           expect(json.main).to.equal(relative(join(path, '..'), file));
         });
     });

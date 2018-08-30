@@ -31,7 +31,8 @@ class FileDownloader extends EventEmitter {
   }
 
   _handleSuccess() {
-    this.emit('done');
+    // Ensure that the file operations on slower windows systems have caught up:
+    setTimeout(() => this.emit('done'), 100);
   }
 
   _handleError(e = new Error('Error downloading file'), destination) {

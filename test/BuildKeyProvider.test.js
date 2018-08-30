@@ -1,6 +1,6 @@
 const BuildKeyProvider = require('../src/services/BuildKeyProvider');
 const fs = require('fs-extra');
-const temp = require('temp').track();
+const temp = require('temp');
 const {expect, stub, restore} = require('./test');
 const {join} = require('path');
 

@@ -1,5 +1,5 @@
 const spawn = require('child_process').spawn;
-const temp = require('temp').track();
+const temp = require('temp');
 const {join} = require('path');
 const DebugServer = require('../src/services/DebugServer');
 const {readFileSync} = require('fs-extra');
@@ -20,6 +20,7 @@ describe('Remote Console UI', function() {
       serve.kill();
     }
     serve = null;
+    restore();
   });
 
   it('enable interactive console when option -i is given', function() {
@@ -72,7 +73,6 @@ describe('Remote Console UI', function() {
         debugServer.stop();
       }
       webSocketServer.stop();
-      restore();
     });
 
     it('send console.log command and print result', function() {

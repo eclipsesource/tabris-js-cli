@@ -1,11 +1,10 @@
 const {join} = require('path');
-const temp = require('temp').track();
+const temp = require('temp');
 const {expect, stub, restore} = require('./test');
 const {FileDownloader} = require('../src/helpers/download');
 const https = require('https');
 const stream = require('stream');
 const {existsSync} = require('fs-extra');
-const {platform} = require('os');
 
 describe('download', function() {
 
@@ -20,18 +19,7 @@ describe('download', function() {
     fileDownloader = new FileDownloader();
   });
 
-  afterEach(async () => {
-    restore();
-    try {
-      await temp.cleanup();
-    } catch(ex) {
-      console.warn('Could not delete temporary test folder:');
-      console.warn(dir);
-      if (platform() === 'win32') {
-        console.info('This is a currently unresolvable windows/node issue.');
-      }
-    }
-  });
+  afterEach(restore);
 
   describe('downloadFile', function() {
 

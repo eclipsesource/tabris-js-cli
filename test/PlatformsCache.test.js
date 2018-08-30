@@ -1,7 +1,7 @@
 const {join} = require('path');
 const {writeJsonSync, mkdirsSync, readJsonSync, existsSync} = require('fs-extra');
-const temp = require('temp').track();
-const {expect} = require('./test');
+const temp = require('temp');
+const {expect, restore} = require('./test');
 const PlatformsCache = require('../src/services/PlatformsCache');
 
 describe('PlatformsCache', function() {
@@ -13,6 +13,8 @@ describe('PlatformsCache', function() {
     cliDataDir = temp.mkdirSync('cliDataDir');
     cache = new PlatformsCache(cliDataDir);
   });
+
+  afterEach(restore);
 
   describe('get', function() {
 
