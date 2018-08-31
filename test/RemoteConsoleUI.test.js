@@ -31,7 +31,7 @@ describe('Remote Console UI', function() {
       .then(log =>
         expect(log).to.contain('JS>')
       );
-  }).timeout(3000);
+  }).timeout(6000);
 
   it('when device is not connected', function() {
     let {path} = temp.openSync('foo');
@@ -43,7 +43,7 @@ describe('Remote Console UI', function() {
       .then(log =>
         expect(log).to.contain('Command could not be sent')
       );
-  }).timeout(3000);
+  }).timeout(6000);
 
   describe('send command when device is connected', function() {
 
