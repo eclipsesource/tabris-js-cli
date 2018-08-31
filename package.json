@@ -32,7 +32,8 @@
     "mocha:win": "set NODE_ENV=test&mocha",
     "lint": "eslint .",
     "test": "npm run mocha && npm run lint",
-    "test:win": "npm run mocha:win && npm run lint"
+    "test:win": "npm run mocha:win && npm run lint",
+    "nightly": "npm --no-git-tag-version version $(echo $npm_package_version-dev.`date +%Y%m%d`)"
   },
   "repository": {
     "type": "git",

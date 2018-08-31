@@ -1,3 +1,16 @@
 language: node_js
 node_js:
-  - "10.5.0"
+- 10.5.0
+script:
+- npm test
+- if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then npm run nightly; fi
+- cat ./package.json
+deploy:
+  provider: npm
+  tag: nightly
+  email: admin@eclipsesource.com
+  api_key:
+    secure: IM8OReezIc7qnnTgoCpPnkcMmmHcAkKaPzVGObPf/l0LZ/Jq1WRuUcTFP6AtkGee0iaToRA2yG/PboKHRaL2fWIbiPkotDfkTwaqqmMfooyd0ydA7n5xABLv7ePiNMPPZVWX5hf+95rqQ8Rjg7B4RkN9phUBjjjSiBTJuG31eoNCBcu5K3fvR9xvPnAoWH6/azQNHZJ6Yjko7m/mM8oeaT+66GKybGe5AjEyy4e1AoQsFIFK5Gqz1dfsh0psFY2+6Hssd5ASVk3sucZj6bRswr+y6GEVnrytOLtADfdSke9qUxq39iEig7/GEYxLswM49juez/qynog3B3TAqtHfDRTybEKv2DRtzBO8vTYMbUgwNOtRxX8QNiOP+uy/EGM59Bd5uZvcIxHLhZUQpcRj2omP6oYn88wd5vubHwpPi7nO1/fVV0RJNdOfc3zKN6SLUzJRIerzKu9QDEKuk9NEJj+uZKXCB4jgY6HA/UpJAFyhARNwJ0rSUTMADrgGw67IWyKxxa4J7/AoN3DsIfHplf+AWPfGLV6v/oXiHb9pg7fLHAyBAod2wj8ANpPtZ2BFgO0tdWWm5+YLEY/6mBflo20w1Lzf8w6023+WW3l8AiDCBF9qsPC9edyujDE27loStSvN3H+2xGEzZ7fRCthHmcubUBMv0pjriBodkOTfoTU=
+  on:
+    branch: master
+    condition: $TRAVIS_EVENT_TYPE = cron
