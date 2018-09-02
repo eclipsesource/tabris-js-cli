@@ -1,5 +1,5 @@
 const os = require('os');
-const {red} = require('chalk');
+const {blue, red} = require('chalk');
 const {join} = require('path');
 const readline = require('readline');
 const {CLIHistory, DIRECTION_NEXT, DIRECTION_PREV} = require('./CLIHistory');
@@ -12,7 +12,7 @@ module.exports = class RemoteConsoleUI {
     this._readline = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      prompt: 'JS> '
+      prompt: blue('>> ')
     }).on('line', line => this._submitCommand(line))
       .on('close', () => process.exit(0));
     this._readline.input.on('keypress', (e, key) => {

@@ -91,7 +91,12 @@
       };
       this._webSocket.onmessage = event => {
         try {
-          console.log(new Function('return (' + event.data + ')')());
+          // VT100 escape code for grey color
+          let result = new Function('return (' + event.data + ')')();
+          if (typeof result === 'object') {
+            result = JSON.stringify(result);
+          }
+          this.log(`\x1b[;37m<- ${result}\x1b[0m`);
         } catch (ex) {
           console.warn(ex);
         }

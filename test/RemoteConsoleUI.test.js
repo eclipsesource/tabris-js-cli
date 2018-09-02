@@ -29,7 +29,7 @@ describe('Remote Console UI', function() {
 
     return waitForStdout(serve, 2700)
       .then(log =>
-        expect(log).to.contain('JS>')
+        expect(log).to.contain('>>')
       );
   }).timeout(6000);
 
