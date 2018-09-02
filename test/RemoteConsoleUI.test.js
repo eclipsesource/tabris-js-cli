@@ -41,7 +41,7 @@ describe('Remote Console UI', function() {
 
     return waitForStdout(serve, 2700)
       .then(log =>
-        expect(log).to.contain('Command could not be sent')
+        expect(log).to.contain('Command could not be sent: no device connected')
       );
   }).timeout(6000);
 

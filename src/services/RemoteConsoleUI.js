@@ -31,7 +31,7 @@ module.exports = class RemoteConsoleUI {
       }
       this._cliHistory.addToHistory(command);
       if (!this._debugServer.send(command)) {
-        console.log(red('Command could not be sent'));
+        console.log(red('Command could not be sent: no device connected'));
       }
     }
     this._readline.prompt();
