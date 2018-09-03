@@ -114,6 +114,22 @@ describe('Remote Console UI', function() {
         );
     });
 
+    it('can not create local variable', function() {
+      createRemoteConsole(debugServer, webSocketFactory);
+      const command = 'var a = "foo"; console.log(a + "bar");',
+        command2 = 'console.log("a is ", typeof a)';
+      setTimeout(() => {
+        remoteConsoleUI._readline.emit('line', command);
+        remoteConsoleUI._readline.emit('line', command2);
+      }, 500);
+      return waitForCalls(console.log, 5)
+        .then(log =>
+          expect(log).to.contain('connected')
+          && expect(log).to.contain('foobar')
+          && expect(log).to.contain('a is undefined')
+        );
+    });
+
     it('keep JS input and cursor position when new log message is arrived', function() {
       createRemoteConsole(debugServer, webSocketFactory);
       const command = '5 * 3', input = 'JavaScript input';
