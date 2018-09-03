@@ -43,7 +43,13 @@ module.exports = class Server extends EventEmitter {
           throw new Error('package.json must contain a "main" field');
         }
         if (this._watch) {
-          proc.exec('npm', ['run', '--if-present', 'watch'], {cwd: basePath});
+          const ps = proc.exec('npm', ['run', '--if-present', 'watch'], {cwd: basePath, stdio: [null, 'pipe', null]});
+          ps.stdout.on('data', data => {
+            const line = data.toString().trim();
+            if (line !== '') {
+              console.info(line);
+            }
+          });
         } else {
           proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: basePath});
         }

@@ -22,7 +22,7 @@ describe('serve', function() {
   beforeEach(function() {
     path = realpathSync(temp.mkdirSync('foo'));
     env = {
-      PATH: mockBinDir + (platform() === 'win32' ? ';' : ':') + process.env.PATH,
+      PATH: mockBinDir + (platform() === 'win32' ? ';' : ':') + process.env.PATH
     };
   });
 

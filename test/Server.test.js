@@ -3,7 +3,7 @@ const {writeFileSync, realpathSync} = require('fs-extra');
 const temp = require('temp');
 const portscanner = require('portscanner');
 const fetch = require('node-fetch');
-const {expect, stub, restore} = require('./test');
+const {expect, stub, restore, spy} = require('./test');
 const Server = require('../src/services/Server');
 const proc = require('../src/helpers/proc');
 
@@ -17,7 +17,7 @@ describe('Server', function() {
     process.chdir(path);
     server = new Server();
     stub(proc, 'execSync');
-    stub(proc, 'exec');
+    spy(proc, 'exec');
   });
 
   afterEach(function() {
@@ -91,7 +91,10 @@ describe('Server', function() {
       return server.serve(path)
         .then(() => {
           expect(proc.execSync).not.to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
-          expect(proc.exec).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {cwd: path});
+          expect(proc.exec).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {
+            cwd: path,
+            stdio: [null, 'pipe', null]
+          });
         });
     });
 
