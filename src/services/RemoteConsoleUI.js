@@ -8,6 +8,7 @@ module.exports = class RemoteConsoleUI {
 
   constructor(debugServer) {
     this._debugServer = debugServer;
+    this._debugServer.onEvaluationCompleted = () => this._onEvaluationCompleted();
     this._cliHistory = new CLIHistory(join(os.homedir(), '.tabris-cli', 'cli_history.log'));
     this._readline = readline.createInterface({
       input: process.stdin,
@@ -21,6 +22,7 @@ module.exports = class RemoteConsoleUI {
       }
     });
     this._wrapConsoleObject();
+    this._isWaitingForResponse = false;
   }
 
   _submitCommand(line) {
@@ -31,10 +33,12 @@ module.exports = class RemoteConsoleUI {
       }
       this._cliHistory.addToHistory(command);
       if (!this._debugServer.send(command)) {
-        console.log(red('Command could not be sent: no device connected'));
+        console.log(red('Command could not be sent: no device connected!'));
+      } else {
+        this._isWaitingForResponse = true;
+        this._readline.pause();
       }
     }
-    this._readline.prompt();
   }
 
   _updateInput(direction) {
@@ -45,6 +49,14 @@ module.exports = class RemoteConsoleUI {
     this._readline.prompt(true);
   }
 
+  _onEvaluationCompleted() {
+    if (this._isWaitingForResponse) {
+      this._isWaitingForResponse = false;
+      this._readline.line = '';
+      this._readline.prompt();
+    }
+  }
+
   _wrapConsoleObject() {
     const levels = ['log', 'info', 'error', 'debug', 'warn'];
     for (const level of levels) {
@@ -53,7 +65,9 @@ module.exports = class RemoteConsoleUI {
         // VT100 escape code to delete line
         this._readline.output.write('\x1b[2K\r');
         oldConsole.apply(console, Array.prototype.slice.call(args));
-        this._readline.prompt(true);
+        if (!this._isWaitingForResponse) {
+          this._readline.prompt(true);
+        }
       };
     }
   }

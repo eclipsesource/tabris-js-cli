@@ -102,6 +102,8 @@
           this.log(`\x1b[;37m<- ${result}\x1b[0m`);
         } catch (ex) {
           console.warn(ex);
+        } finally {
+          this._send({type: 'action-response', parameter: {enablePrompt: true}});
         }
       };
     }

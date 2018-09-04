@@ -5,6 +5,7 @@ const STATE_DISCONNECTED = 'disconnected';
 const STATE_CHECK_INTERVAL = process.env.NODE_ENV === 'test' ? 500 : 5000;
 const TYPE_CONNECTION = 'connect';
 const TYPE_LOG = 'log';
+const TYPE_ACTION_RESPONSE = 'action-response';
 
 module.exports = class DebugConnection {
 
@@ -17,6 +18,7 @@ module.exports = class DebugConnection {
     };
     this._isAlive = true;
     this._interval = null;
+    this._onEvaluationCompleted = null;
     this._webSocket.on('pong', () => this._isAlive = true);
     this._scheduleClientConnectionStateChecks();
     this._registerMessageHandler();
@@ -25,6 +27,7 @@ module.exports = class DebugConnection {
   close(code) {
     clearInterval(this._interval);
     this._printClientState(STATE_DISCONNECTED);
+    this._enablePrompt();
     this._webSocket.close(code);
   }
 
@@ -34,6 +37,10 @@ module.exports = class DebugConnection {
       return true;
     }
     return false;
+  }
+
+  set onEvaluationCompleted(cb) {
+    this._onEvaluationCompleted = cb;
   }
 
   get isAlive() {
@@ -54,6 +61,10 @@ module.exports = class DebugConnection {
         } else if (clientMessage.type === TYPE_LOG) {
           for (const bufferedMessage of clientMessage.parameter.messages) {
             this._printClientMessage(bufferedMessage);
+          }
+        } else if(clientMessage.type === TYPE_ACTION_RESPONSE) {
+          if (clientMessage.parameter.enablePrompt) {
+            this._enablePrompt();
           }
         }
       } catch (ex) {}
@@ -85,6 +96,7 @@ module.exports = class DebugConnection {
       if (!this._isAlive) {
         this._printClientState(STATE_DISCONNECTED);
         clearInterval(this._interval);
+        this._enablePrompt();
         return this._webSocket.close();
       }
       this._isAlive = false;
@@ -97,6 +109,12 @@ module.exports = class DebugConnection {
   _printClientState(state) {
     const device = this._device;
     console.log(`[${device.platform}][${device.model}][${this._sessionId}]: ${state}`);
+  }
+
+  _enablePrompt() {
+    if (this._onEvaluationCompleted && this._onEvaluationCompleted instanceof Function) {
+      this._onEvaluationCompleted.call();
+    }
   }
 
 };

@@ -18,6 +18,7 @@ module.exports = class DebugServer {
       if (this._isMostRecentSession(sessionId)) {
         this._clientOutdatedConnection();
         this._connection = new DebugConnection({sessionId, webSocket});
+        this._connection.onEvaluationCompleted = this._onEvaluationCompleted;
       }
     });
   }
@@ -37,6 +38,10 @@ module.exports = class DebugServer {
 
   getNewSessionId() {
     return ++this._sessionId;
+  }
+
+  set onEvaluationCompleted(cb) {
+    this._onEvaluationCompleted = cb;
   }
 
   get port() {

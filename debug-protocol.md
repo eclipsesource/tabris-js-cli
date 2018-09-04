@@ -3,8 +3,8 @@
 ```
 interface ClientMessage {
    sessionId: string;
-   type: 'log' | 'connect';
-   parameter: LogParameter | ConnectParameter;
+   type: 'log' | 'connect' | 'action-response';
+   parameter: LogParameter | ConnectParameter | ActionResponseParameter;
 };
 
 interface LogParameter {
@@ -19,5 +19,9 @@ interface LogMessage {
 interface ConnectParameter {
     platform: string;
     model: string;
+}
+
+interface ActionResponseParameter {
+    enablePrompt: boolean;
 }
 ```
