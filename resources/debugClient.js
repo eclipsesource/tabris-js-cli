@@ -70,7 +70,7 @@
       this._webSocket.onclose = (event) => {
         if (event.code !== NORMAL_CLOSURE) {
           if (event.code === OUTDATED_CONNECTION_CLOSURE) {
-            console.error(OUTDATED_CONNECTION_MESSAGE);
+            console.info(OUTDATED_CONNECTION_MESSAGE);
           } else {
             setTimeout(() => {
               this._reconnect();
@@ -108,7 +108,7 @@
       if (++this._reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
         this._connect();
       } else {
-        console.error(CONNECTION_PROBLEM_MESSAGE);
+        console.info(CONNECTION_PROBLEM_MESSAGE);
       }
     }
 
