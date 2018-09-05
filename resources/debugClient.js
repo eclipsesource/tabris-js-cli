@@ -42,6 +42,7 @@
       this._reconnectAttempts = 0;
       this._sendAttempts = 0;
       this._buffer = [];
+      this._isOpen = false;
       this._connect();
     }
 
@@ -68,7 +69,8 @@
     _connect() {
       this._webSocket = this._webSocketFactory.createWebSocket();
       this._webSocket.onclose = (event) => {
-        if (event.code !== NORMAL_CLOSURE) {
+        if (this._isOpen && event.code !== NORMAL_CLOSURE) {
+          this._isOpen = false;
           if (event.code === OUTDATED_CONNECTION_CLOSURE) {
             console.info(OUTDATED_CONNECTION_MESSAGE);
           } else {
@@ -83,6 +85,7 @@
           platform: tabris.device.platform,
           model: tabris.device.model
         }})) {
+          this._isOpen = true;
           this._reconnectAttempts = 0;
           this._sendBufferedMessages();
         } else {
