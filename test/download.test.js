@@ -115,7 +115,8 @@ describe('download', function() {
       fakeResponse.headers = {'content-length': 6};
       https.get.callsArgWith(1, fakeResponse);
       fileDownloader
-        .on('error', error => {
+        .on('error', function errorHandler(error) {
+          fileDownloader.off('error', errorHandler);
           expect(error).to.equal('foo');
           done();
         })
@@ -132,7 +133,8 @@ describe('download', function() {
       fakeResponse.headers = {'content-length': 6};
       https.get.callsArgWith(1, fakeResponse);
       fileDownloader
-        .on('error', () => {
+        .on('error', function errorHandler() {
+          fileDownloader.off('error', errorHandler);
           expect(existsSync(destination)).to.be.false;
           done();
         })

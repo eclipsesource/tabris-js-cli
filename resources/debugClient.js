@@ -12,7 +12,7 @@
 
   global.debugClient = {
 
-    start: () => {
+    start() {
       const serverUrl = tabris.app
         .getResourceLocation('package.json')
         .match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i)[1];
@@ -21,7 +21,7 @@
           return new WebSocket(`ws://${serverUrl}/?id={{SessionId}}`, '');
         }
       };
-      const rc = new global.debugClient.RemoteConsole(webSocketFactory, '{{SessionId}}');
+      const rc = this.remoteConsole = new global.debugClient.RemoteConsole(webSocketFactory, '{{SessionId}}');
       const SUPPORTED_EVENTS = ['log', 'info', 'error', 'warn', 'debug'];
       tabris.on('log', (event) => {
         if (!SUPPORTED_EVENTS.includes(event.level)) {
@@ -43,27 +43,41 @@
       this._sendAttempts = 0;
       this._buffer = [];
       this._isOpen = false;
+      this._isDisposed = false;
       this._connect();
     }
 
     log(data) {
+      this._disposeCheck();
       this._sendBuffered({level: 'log', message: data});
     }
 
     info(data) {
+      this._disposeCheck();
       this._sendBuffered({level: 'info', message: data});
     }
 
     error(data) {
+      this._disposeCheck();
       this._sendBuffered({level: 'error', message: data});
     }
 
     warn(data) {
+      this._disposeCheck();
       this._sendBuffered({level: 'warn', message: data});
     }
 
     debug(data) {
+      this._disposeCheck();
       this._sendBuffered({level: 'debug', message: data});
+    }
+
+    dispose() {
+      this._webSocket.onclose = null;
+      this._webSocket.onopen = null;
+      this._webSocket.onmessage = null;
+      this._webSocket = null;
+      this._isDisposed = true;
     }
 
     _connect() {
@@ -109,6 +123,9 @@
     }
 
     _reconnect() {
+      if (this._disposed) {
+        return;
+      }
       this._webSocket = null;
       if (++this._reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
         this._connect();
@@ -156,6 +173,12 @@
 
     _isConnectionOpen() {
       return this._webSocket && this._webSocket.readyState === WebSocket.OPEN;
+    }
+
+    _disposeCheck() {
+      if (this._isDisposed) {
+        throw new Error('RemoteConsole is disposed');
+      }
     }
 
   };

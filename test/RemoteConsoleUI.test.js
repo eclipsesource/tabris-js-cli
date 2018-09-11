@@ -45,7 +45,7 @@ describe('Remote Console UI', function() {
       );
   }).timeout(6000);
 
-  describe('send command when device is connected', function() {
+  describe('when device is connected', function() {
 
     let webSocketFactory = {
       createWebSocket() {
@@ -55,102 +55,124 @@ describe('Remote Console UI', function() {
     let debugServer = null, webSocketServer = null, remoteConsoleUI = null;
 
     beforeEach(function() {
-      global.tabris = {};
-      global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
-      webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
-      debugServer = new DebugServer(webSocketServer);
-      debugServer.start();
-      remoteConsoleUI = new RemoteConsoleUI(debugServer);
-      const debugClientJs = readFileSync(join(__dirname, '..', 'resources', 'debugClient.js'), 'utf8');
-      eval(debugClientJs.replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
-      spy(console, 'log');
+      try {
+        global.tabris = {};
+        global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
+        webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
+        debugServer = new DebugServer(webSocketServer);
+        debugServer.start();
+        remoteConsoleUI = new RemoteConsoleUI(debugServer);
+        const debugClientJs = readFileSync(join(__dirname, '..', 'resources', 'debugClient.js'), 'utf8');
+        eval(debugClientJs.replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
+        spy(console, 'log');
+      } catch (ex) {
+        console.error(ex.stack);
+        throw ex;
+      }
     });
 
     afterEach(() => {
-      delete global.debugClient;
-      delete global.tabris;
       if (debugServer._connection) {
         debugServer.stop();
       }
       webSocketServer.stop();
+      if (global.debugClient) {
+        if (global.debugClient.remoteConsole) {
+          global.debugClient.remoteConsole.dispose();
+        }
+        delete global.debugClient;
+      }
+      if (global.tabris) {
+        delete global.tabris;
+      }
     });
+
+    function createRemoteConsole(server, webSocketFactory) {
+      const remoteConsole = new global.debugClient.RemoteConsole(webSocketFactory, server.getNewSessionId());
+      return new Promise((resolve, reject) => {
+        let count = 0;
+        const interval = setInterval(() => {
+          if (++count > 20) {
+            reject('remote console could not connect');
+          } else {
+            if (debugServer._isConnectionAlive()) {
+              clearInterval(interval);
+              resolve(remoteConsole);
+            }
+          }
+        }, 100);
+      });
+    }
 
     it('send console.log command and print result', function() {
-      createRemoteConsole(debugServer, webSocketFactory);
       const command = 'console.log(5 * 2)';
-      setTimeout(() => {
+      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
         remoteConsoleUI._readline.emit('line', command);
-      }, 500);
-      return waitForCalls(console.log, 3)
-        .then(log =>
-          expect(log).to.contain('connected')
-          && expect(log).to.contain('10')
-        );
-    });
+        return waitForCalls(console.log, 3);
+      }).then(log => {
+        expect(log).to.contain('connected');
+        expect(log).to.contain('10');
+        return true;
+      });
+    }).timeout(6000);
 
     it('send plain JS command and print result', function() {
-      createRemoteConsole(debugServer, webSocketFactory);
       const command = '5 * 2';
-      setTimeout(() => {
+      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
         remoteConsoleUI._readline.emit('line', command);
-      }, 500);
-      return waitForCalls(console.log, 3)
-          .then(log => {
-            expect(log).to.contain('connected');
-            expect(log).to.contain('10');
-          });
-    });
+        return waitForCalls(console.log, 3);
+      }).then(log => {
+        expect(log).to.contain('connected');
+        expect(log).to.contain('10');
+        return true;
+      });
+    }).timeout(6000);
 
     it('print object value without console log method', function() {
-      createRemoteConsole(debugServer, webSocketFactory);
       const command = 'tabris.device';
-      setTimeout(() => {
+      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
         remoteConsoleUI._readline.emit('line', command);
-      }, 500);
-      return waitForCalls(console.log, 3)
-        .then(log =>
-          expect(log).to.contain('connected')
-          && expect(log).to.contain(JSON.stringify(global.tabris.device))
-        );
-    });
+        return waitForCalls(console.log, 3);
+      }).then(log => {
+        expect(log).to.contain('connected');
+        expect(log).to.contain(JSON.stringify(global.tabris.device));
+        return true;
+      });
+    }).timeout(6000);
 
     it('can not create local variable', function() {
-      createRemoteConsole(debugServer, webSocketFactory);
-      const command = 'var a = "foo"; console.log(a + "bar");',
-        command2 = 'console.log("a is ", typeof a)';
-      setTimeout(() => {
+      const command = 'var a = "foo"; console.log(a + "bar");';
+      const command2 = 'console.log("a is ", typeof a)';
+      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
         remoteConsoleUI._readline.emit('line', command);
         remoteConsoleUI._readline.emit('line', command2);
-      }, 500);
-      return waitForCalls(console.log, 5)
-        .then(log =>
-          expect(log).to.contain('connected')
-          && expect(log).to.contain('foobar')
-          && expect(log).to.contain('a is undefined')
-        );
-    });
+        return waitForCalls(console.log, 5);
+      }).then(log => {
+        expect(log).to.contain('connected');
+        expect(log).to.contain('foobar');
+        expect(log).to.contain('a is undefined');
+        return true;
+      });
+    }).timeout(6000);
 
     it('keep JS input and cursor position when new log message is arrived', function() {
-      createRemoteConsole(debugServer, webSocketFactory);
       const command = '5 * 3', input = 'JavaScript input';
-      remoteConsoleUI._readline.line = input;
-      remoteConsoleUI._readline.cursor = input.length;
-      console.log(new Function('return (' + command + ')')());
-      return waitForCalls(console.log, 3)
-        .then(log =>
-          expect(log).to.contain('connected')
-          && expect(remoteConsoleUI._readline.line).to.equal(input)
-          && expect(remoteConsoleUI._readline.cursor).to.equal(input.length)
-        );
-    });
+      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
+        remoteConsoleUI._readline.line = input;
+        remoteConsoleUI._readline.cursor = input.length;
+        console.log(new Function('return (' + command + ')')());
+        return waitForCalls(console.log, 3);
+      }).then(log => {
+        expect(log).to.contain('connected');
+        expect(remoteConsoleUI._readline.line).to.equal(input);
+        expect(remoteConsoleUI._readline.cursor).to.equal(input.length);
+        return true;
+      });
+    }).timeout(6000);
 
   });
 
 });
-
-function createRemoteConsole(server, webSocketFactory) {
-  return new global.debugClient.RemoteConsole(webSocketFactory, server.getNewSessionId());
-}
 
 function waitForStdout(process, timeout = 800) {
   let stdout = '';
