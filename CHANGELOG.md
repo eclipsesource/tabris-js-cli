@@ -1,3 +1,14 @@
+## 3.0.0 beta1
+
+`tabris serve`:
+* QR code containing app URL for scanning with developer app
+* App console logs output on developer machine (last connected device only)
+* New option `-i` enables interactive JavaScript console sending commands to last connected device
+* New option `-a` enables automatic app reload on source code changes
+* New option `-p` allows specification of project to serve (independent from "main" js files)
+* New option `-m` allows specification of "main" js file to serve (independent from project path)
+* Removed path parameter (now replaced by `-p` and `-m` options)
+
 ## 2.5.0
 
 `tabris clean` will now remove the whole "build/" directory with all of its contents. Previously, it only removed "build/cordova".
