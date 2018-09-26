@@ -9,6 +9,8 @@ const path = require('path');
 
 describe('TabrisApp', function() {
 
+  this.timeout(10000);
+
   let cwd;
 
   beforeEach(function() {

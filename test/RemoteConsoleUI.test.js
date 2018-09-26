@@ -13,6 +13,8 @@ const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
 
 describe('Remote Console UI', function() {
 
+  this.timeout(6000);
+
   let serve;
 
   afterEach(() => {
@@ -27,11 +29,11 @@ describe('Remote Console UI', function() {
     let {path} = temp.openSync('foo');
     serve = spawn('node', ['./src/tabris', 'serve', '-m', path, '-i']);
 
-    return waitForStdout(serve, 2700)
+    return waitForStdout(serve, 4000)
       .then(log =>
         expect(log).to.contain('>>')
       );
-  }).timeout(6000);
+  });
 
   it('when device is not connected', function() {
     let {path} = temp.openSync('foo');
@@ -43,7 +45,7 @@ describe('Remote Console UI', function() {
       .then(log =>
         expect(log).to.contain('Command could not be sent: no device connected')
       );
-  }).timeout(6000);
+  });
 
   describe('when device is connected', function() {
 
@@ -92,7 +94,7 @@ describe('Remote Console UI', function() {
         expect(log).to.contain('10');
         return true;
       });
-    }).timeout(6000);
+    });
 
     it('send plain JS command and print result', function() {
       const command = '5 * 2';
@@ -104,7 +106,7 @@ describe('Remote Console UI', function() {
         expect(log).to.contain('10');
         return true;
       });
-    }).timeout(6000);
+    });
 
     it('print object value without console log method', function() {
       const command = 'tabris.device';
@@ -116,7 +118,7 @@ describe('Remote Console UI', function() {
         expect(log).to.contain(JSON.stringify(global.tabris.device));
         return true;
       });
-    }).timeout(6000);
+    });
 
     it('can not create local variable', function() {
       const command = 'var a = "foo"; console.log(a + "bar");';
@@ -131,7 +133,7 @@ describe('Remote Console UI', function() {
         expect(log).to.contain('a is undefined');
         return true;
       });
-    }).timeout(6000);
+    });
 
     it('keep JS input and cursor position when new log message is arrived', function() {
       const command = '5 * 3', input = 'JavaScript input';
@@ -146,7 +148,7 @@ describe('Remote Console UI', function() {
         expect(remoteConsoleUI._readline.cursor).to.equal(input.length);
         return true;
       });
-    }).timeout(6000);
+    });
 
     function createRemoteConsole(server, webSocketFactory) {
       const remoteConsole = new global.debugClient.RemoteConsole(webSocketFactory, server.getNewSessionId());

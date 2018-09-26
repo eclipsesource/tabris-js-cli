@@ -177,6 +177,24 @@ describe('serve', function() {
     );
   }).timeout(8000);
 
+  it('delivers a synthetic package.json via getFiles', function() {
+    // NOTE: currently does not check the module actually exists, this is done by the client
+    let srcFile = resolve('./src/tabris');
+    let file = join(path, 'foo.js');
+    writeFileSync(file, 'content');
+    writePackageJson('{}');
+
+    serve = spawn('node', [srcFile, 'serve', '-m', 'foo.js'], {cwd: path, env});
+
+    return waitForStdout(serve)
+    .then(stdout => getPortFromStdout(stdout, 20))
+    .then(port => fetch(`http://127.0.0.1:${port}/package.json?getfiles=${encodeURIComponent('*')}`))
+    .then(response => response.json())
+    .then(data =>
+      expect(JSON.parse(data['.']['package.json'].content).main).to.equal('foo.js')
+    );
+  }).timeout(8000);
+
   describe('when logging is enabled', function() {
 
     it('requests are logged to the console', function() {

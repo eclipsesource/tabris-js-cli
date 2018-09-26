@@ -8,6 +8,8 @@ const portscanner = require('portscanner');
 const proc = require('../helpers/proc');
 const WebSocket = require('ws');
 const DebugServer = require('./DebugServer');
+const GetFilesMiddleware = require('./GetFilesMiddleware');
+const FileService = require('./FileService');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -32,18 +34,12 @@ module.exports = class Server extends EventEmitter {
     return this._server ? this._server.address().port : null;
   }
 
-  serve(basePath, main) {
-    return lstat(basePath).then((stats) => {
+  serve(appPath, main) {
+    return lstat(appPath).then((stats) => {
       if (stats.isDirectory()) {
-        let packageJsonPath = join(basePath, 'package.json');
-        if (!existsSync(packageJsonPath)) {
-          throw new Error('Directory must contain package.json');
-        }
-        if (!readJsonSync(packageJsonPath).main && !main) {
-          throw new Error('package.json must contain a "main" field');
-        }
+        this._packageJson = this._readPackageJson(appPath, main);
         if (this._watch) {
-          const ps = proc.exec('npm', ['run', '--if-present', 'watch'], {cwd: basePath, stdio: [null, 'pipe', null]});
+          const ps = proc.exec('npm', ['run', '--if-present', 'watch'], {cwd: appPath, stdio: [null, 'pipe', null]});
           ps.stdout.on('data', data => {
             const line = data.toString().trim();
             if (line !== '') {
@@ -51,70 +47,118 @@ module.exports = class Server extends EventEmitter {
             }
           });
         } else {
-          proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: basePath});
+          proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: appPath});
         }
-        return this._startServer(basePath, main);
+        return this._startServer(appPath, main);
       } else {
         throw new Error('Project must be a directory.');
       }
     }).catch((err) => {
-      if (!basePath) {
+      if (!appPath) {
         throw new Error('path missing');
       }
       if (err.code === 'ENOENT') {
-        throw new Error('No such file or directory: ' + basePath);
+        throw new Error('No such file or directory: ' + appPath);
       }
       throw err;
     });
   }
 
-  _startServer(appPath, main) {
-    const middlewares = [];
-    if (main) {
-      middlewares.push((req, res, next) => {
-        if (req.url === '/package.json') {
-          return res.json({main});
-        }
-        next();
-      });
+  _readPackageJson(appPath, main) {
+    let packageJsonPath = join(appPath, 'package.json');
+    if (!existsSync(packageJsonPath)) {
+      throw new Error('Directory must contain package.json');
     }
-    return new Promise((resolve) => {
-      if (!Server.externalAddresses.length) {
-        throw new Error('No remotely accessible network interfaces');
+    const content = readJsonSync(packageJsonPath);
+    if (!content.main && !main) {
+      throw new Error('package.json must contain a "main" field');
+    }
+    if (main) {
+      content.main = main;
+    }
+    return content;
+
+  }
+
+  _startServer(appPath, main) {
+    if (!Server.externalAddresses.length) {
+      throw new Error('No remotely accessible network interfaces');
+    }
+    this._server = union.createServer({
+      before: this._createMiddlewares(appPath, main),
+      onError: (err, req, res) => {
+        this.emit('request', req, err);
+        res.end();
       }
-
-      let requestLogger = (req, res, next) => {
-        this.emit('request', req);
-        next();
-      };
-
-      let serveBootJs = (req, res, next) => {
-        if (req.url === '/node_modules/tabris/boot.min.js') {
-          return res.text(this._getBootJsWithDebug(appPath));
-        }
-        next();
-      };
-
-      this._server = union.createServer({
-        before: [requestLogger, ...middlewares, serveBootJs, ecstatic({root: appPath, showDir: false})],
-        onError: (err, req, res) => {
-          this.emit('request', req, err);
-          res.end();
-        }
-      });
-
-      this._findAvailablePort().then(port => {
-        this._server.listen(port, (err) => {
+    });
+    return this._findAvailablePort()
+      .then(port => new Promise(resolve => {
+        this._server.listen(port, err => {
           if (err) {
             throw err;
           }
-          const _webSocketServer = new WebSocket.Server({server: this._server});
-          this._debugServer = new DebugServer(_webSocketServer);
-          this._debugServer.start();
           resolve();
         });
+      })).then(() => {
+        const webSocketServer = new WebSocket.Server({server: this._server});
+        this._debugServer = new DebugServer(webSocketServer);
+        this._debugServer.start();
       });
+  }
+
+  _createMiddlewares(appPath, main) {
+    return [
+      this._createRequestEmitter(),
+      this._createGetFilesMiddleware(appPath),
+      this._createDeliverEmitter(),
+      this._createPackageJsonMiddleware(main),
+      this._createBootJsMiddleware(appPath),
+      ecstatic({root: appPath, showDir: false})
+    ];
+  }
+
+  _createRequestEmitter() {
+    return (req, res, next) => {
+      this.emit('request', req);
+      next();
+    };
+  }
+
+  _createGetFilesMiddleware(appPath) {
+    const fileService = new FileService({
+      [join(appPath, 'package.json')]: JSON.stringify(this._packageJson)
     });
+    const getFiles = new GetFilesMiddleware(appPath, fileService);
+    getFiles.on('deliver', url => this.emit('deliver', url));
+    return getFiles.handleRequest.bind(getFiles);
+  }
+
+  _createDeliverEmitter() {
+    return (req, res, next) => {
+      this.emit('deliver', req.url.slice(1));
+      next();
+    };
+  }
+
+  _createPackageJsonMiddleware(main) {
+    if (!main) {
+      return (req, res, next) => next();
+    }
+    return (req, res, next) => {
+      if (req.url === '/package.json') {
+        return res.json(this._packageJson);
+      }
+      next();
+    };
+  }
+
+  _createBootJsMiddleware(appPath) {
+    return (req, res, next) => {
+      if (req.url === '/node_modules/tabris/boot.min.js') {
+        return res.text(this._getBootJsWithDebug(appPath));
+      }
+      next();
+    };
   }
 
   _getBootJsWithDebug(appPath) {

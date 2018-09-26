@@ -9,19 +9,25 @@
   const OUTDATED_CONNECTION_CLOSURE = 4900;
   const OUTDATED_CONNECTION_MESSAGE = 'Connection to debug websocket was closed.';
   const CONNECTION_PROBLEM_MESSAGE = 'Connection to debug websocket could not be established.';
+  const moduleArgsMap = ['module', 'exports', 'require', '__filename', '__dirname']
+    .map((arg, i) => `const ${arg} = arguments[${i}];`)
+    .join('');
 
-  global.debugClient = {
+  const debugClient = global.debugClient = {
+
+    sessionId: '{{SessionId}}',
 
     start() {
+      this.ModulePreLoader.patchModuleClass();
       const serverUrl = tabris.app
         .getResourceLocation('package.json')
         .match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i)[1];
       const webSocketFactory = {
-        createWebSocket() {
-          return new WebSocket(`ws://${serverUrl}/?id={{SessionId}}`, '');
+        createWebSocket: () => {
+          return new WebSocket(`ws://${serverUrl}/?id=${this.sessionId}`, '');
         }
       };
-      const rc = this.remoteConsole = new global.debugClient.RemoteConsole(webSocketFactory, '{{SessionId}}');
+      const rc = new debugClient.RemoteConsole(webSocketFactory, this.sessionId);
       const SUPPORTED_EVENTS = ['log', 'info', 'error', 'warn', 'debug'];
       tabris.on('log', (event) => {
         if (!SUPPORTED_EVENTS.includes(event.level)) {
@@ -33,7 +39,7 @@
 
   };
 
-  global.debugClient.RemoteConsole = class {
+  debugClient.RemoteConsole = class RemoteConsole {
 
     constructor(webSocketFactory, sessionId) {
       this._webSocketFactory = webSocketFactory;
@@ -179,6 +185,80 @@
       if (this._isDisposed) {
         throw new Error('RemoteConsole is disposed');
       }
+    }
+
+  };
+
+  debugClient.ModulePreLoader = class ModulePreLoader {
+
+    static patchModuleClass() {
+      const loader = new ModulePreLoader();
+      tabris.Module.createLoader = url => loader.createLoader(url);
+      tabris.Module.readJSON = url => loader.readJSON(url);
+    }
+
+    constructor() {
+      this._dirs = {};
+    }
+
+    createLoader(url) {
+      const src = this._load(url);
+      if (!src) {
+        return null;
+      }
+      try {
+        return new Function(moduleArgsMap + src);
+      } catch (ex) {
+        throw new Error('Could not parse ' + url + ':' + ex);
+      }
+    }
+
+    readJSON(url) {
+      const src = this._load(url);
+      if (!src) {
+        return null;
+      }
+      try {
+        return JSON.parse(src);
+      } catch (ex) {
+        throw new Error('Could not parse ' + url);
+      }
+    }
+
+    _load(url) {
+      const slash = url.lastIndexOf('/');
+      const dir = url.slice(0, slash);
+      const file = url.slice(slash + 1);
+      const files = this._getFiles(dir);
+      if (!files[file]) {
+        return null;
+      }
+      if (!('content' in files[file])) {
+        files[file].content = tabris._client.load(url);
+      }
+      return files[file].content;
+    }
+
+    _getFiles(dir) {
+      if (!this._dirs[dir]) {
+        // can not use '.' as a request to client.load:
+        const url = (dir === '.' ? './package.json' : dir)
+          + '?getfiles='
+          + encodeURIComponent('*');
+        const response = tabris._client.load(url);
+        if (!response) {
+          throw new Error('Failed to connect to CLI');
+        }
+        try {
+          Object.assign(this._dirs, JSON.parse(response));
+        } catch (ex) {
+          throw new Error(`Failed to parse CLI response: ${ex}`);
+        }
+        if (!this._dirs[dir]) {
+          throw new Error(`Directory ${dir} missing in CLI response ${response}`);
+        }
+      }
+      return this._dirs[dir];
     }
 
   };
