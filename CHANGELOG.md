@@ -1,3 +1,7 @@
+## 2.6.2
+
+Update generator dependency for consistency reasons.
+
 ## 2.5.0
 
 `tabris clean` will now remove the whole "build/" directory with all of its contents. Previously, it only removed "build/cordova".

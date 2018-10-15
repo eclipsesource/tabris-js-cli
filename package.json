@@ -9,7 +9,7 @@
     "cordova": "6.5.0",
     "ecstatic": "^2.1.0",
     "fs-extra": "^4.0.0",
-    "generator-tabris-js": "~2.5.1",
+    "generator-tabris-js": "~2.6.2",
     "ignore": "^3.2.4",
     "portscanner": "^2.1.0",
     "promptly": "^2.2.0",
