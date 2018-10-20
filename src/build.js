@@ -12,7 +12,7 @@ const CLI_DATA_DIR = join(os.homedir(), '.tabris-cli');
 
 const PARAMS_DESCRIPTION = `
 
-  <platform>:\t\t\tandroid, ios or windows
+  <platform>:\t\t\tandroid or ios
   [cordova-platform-opts...]:\tplatform-specific options passed to Cordova
 `;
 const BUILD_DESCRIPTION = `Builds a Tabris.js app. ${PARAMS_DESCRIPTION}`;
@@ -39,11 +39,6 @@ function registerBuildCommand(name, description) {
     .option('--verbose', 'print more verbose output')
     .description(description)
     .action(handleErrors(buildFn));
-  if (name === 'build') {
-    program.option('--arch <arch>',
-      'Architecture to build the app for. Can be one of "x64", "x86" and "arm".\n\t\t\t\t   ' +
-      'Supported only for Windows builds.');
-  }
   if (name === 'run') {
     program.option('--target <id>', 'the id of the target device to deploy the app to');
     program.option('--list-targets', 'show a list of available targets to use with --target');
@@ -63,7 +58,7 @@ function build(name, platform, cordovaPlatformOpts, options) {
     replaceEnvVars,
     variables
   } = options;
-  validateArguments({command: name, platform, debug, release, options});
+  validateArguments({platform, debug, release});
   let variableReplacements = Object.assign({
     IS_DEBUG: !!debug,
     IS_RELEASE: !!release
@@ -105,31 +100,15 @@ function executeCordovaCommands({name, platform, platformSpec, options, cordovaP
     .platformCommand(name, platform, {options: platformCommandOptions, cordovaPlatformOpts});
 }
 
-function validateArguments({command, debug, release, platform, options}) {
+function validateArguments({debug, release, platform}) {
   const {fail} = require('./helpers/errorHandler');
 
   let configXmlPath = join(APP_DIR, 'cordova', 'config.xml');
   if (debug && release) {
     fail('Cannot specify both --release and --debug');
   }
-  if (!['android', 'ios', 'windows'].includes(platform)) {
+  if (!['android', 'ios'].includes(platform)) {
     fail('Invalid platform: ' + platform);
-  }
-  if (command === 'build') {
-    if (options.arch && platform !== 'windows') {
-      fail('--arch is only supported for Windows builds');
-    }
-    if (platform === 'windows') {
-      if (!options.arch) {
-        fail('--arch must be given for Windows builds');
-      }
-      if (options.arch && options.arch.includes(' ')) {
-        fail('--arch only accepts a single architecture');
-      }
-      if (options.arch && !['x86', 'x64', 'arm'].includes(options.arch)) {
-        fail('--arch can only be one of "x86", "x64" and "arm"');
-      }
-    }
   }
   if (!existsSync(configXmlPath)) {
     fail(`config.xml does not exist at ${configXmlPath}`);

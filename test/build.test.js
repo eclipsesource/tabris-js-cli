@@ -24,15 +24,13 @@ const mockBinDir = join(__dirname, 'bin');
       home = join(cwd, 'test_home');
       mkdirsSync(join(home, '.tabris-cli', 'platforms', 'ios', packageJson.version));
       mkdirsSync(join(home, '.tabris-cli', 'platforms', 'android', packageJson.version));
-      mkdirsSync(join(home, '.tabris-cli', 'platforms', 'windows', packageJson.version));
       env = {
         HOME: home,
         USERPROFILE: home,
         APPDATA: 'appdata',
         PATH: mockBinDir + (platform() === 'win32' ? ';' : ':') + process.env.PATH,
         TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
-        TABRIS_IOS_PLATFORM: 'path/to/tabris-ios',
-        TABRIS_WINDOWS_PLATFORM: 'path/to/tabris-windows'
+        TABRIS_IOS_PLATFORM: 'path/to/tabris-ios'
       };
       opts = {cwd, env, encoding: 'utf8'};
       mkdirsSync(join(cwd, 'cordova'));
@@ -52,14 +50,9 @@ const mockBinDir = join(__dirname, 'bin');
       expect(result.status).to.equal(1);
     });
 
-    for (let platform of ['android', 'ios', 'windows']) {
+    for (let platform of ['android', 'ios']) {
       it(`succeeds with platform '${platform}'`, function() {
-        let truthy = x => !!x;
-        let isWindows = platform === 'windows';
-        let isBuild = command === 'build';
-        let archArgument = isBuild && isWindows && '--arch=x86';
-
-        let result = spawnSync('node', [tabris, command, platform, archArgument].filter(truthy), opts);
+        let result = spawnSync('node', [tabris, command, platform], opts);
 
         expect(result.stderr).to.equal('');
         expect(result.status).to.equal(0);
@@ -304,55 +297,6 @@ const mockBinDir = join(__dirname, 'bin');
       expect(result.stderr).to.equal('');
       expect(result.status).to.equal(0);
     });
-
-    if (command === 'build') {
-
-      describe('--arch', function() {
-
-        it('fails when used with an unsupported value', function() {
-          let result = spawnSync('node', [tabris, 'build', 'windows', '--arch=foo'], opts);
-
-          expect(result.stderr.trim()).to.equal('--arch can only be one of "x86", "x64" and "arm"');
-          expect(result.status).to.equal(1);
-        });
-
-        it('fails when used with an unsupported platform', function() {
-          let result = spawnSync('node', [tabris, 'build', 'android', '--arch=x86'], opts);
-
-          expect(result.stderr.trim()).to.equal('--arch is only supported for Windows builds');
-          expect(result.status).to.equal(1);
-        });
-
-        it('fails when used with more than one architecture', function() {
-          let result = spawnSync('node', [tabris, 'build', 'windows', '--arch="x86 x64"'], opts);
-
-          expect(result.stderr.trim()).to.equal('--arch only accepts a single architecture');
-          expect(result.status).to.equal(1);
-        });
-
-        it('fails when building for Windows without --arch', function() {
-          let result = spawnSync('node', [tabris, 'build', 'windows'], opts);
-
-          expect(result.stderr.trim()).to.equal('--arch must be given for Windows builds');
-          expect(result.status).to.equal(1);
-        });
-
-        it('passes --archs to Cordova', function() {
-          let result = spawnSync('node', [tabris, 'build', 'windows', '--arch', 'x86'], opts);
-
-          expect(result.stderr).to.equal('');
-          expect(result.stdout).to.contain(
-            `CORDOVA platform add path/to/tabris-windows --no-update-notifier [${join(cwd, 'build/cordova')}]`
-          );
-          expect(result.stdout).to.contain(
-            `CORDOVA build windows --archs=x86 --no-update-notifier [${join(cwd, 'build/cordova')}]`
-          );
-          expect(result.status).to.equal(0);
-        });
-
-      });
-
-    }
 
     if (command === 'run') {
 

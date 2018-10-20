@@ -9,6 +9,9 @@
 * New option `-m` allows specification of "main" js file to serve (independent from project path)
 * Removed path parameter (now replaced by `-p` and `-m` options)
 
+`tabris build`:
+* Remove support for Windows builds
+
 ## 2.5.0
 
 `tabris clean` will now remove the whole "build/" directory with all of its contents. Previously, it only removed "build/cordova".

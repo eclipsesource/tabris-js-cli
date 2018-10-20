@@ -67,14 +67,6 @@ To speed up the build, pre-compiled build artifacts are kept in a build cache an
 
 *See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
 
-#### options
-
-##### `--arch`
-
-Architecture to build the app for. Can be one of "x64", "x86" and "arm".
-
-_Supported only for Windows builds._
-
 ### `tabris run [options] <platform> [cordova-platform-opts]`
 
 Builds a Tabris.js app and runs it on a connected device or emulator.
@@ -101,7 +93,7 @@ Removes build artifacts.
 
 #### platform
 
-One of `ios`, `android` or `windows`.
+`ios` or `android`.
 
 #### options
 
