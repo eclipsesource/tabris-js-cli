@@ -1,7 +1,7 @@
 const os = require('os');
 const {join} = require('path');
 const EventEmitter = require('events');
-const {readFileSync, readJsonSync, existsSync, lstat} = require('fs-extra');
+const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
 const union = require('union');
 const portscanner = require('portscanner');
@@ -10,6 +10,7 @@ const WebSocket = require('ws');
 const DebugServer = require('./DebugServer');
 const GetFilesMiddleware = require('./GetFilesMiddleware');
 const FileService = require('./FileService');
+const {getBootJs} = require('./getBootJs');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -155,17 +156,10 @@ module.exports = class Server extends EventEmitter {
   _createBootJsMiddleware(appPath) {
     return (req, res, next) => {
       if (req.url === '/node_modules/tabris/boot.min.js') {
-        return res.text(this._getBootJsWithDebug(appPath));
+        return res.text(getBootJs(appPath, this._debugServer.getNewSessionId()));
       }
       next();
     };
-  }
-
-  _getBootJsWithDebug(appPath) {
-    let localBootMinJs = readFileSync(join(appPath, 'node_modules', 'tabris', 'boot.min.js'), 'utf8');
-    let debugClient = readFileSync(join(__dirname, '..', '..', 'resources', 'debugClient.js'), 'utf8');
-    debugClient = debugClient.replace(new RegExp('{{SessionId}}', 'g'), this._debugServer.getNewSessionId());
-    return localBootMinJs + '\n' + debugClient;
   }
 
   _findAvailablePort() {

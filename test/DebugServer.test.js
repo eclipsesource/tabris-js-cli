@@ -1,9 +1,8 @@
-const {join} = require('path');
-const {readFileSync} = require('fs-extra');
 const DebugServer = require('../src/services/DebugServer');
 const {expect, restore, spy} = require('./test');
 const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
+const {getDebugClient} = require('../src/services/getBootJs');
 
 const PORT = 9000;
 const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
@@ -24,8 +23,7 @@ describe('DebugServer', () => {
     webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
     debugServer = new DebugServer(webSocketServer);
     debugServer.start();
-    const debugClientJs = readFileSync(join(__dirname, '..', 'resources', 'debugClient.js'), 'utf8');
-    eval(debugClientJs.replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
+    eval(getDebugClient('').replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
   });
 
   afterEach(() => {

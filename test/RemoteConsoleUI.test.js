@@ -1,12 +1,11 @@
 const spawn = require('child_process').spawn;
 const temp = require('temp');
-const {join} = require('path');
 const DebugServer = require('../src/services/DebugServer');
-const {readFileSync} = require('fs-extra');
 const RemoteConsoleUI = require('../src/services/RemoteConsoleUI');
 const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
 const {expect, restore, spy} = require('./test');
+const {getDebugClient} = require('../src/services/getBootJs');
 
 const PORT = 9000;
 const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
@@ -63,7 +62,7 @@ describe('Remote Console UI', function() {
       debugServer = new DebugServer(webSocketServer);
       debugServer.start();
       remoteConsoleUI = new RemoteConsoleUI(debugServer);
-      const debugClientJs = readFileSync(join(__dirname, '..', 'resources', 'debugClient.js'), 'utf8');
+      const debugClientJs = getDebugClient('');
       eval(debugClientJs.replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
       spy(console, 'log');
     });

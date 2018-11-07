@@ -45,7 +45,7 @@ describe('CLI History', function() {
       cliHistory.addToHistory(`command ${i}`);
     }
     expect(cliHistory._history.length).to.equal(1000);
-  }).timeout(6000);
+  }).timeout(8000);
 
   it('remove old items when limit is exceeded', function() {
     for (let i = 1; i <= 2000; ++i) {
@@ -55,7 +55,7 @@ describe('CLI History', function() {
     const lastItem = cliHistory.currentHistory;
     expect(cliHistory._history[0]).to.equal('command 1001')
       && expect(lastItem).to.equal('command 2000');
-  }).timeout(6000);
+  }).timeout(8000);
 
   it('should be empty when previous item called more than limit', function() {
     for (let i = 1; i <= 2000; ++i) {
@@ -63,7 +63,7 @@ describe('CLI History', function() {
     }
     const currentItem = cliHistory.currentHistory;
     expect(currentItem).to.equal('');
-  }).timeout(6000);
+  }).timeout(8000);
 
   it('should be empty when next item called more than limit', function() {
     for (let i = 1; i <= 2000; ++i) {
@@ -71,6 +71,6 @@ describe('CLI History', function() {
     }
     const currentItem = cliHistory.currentHistory;
     expect(currentItem).to.equal('');
-  }).timeout(6000);
+  }).timeout(8000);
 
 });

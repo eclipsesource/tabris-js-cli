@@ -1,7 +1,7 @@
 const {join, normalize} = require('path');
-const {readFileSync} = require('fs-extra');
 const GetFilesMiddleware = require('../src/services/GetFilesMiddleware');
 const {expect, restore, spy, stub} = require('./test');
+const {getDebugClient} = require('../src/services/getBootJs');
 
 const APP_PATH = normalize('/projectdir');
 
@@ -32,7 +32,10 @@ describe('GetFilesMiddleware', () => {
 
     beforeEach(function() {
       global.tabris = {
-        _client: {
+        Module: {
+          execute(code) {
+            return eval(code);
+          },
           load(url) {
             const json = spy();
             const next = spy();
@@ -51,7 +54,7 @@ describe('GetFilesMiddleware', () => {
           }
         }
       };
-      eval(readFileSync(join(__dirname, '..', 'resources', 'debugClient.js'), 'utf8'));
+      eval(getDebugClient(''));
       preLoader = new debugClient.ModulePreLoader();
     });
 
@@ -86,7 +89,7 @@ describe('GetFilesMiddleware', () => {
 
     });
 
-    describe('with .js and .json files', function() {
+    describe('with .js, and .json files', function() {
 
       beforeEach(function() {
         fileService.getDir.withArgs(join(APP_PATH, 'foo')).returns([
@@ -135,7 +138,100 @@ describe('GetFilesMiddleware', () => {
 
     });
 
-    describe('with non-js/json files', function() {
+    describe('with source maps', function() {
+
+      /* eslint-disable max-len */
+
+      const bar_js = '"use strict";\nObject.defineProperty(exports, "__esModule", { value: true });\nconst tabris_1 = require("tabris");\nnew tabris_1.TextView({ text: \'foo\' }).appendTo(tabris_1.contentView);';
+
+      const bar_source_map = '{"version":3,"file":"bar.js","sourceRoot":"","sources":["../bar.ts"],"names":[],"mappings":";;AAAA,mCAA6C;AAC7C,IAAI,iBAAQ,CAAC,EAAC,IAAI,EAAE,KAAK,EAAC,CAAC,CAAC,QAAQ,CAAC,oBAAW,CAAC,CAAC"}';
+
+      const bar_source_map_url = '\n//# sourceMappingURL=bar.js.map';
+
+      const bar_source_map_b64 = '\n//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYmFyLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vYmFyLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUEsbUNBQTZDO0FBQzdDLElBQUksaUJBQVEsQ0FBQyxFQUFDLElBQUksRUFBRSxLQUFLLEVBQUMsQ0FBQyxDQUFDLFFBQVEsQ0FBQyxvQkFBVyxDQUFDLENBQUMifQ==';
+
+      const bar_source_map_data = '\n//# sourceMappingURL=data:application/json,%7B%22version%22%3A3%2C%22file%22%3A%22bar.js%22%2C%22sourceRoot%22%3A%22%22%2C%22sources%22%3A%5B%22..%2Fbar.ts%22%5D%2C%22names%22%3A%5B%5D%2C%22mappings%22%3A%22%3B%3BAAAA%2CmCAA6C%3BAAC7C%2CIAAI%2CiBAAQ%2CCAAC%2CEAAC%2CIAAI%2CEAAE%2CKAAK%2CEAAC%2CCAAC%2CCAAC%2CQAAQ%2CCAAC%2CoBAAW%2CCAAC%2CCAAC%22%7D';
+
+      /* eslint-enable max-len */
+
+      beforeEach(function() {
+        fileService.getDir.withArgs(join(APP_PATH, 'foo')).returns([
+          {isFile, name: 'bar.js'},
+          {isFile, name: 'bar-inline.js'},
+          {isFile, name: 'bar-inline-b64.js'},
+          {isFile, name: 'bar.js.map'},
+          {isFile, name: 'baz.js'},
+          {isFile, name: 'baz2.js'}
+        ]);
+        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar.js').returns(bar_js + bar_source_map_url);
+        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar-inline.js')
+          .returns(bar_js + bar_source_map_data);
+        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar-inline-b64.js')
+          .returns(bar_js + bar_source_map_b64);
+        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar.js.map').returns(bar_source_map);
+        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'baz.js').returns(source);
+        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'baz2.js')
+          .returns(source + '\n//# sourceMappingURL=baz2.js.map');
+      });
+
+      it('getSourceMap with no source found returns null', function() {
+        const sourceMap = preLoader.getSourceMap('./foo/does-not-exist.js');
+
+        expect(sourceMap).to.be.be.null;
+      });
+
+      it('getSourceMap with no source map url found returns null', function() {
+        const sourceMap = preLoader.getSourceMap('./foo/baz.js');
+
+        expect(sourceMap).to.be.be.null;
+      });
+
+      it('getSourceMap with no source map file found returns null', function() {
+        const sourceMap = preLoader.getSourceMap('./foo/baz2.js');
+
+        expect(sourceMap).to.be.be.null;
+      });
+
+      it('getSourceMap with inline source map returns source map', function() {
+        const sourceMap = preLoader.getSourceMap('./foo/bar-inline.js');
+
+        expect(sourceMap).to.deep.equal(JSON.parse(bar_source_map));
+      });
+
+      it('getSourceMap with inline base64 source map returns source map', function() {
+        const sourceMap = preLoader.getSourceMap('./foo/bar-inline-b64.js');
+
+        expect(sourceMap).to.deep.equal(JSON.parse(bar_source_map));
+      });
+
+      it('getSourceMap with external source map returns source map', function() {
+        const sourceMap = preLoader.getSourceMap('./foo/bar.js');
+
+        expect(sourceMap).to.deep.equal(JSON.parse(bar_source_map));
+      });
+
+      it('does not send request for same directory twice', function() {
+        preLoader.getSourceMap('./foo/bar-inline.js');
+        preLoader.getSourceMap('./foo/bar-inline.js');
+        preLoader.getSourceMap('./foo/bar.js');
+        preLoader.getSourceMap('./foo/bar.js');
+
+        expect(middleware.handleRequest).to.have.been.calledOnce;
+      });
+
+      it('returns same source map instance', function() {
+        const map1a = preLoader.getSourceMap('./foo/bar-inline.js');
+        const map1b = preLoader.getSourceMap('./foo/bar-inline.js');
+        const map2a = preLoader.getSourceMap('./foo/bar.js');
+        const map2b = preLoader.getSourceMap('./foo/bar.js');
+
+        expect(map1a === map1b).to.be.true;
+        expect(map2a === map2b).to.be.true;
+      });
+
+    });
+
+    describe('with non-js/json/map files', function() {
 
       beforeEach(function() {
         fileService.getDir.withArgs(join(APP_PATH, 'foo')).returns([
@@ -181,9 +277,14 @@ describe('GetFilesMiddleware', () => {
         expect(preLoader.readJSON('./foo/bar.json')).to.be.null;
       });
 
+      it('getSourceMap returns null', function() {
+        expect(preLoader.getSourceMap('./foo/bar')).to.be.null;
+      });
+
       it('does not send request for same directory twice', function() {
         preLoader.createLoader('./foo/bar');
         preLoader.readJSON('./foo/bar.json');
+        preLoader.getSourceMap('./foo/bar');
 
         expect(middleware.handleRequest).to.have.been.calledOnce;
       });
