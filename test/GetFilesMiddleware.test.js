@@ -51,7 +51,10 @@ describe('GetFilesMiddleware', () => {
               console.error(ex.stack);
             }
             throw new Error(`Inconsistent handleRequest behavior ${json.callCount}/${next.callCount}`);
-          }
+          },
+          createLoader: stub().returns('orgCreateLoader'),
+          readJSON: stub().returns('orgReadJSON'),
+          getSourceMap: stub().returns('orgGetSourceMap')
         }
       };
       eval(getDebugClient(''));
@@ -61,6 +64,58 @@ describe('GetFilesMiddleware', () => {
     afterEach(function() {
       delete global.debugClient;
       delete global.tabris;
+    });
+
+    describe('patchModuleClass', function() {
+
+      let orgCreateLoader, orgReadJSON, orgGetSourceMap;
+
+      beforeEach(function() {
+        orgCreateLoader = global.tabris.Module.createLoader;
+        orgReadJSON = global.tabris.Module.readJSON;
+        orgGetSourceMap = global.tabris.Module.getSourceMap;
+        stub(preLoader, 'createLoader').returns('preLoaderCreateLoader');
+        stub(preLoader, 'readJSON').returns('preLoaderReadJSON');
+        stub(preLoader, 'getSourceMap').returns('preLoaderGetSourceMap');
+        debugClient.ModulePreLoader.patchModuleClass(preLoader);
+      });
+
+      it('delegates createLoader to pre-loader', function() {
+        expect(global.tabris.Module.createLoader('./foo/bar')).to.equal('preLoaderCreateLoader');
+        expect(preLoader.createLoader).to.have.been.calledWith('./foo/bar');
+        expect(orgCreateLoader).not.to.have.been.called;
+      });
+
+      it('delegates readJSON to pre-loader', function() {
+        expect(global.tabris.Module.readJSON('./foo/bar')).to.equal('preLoaderReadJSON');
+        expect(preLoader.readJSON).to.have.been.calledWith('./foo/bar');
+        expect(orgReadJSON).not.to.have.been.called;
+      });
+
+      it('delegates getSourceMap to pre-loader', function() {
+        expect(global.tabris.Module.getSourceMap('./foo/bar')).to.equal('preLoaderGetSourceMap');
+        expect(preLoader.getSourceMap).to.have.been.calledWith('./foo/bar');
+        expect(orgGetSourceMap).not.to.have.been.called;
+      });
+
+      it('does not delegate createLoader with absolute URL', function() {
+        expect(global.tabris.Module.createLoader('file://foo/bar')).to.equal('orgCreateLoader');
+        expect(preLoader.createLoader).not.to.have.been.called;
+        expect(orgCreateLoader).to.have.been.calledWith('file://foo/bar');
+      });
+
+      it('does not delegate readJSON with absolute URL', function() {
+        expect(global.tabris.Module.readJSON('file://foo/bar')).to.equal('orgReadJSON');
+        expect(preLoader.readJSON).not.to.have.been.called;
+        expect(orgReadJSON).to.have.been.calledWith('file://foo/bar');
+      });
+
+      it('does not delegate getSourceMap with absolute URL', function() {
+        expect(global.tabris.Module.getSourceMap('file://foo/bar')).to.equal('orgGetSourceMap');
+        expect(preLoader.getSourceMap).not.to.have.been.called;
+        expect(orgGetSourceMap).to.have.been.calledWith('file://foo/bar');
+      });
+
     });
 
     describe('with no files found', function() {

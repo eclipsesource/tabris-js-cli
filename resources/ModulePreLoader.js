@@ -45,10 +45,20 @@
   debugClient.ModulePreLoader = class ModulePreLoader {
 
     static patchModuleClass() {
-      const loader = new ModulePreLoader();
-      tabris.Module.createLoader = url => loader.createLoader(url);
-      tabris.Module.readJSON = url => loader.readJSON(url);
-      tabris.Module.getSourceMap = url => loader.getSourceMap(url);
+      const loader = arguments.length === 1 ? arguments[0] : new ModulePreLoader();
+      this.patchMethod(tabris.Module, loader, 'createLoader');
+      this.patchMethod(tabris.Module, loader, 'readJSON');
+      this.patchMethod(tabris.Module, loader, 'getSourceMap');
+    }
+
+    static patchMethod(target, source, name) {
+      const org = target[name];
+      target[name] = function(url) {
+        if (url.indexOf('://') !== -1) {
+          return org.call(target, url);
+        }
+        return source[name](url);
+      };
     }
 
     constructor() {
@@ -130,15 +140,15 @@
           + encodeURIComponent('*');
         const response = tabris.Module.load(url);
         if (!response) {
-          throw new Error('Failed to connect to CLI');
+          throw new Error(`Failed to load directory ${dir}`);
         }
         try {
           Object.assign(this._dirs, JSON.parse(response));
         } catch (ex) {
-          throw new Error(`Failed to parse CLI response: ${ex}`);
+          throw new Error(`Failed to parse response: ${ex}`);
         }
         if (!this._dirs[dir]) {
-          throw new Error(`Directory ${dir} missing in CLI response ${response}`);
+          throw new Error(`Directory ${dir} missing in response ${response}`);
         }
       }
       return this._dirs[dir];
