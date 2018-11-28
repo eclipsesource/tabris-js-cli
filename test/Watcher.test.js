@@ -5,7 +5,7 @@ const Server = require('../src/services/Server');
 const Watcher = require('../src/services/Watcher');
 const {expect, restore, spy} = require('./test');
 const {writeFileSync, realpathSync, mkdirSync} = require('fs-extra');
-
+const TerminalMock = require('./TerminalMock.js');
 
 describe('Watcher', function() {
 
@@ -17,7 +17,7 @@ describe('Watcher', function() {
     path = realpathSync(temp.mkdirSync('foo'));
     oldCwd = process.cwd();
     process.chdir(path);
-    server = new Server();
+    server = new Server({terminal: new TerminalMock()});
     watcher = new Watcher(server);
     watcher.start();
   });
@@ -37,16 +37,16 @@ describe('Watcher', function() {
         .then(() => fetch(`http://127.0.0.1:${server.port}/foo.js`))
         .then(response => response.text())
         .then(text => {
-          spy(server._debugServer, 'send');
+          spy(server.debugServer, 'send');
           writeFileSync(join(path, 'bar.js'), `${text};`);
           return new Promise(resolve => {
             setTimeout(() => {
-              expect(server._debugServer.send).not.to.have.been.called;
+              expect(server.debugServer.send).not.to.have.been.called;
               resolve();
             }, 1500);
           });
         });
-    }).timeout(3000);
+    }).timeout(6000);
 
   });
 
@@ -59,14 +59,14 @@ describe('Watcher', function() {
         .then(() => fetch(`http://127.0.0.1:${server.port}/foo.js`))
         .then(response => response.text())
         .then(text => {
-          spy(server._debugServer, 'send');
+          spy(server.debugServer, 'send');
           writeFileSync(join(path, 'foo.js'), `${text};`);
-          return waitForCalls(server._debugServer.send, 1)
+          return waitForCalls(server.debugServer.send, 1)
             .then(log =>
               expect(log).to.contain('tabris.app.reload()')
             );
         });
-    }).timeout(3000);
+    }).timeout(6000);
 
   });
 
@@ -81,14 +81,14 @@ describe('Watcher', function() {
         .then(() => fetch(`http://127.0.0.1:${server.port}/bar?getfiles=${encodeURIComponent('*')}`))
         .then(response => response.text())
         .then(text => {
-          spy(server._debugServer, 'send');
+          spy(server.debugServer, 'send');
           writeFileSync(join(path, 'bar', 'baz.js'), `${text};`);
-          return waitForCalls(server._debugServer.send, 1)
+          return waitForCalls(server.debugServer.send, 1)
             .then(log =>
               expect(log).to.contain('tabris.app.reload()')
             );
         });
-    }).timeout(3000);
+    }).timeout(6000);
 
   });
 
@@ -101,14 +101,14 @@ describe('Watcher', function() {
         .then(() => fetch(`http://127.0.0.1:${server.port}/package.json?getfiles=${encodeURIComponent('*')}`))
         .then(response => response.text())
         .then(text => {
-          spy(server._debugServer, 'send');
+          spy(server.debugServer, 'send');
           writeFileSync(join(path, 'foo.js'), `${text};`);
-          return waitForCalls(server._debugServer.send, 1)
+          return waitForCalls(server.debugServer.send, 1)
             .then(log =>
               expect(log).to.contain('tabris.app.reload()')
             );
         });
-    }).timeout(3000);
+    }).timeout(6000);
 
   });
 
@@ -123,16 +123,16 @@ describe('Watcher', function() {
         .then(() => fetch(`http://127.0.0.1:${server.port}/bar?getfiles=${encodeURIComponent('*')}`))
         .then(response => response.text())
         .then(text => {
-          spy(server._debugServer, 'send');
+          spy(server.debugServer, 'send');
           writeFileSync(join(path, 'bar', 'baz'), `${text};`);
           return new Promise(resolve => {
             setTimeout(() => {
-              expect(server._debugServer.send).not.to.have.been.called;
+              expect(server.debugServer.send).not.to.have.been.called;
               resolve();
             }, 1500);
           });
         });
-    }).timeout(3000);
+    }).timeout(6000);
 
   });
 

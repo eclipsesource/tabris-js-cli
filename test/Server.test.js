@@ -6,6 +6,7 @@ const fetch = require('node-fetch');
 const {expect, stub, restore, spy} = require('./test');
 const Server = require('../src/services/Server');
 const proc = require('../src/helpers/proc');
+const TerminalMock = require('./TerminalMock.js');
 
 describe('Server', function() {
 
@@ -15,7 +16,7 @@ describe('Server', function() {
     path = realpathSync(temp.mkdirSync('foo'));
     oldCwd = process.cwd();
     process.chdir(path);
-    server = new Server();
+    server = new Server({terminal: new TerminalMock()});
     stub(proc, 'execSync');
     spy(proc, 'exec');
   });
@@ -86,7 +87,7 @@ describe('Server', function() {
     });
 
     it('runs watch script when watch option given', function() {
-      server =  new Server({watch: true});
+      server =  new Server({watch: true, terminal: new TerminalMock()});
       writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
       return server.serve(path)
         .then(() => {
@@ -109,7 +110,7 @@ describe('Server', function() {
 
     it('uses next unused port', function() {
       writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-      let server2 = new Server();
+      let server2 = new Server({terminal: new TerminalMock()});
       return server.serve(path).then(() => {
         return server2.serve(path).then(() => {
           expect(server.port).to.be.ok;

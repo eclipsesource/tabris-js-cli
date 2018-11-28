@@ -2,15 +2,18 @@ const {green, yellow} = require('chalk');
 const os = require('os');
 
 module.exports = class ServerInfo {
+
   constructor(server, externalAddresses) {
     this.server = server;
     this.externalAddresses = externalAddresses;
   }
 
-  show(outputCallBack = console.log) {
+  show() {
     return this.selectAddressForQRCode().then((address) => {
-      this.generateQRCode(this.createURL(address, this.server.port), outputCallBack);
-      console.log(yellow(`Available URLs:\n${this.determineAvailableURLs(this.externalAddresses, this.server.port)}`));
+      this.generateQRCode(this.createURL(address, this.server.port), out => this.server.terminal.log(out));
+      this.server.terminal.log(yellow(
+        `Available URLs:\n${this.determineAvailableURLs(this.externalAddresses, this.server.port)}`
+      ));
     });
   }
 

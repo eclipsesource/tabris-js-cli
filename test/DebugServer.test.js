@@ -1,8 +1,9 @@
 const DebugServer = require('../src/services/DebugServer');
-const {expect, restore, spy} = require('./test');
+const {expect, restore} = require('./test');
 const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
 const {getDebugClient} = require('../src/services/getBootJs');
+const TerminalMock = require('./TerminalMock');
 
 const PORT = 9000;
 const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
@@ -15,13 +16,14 @@ describe('DebugServer', () => {
     }
   };
   let debugServer = null, webSocketServer = null;
+  let terminal;
 
   beforeEach(function() {
-    spy(console, 'log');
+    terminal = new TerminalMock();
     global.tabris = {};
     global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
     webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
-    debugServer = new DebugServer(webSocketServer);
+    debugServer = new DebugServer(webSocketServer, terminal);
     debugServer.start();
     eval(getDebugClient('').replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
   });
@@ -38,7 +40,7 @@ describe('DebugServer', () => {
 
     it('print device connected', function() {
       createRemoteConsole(debugServer, webSocketFactory);
-      return waitForCalls(console.log)
+      return waitForCalls(terminal.log)
         .then(log =>
           expect(log).to.contain(' connected')
         );
@@ -47,7 +49,7 @@ describe('DebugServer', () => {
     it('print device disconnected on normal closure', function() {
       const rc = createRemoteConsole(debugServer, webSocketFactory);
       rc._webSocket.close(1000);
-      return waitForCalls(console.log, 2)
+      return waitForCalls(terminal.log, 2)
         .then(log =>
           expect(log).to.contain(' connected') &&
           expect(log).to.contain(' disconnected')
@@ -57,7 +59,7 @@ describe('DebugServer', () => {
     it('print device disconnected on outdated session close', function() {
       const rc = createRemoteConsole(debugServer, webSocketFactory);
       rc._webSocket.close(4900);
-      return waitForCalls(console.log, 2)
+      return waitForCalls(terminal.log, 2)
         .then(log =>
           expect(log).to.contain('connected') &&
           expect(log).to.contain('disconnected')
@@ -68,7 +70,7 @@ describe('DebugServer', () => {
       const rc = createRemoteConsole(debugServer, webSocketFactory);
       const message = 'log message';
       rc.log(message);
-      return waitForCalls(console.log, 2)
+      return waitForCalls(terminal.log, 2)
         .then(log =>
           expect(log).to.contain('connected') &&
           expect(log).to.contain(message)
@@ -79,10 +81,9 @@ describe('DebugServer', () => {
       const rc = createRemoteConsole(debugServer, webSocketFactory);
       const message = 'info message';
       rc.info(message);
-      return waitForCalls(console.log, 2)
+      return waitForCalls(terminal.info, 1)
         .then(log =>
-          expect(log).to.contains('connected')
-          && expect(log).to.contain(message)
+          expect(log).to.contain(message)
         );
     });
 
@@ -90,10 +91,9 @@ describe('DebugServer', () => {
       const rc = createRemoteConsole(debugServer, webSocketFactory);
       const message = 'error message';
       rc.error(message);
-      return waitForCalls(console.log, 2)
+      return waitForCalls(terminal.error, 1)
         .then(log =>
-          expect(log).to.contains('connected')
-          && expect(log).to.contain(message)
+          expect(log).to.contain(message)
         );
     });
 
@@ -101,10 +101,9 @@ describe('DebugServer', () => {
       const rc = createRemoteConsole(debugServer, webSocketFactory);
       const message = 'warn message';
       rc.warn(message);
-      return waitForCalls(console.log, 2)
+      return waitForCalls(terminal.warn, 1)
         .then(log =>
-          expect(log).to.contains('connected')
-          && expect(log).to.contain(message)
+          expect(log).to.contain(message)
         );
     });
 
@@ -112,10 +111,9 @@ describe('DebugServer', () => {
       const rc = createRemoteConsole(debugServer, webSocketFactory);
       const message = 'debug message';
       rc.debug(message);
-      return waitForCalls(console.log, 2)
+      return waitForCalls(terminal.debug, 1)
         .then(log =>
-          expect(log).to.contains('connected')
-          && expect(log).to.contain(message)
+          expect(log).to.contain(message)
         );
     });
 

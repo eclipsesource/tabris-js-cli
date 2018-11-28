@@ -1,4 +1,3 @@
-const {blue} = require('chalk');
 const filewatcher = require('filewatcher');
 
 module.exports = class Watcher {
@@ -16,8 +15,8 @@ module.exports = class Watcher {
 
   start() {
     this._watcher.on('change', (filename, stat) => {
-      if (stat && this._server._debugServer.send('tabris.app.reload()')) {
-        console.info(blue(`${filename}' changed, reloading app...`));
+      if (stat && this._server.debugServer.send('tabris.app.reload()')) {
+        this._server.terminal.info(`${filename}' changed, reloading app...`);
       }
     });
   }

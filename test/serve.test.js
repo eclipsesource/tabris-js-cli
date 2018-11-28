@@ -1,4 +1,4 @@
-const {join,resolve} = require('path');
+const {join, resolve} = require('path');
 const {writeFileSync, realpathSync} = require('fs-extra');
 const temp = require('temp');
 const {expect, restore} = require('./test');
@@ -41,6 +41,7 @@ describe('serve', function() {
     return waitForStderr(serve).then((data) => {
       expect(data.toString()).to.match(/must contain package.json/);
     });
+
   }).timeout(8000);
 
   it('fails when given project directory does not contain package.json', function() {
@@ -236,8 +237,11 @@ describe('serve', function() {
 
 });
 
-function waitForStderr(process) {
-  return new Promise(resolve => process.stderr.once('data', data => resolve(data)));
+function waitForStderr(process, timeout = 2000) {
+  return new Promise((resolve, reject) => {
+    process.stderr.once('data', data => resolve(data));
+    setTimeout(() => reject('waitForStderr timed out'), timeout);
+  });
 }
 
 function waitForStdout(process, timeout = 2000) {
@@ -247,7 +251,7 @@ function waitForStdout(process, timeout = 2000) {
   });
   return new Promise((resolve, reject) => {
     process.stderr.once('data', data => {
-      reject(new Error(data.toString()));
+      reject(new Error('waitForStdout rejected with stderr ' + data.toString()));
     });
     setTimeout(() => resolve(stdout), timeout);
   });

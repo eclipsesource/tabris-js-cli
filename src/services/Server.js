@@ -11,16 +11,29 @@ const DebugServer = require('./DebugServer');
 const GetFilesMiddleware = require('./GetFilesMiddleware');
 const FileService = require('./FileService');
 const {getBootJs} = require('./getBootJs');
+const ServerInfo = require('./ServerInfo');
+const RemoteConsoleUI = require('./RemoteConsoleUI');
+const Watcher = require('./Watcher');
+const {red, blue} = require('chalk');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
 
 module.exports = class Server extends EventEmitter {
 
-  constructor({watch = false} = {}) {
+  constructor({watch, requestLogging, interactive, autoReload, terminal}) {
     super();
-    this._watch = watch;
-    this._debugServer = null;
+    if (!terminal) {
+      throw new Error('Terminal is missing');
+    }
+    this.terminal = terminal;
+    if (requestLogging) {
+      this.on('request', this._logRequest);
+    }
+    this._watch = !!watch;
+    this._interactive = !!interactive;
+    this._autoReload  = !!autoReload;
+    this.debugServer = null;
   }
 
   static get externalAddresses() {
@@ -36,24 +49,17 @@ module.exports = class Server extends EventEmitter {
   }
 
   serve(appPath, main) {
+    this._appPath = appPath;
     return lstat(appPath).then((stats) => {
       if (stats.isDirectory()) {
         this._packageJson = this._readPackageJson(appPath, main);
-        if (this._watch) {
-          const ps = proc.exec('npm', ['run', '--if-present', 'watch'], {cwd: appPath, stdio: [null, 'pipe', null]});
-          ps.stdout.on('data', data => {
-            const line = data.toString().trim();
-            if (line !== '') {
-              console.info(line);
-            }
-          });
-        } else {
-          proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: appPath});
-        }
+        this._runProjectScript();
         return this._startServer(appPath, main);
       } else {
         throw new Error('Project must be a directory.');
       }
+    }).then(() => {
+      return this._startServices();
     }).catch((err) => {
       if (!appPath) {
         throw new Error('path missing');
@@ -81,6 +87,20 @@ module.exports = class Server extends EventEmitter {
 
   }
 
+  _runProjectScript() {
+    if (this._watch) {
+      const ps = proc.exec('npm', ['run', '--if-present', 'watch'], {cwd: this._appPath, stdio: [null, 'pipe', null]});
+      ps.stdout.on('data', data => {
+        const line = data.toString().trim();
+        if (line !== '') {
+          this.terminal.info(line);
+        }
+      });
+    } else {
+      proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: this._appPath});
+    }
+  }
+
   _startServer(appPath, main) {
     if (!Server.externalAddresses.length) {
       throw new Error('No remotely accessible network interfaces');
@@ -100,11 +120,20 @@ module.exports = class Server extends EventEmitter {
           }
           resolve();
         });
-      })).then(() => {
-        const webSocketServer = new WebSocket.Server({server: this._server});
-        this._debugServer = new DebugServer(webSocketServer);
-        this._debugServer.start();
-      });
+      }));
+  }
+
+  _startServices() {
+    const webSocketServer = new WebSocket.Server({server: this._server});
+    this.debugServer = new DebugServer(webSocketServer, this.terminal);
+    this.debugServer.start();
+    if (this._interactive) {
+      RemoteConsoleUI.create(this);
+    }
+    if (this._autoReload) {
+      new Watcher(this).start();
+    }
+    return new ServerInfo(this, Server.externalAddresses).show();
   }
 
   _createMiddlewares(appPath, main) {
@@ -116,6 +145,14 @@ module.exports = class Server extends EventEmitter {
       this._createBootJsMiddleware(appPath),
       ecstatic({root: appPath, showDir: false})
     ];
+  }
+
+  _logRequest(req, err) {
+    if (err) {
+      this.terminal.error(red(`${req.method} ${req.url} ${err.status}: "${err.message || err}"`));
+    } else {
+      this.terminal.info(blue(`${req.method} ${req.url}`));
+    }
   }
 
   _createRequestEmitter() {
@@ -156,7 +193,7 @@ module.exports = class Server extends EventEmitter {
   _createBootJsMiddleware(appPath) {
     return (req, res, next) => {
       if (req.url === '/node_modules/tabris/boot.min.js') {
-        return res.text(getBootJs(appPath, this._debugServer.getNewSessionId()));
+        return res.text(getBootJs(appPath, this.debugServer.getNewSessionId()));
       }
       next();
     };

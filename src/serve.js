@@ -1,9 +1,7 @@
 const {handleErrors, fail} = require('./helpers/errorHandler');
 const program = require('commander');
-const {red, blue} = require('chalk');
-const ServerInfo = require('./services/ServerInfo');
-const RemoteConsoleUI = require('./services/RemoteConsoleUI');
-const Watcher = require('./services/Watcher');
+const Terminal = require('./services/Terminal');
+const Server = require('./services/Server');
 
 program
   .command('serve')
@@ -18,30 +16,13 @@ program
   .action(handleErrors(serve));
 
 function serve(options) {
-  const Server = require('./services/Server');
-  const externalAddresses = Server.externalAddresses;
-
-  let server = new Server({watch: options.watch});
-  if (options.logging) {
-    server.on('request', logRequest);
-  }
-  server.serve(options.project || process.cwd(), options.main)
-      .then(() => {
-        if (options.interactive) {
-          RemoteConsoleUI.create(server._debugServer);
-        }
-        if (options.autoReload) {
-          new Watcher(server).start();
-        }
-        new ServerInfo(server, externalAddresses).show();
-      })
-      .catch(fail);
-}
-
-function logRequest(req, err) {
-  if (err) {
-    console.error(red(`${req.method} ${req.url} ${err.status}: "${err.message || err}"`));
-  } else {
-    console.info(blue(`${req.method} ${req.url}`));
-  }
+  const terminal = Terminal.create();
+  let server = new Server({
+    terminal,
+    watch: options.watch,
+    requestLogging: options.logging,
+    interactive: options.interactive,
+    autoReload: options.autoReload
+  });
+  server.serve(options.project || process.cwd(), options.main).catch(fail);
 }

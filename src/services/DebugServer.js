@@ -1,4 +1,3 @@
-const {yellow, red, blue} = require('chalk');
 const DebugConnection = require('../helpers/DebugConnection');
 const url = require('url');
 
@@ -8,10 +7,11 @@ const STATE_DISCONNECTED = 'disconnected';
 
 module.exports = class DebugServer {
 
-  constructor(webSocketServer) {
+  constructor(webSocketServer, terminal) {
     this._webSocketServer = webSocketServer;
     this._sessionId = 0;
     this._connection = null;
+    this._terminal = terminal;
   }
 
   start() {
@@ -80,25 +80,25 @@ module.exports = class DebugServer {
   _printClientMessage(parameter) {
     switch (parameter.level) {
       case 'log':
-        console.log(parameter.message);
+        this._terminal.log(parameter.message);
         break;
       case 'info':
-        console.log(parameter.message);
+        this._terminal.info(parameter.message);
         break;
       case 'error':
-        console.log(red(parameter.message));
+        this._terminal.error(parameter.message);
         break;
       case 'warn':
-        console.log(yellow(parameter.message));
+        this._terminal.warn(parameter.message);
         break;
       case 'debug':
-        console.log(blue(parameter.message));
+        this._terminal.debug(parameter.message);
         break;
     }
   }
 
   _printClientState(device, state) {
-    console.log(`[${device.platform}][${device.model}][${this._sessionId}]: ${state}`);
+    this._terminal.log(`[${device.platform}][${device.model}][${this._sessionId}]: ${state}`);
   }
 
   _closeOutdatedConnection() {
