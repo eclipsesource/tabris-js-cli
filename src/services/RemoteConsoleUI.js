@@ -6,16 +6,22 @@ const {CLIHistory, DIRECTION_NEXT, DIRECTION_PREV} = require('./CLIHistory');
 
 module.exports = class RemoteConsoleUI {
 
-  constructor(debugServer) {
-    this._debugServer = debugServer;
-    this._debugServer.onEvaluationCompleted = () => this._onEvaluationCompleted();
-    this._cliHistory = new CLIHistory(join(os.homedir(), '.tabris-cli', 'cli_history.log'));
-    this._readline = readline.createInterface({
+  static create(debugServer) {
+    const readlineInterface = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
       prompt: blue('>> ')
-    }).on('line', line => this._submitCommand(line))
-      .on('close', () => process.exit(0));
+    });
+    return new RemoteConsoleUI(debugServer, readlineInterface);
+  }
+
+  constructor(debugServer, readlineInterface) {
+    this._debugServer = debugServer;
+    this._debugServer.onEvaluationCompleted = () => this._onEvaluationCompleted();
+    this._cliHistory = new CLIHistory(join(os.homedir(), '.tabris-cli', 'cli_history.log'));
+    this._readline = readlineInterface;
+    this._readline.on('line', line => this._submitCommand(line));
+    this._readline.on('close', () => process.exit(0));
     this._readline.input.on('keypress', (e, key) => {
       if (key.name === 'up' || key.name === 'down') {
         this._updateInput(key.name === 'up' ? DIRECTION_PREV : DIRECTION_NEXT);

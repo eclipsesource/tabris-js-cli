@@ -28,7 +28,7 @@ function serve(options) {
   server.serve(options.project || process.cwd(), options.main)
       .then(() => {
         if (options.interactive) {
-          new RemoteConsoleUI(server._debugServer);
+          RemoteConsoleUI.create(server._debugServer);
         }
         if (options.autoReload) {
           new Watcher(server).start();

@@ -6,9 +6,19 @@ const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
 const {expect, restore, spy} = require('./test');
 const {getDebugClient} = require('../src/services/getBootJs');
+const readline = require('readline');
+const {Readable, Writable} = require('stream');
 
 const PORT = 9000;
 const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
+
+class ReadableMock extends Readable {
+  _read() {}
+}
+
+class WritableMock extends Writable {
+  _write() {}
+}
 
 describe('Remote Console UI', function() {
 
@@ -53,15 +63,20 @@ describe('Remote Console UI', function() {
         return new MockWebSocketClient(WEBSOCKET_URL);
       }
     };
-    let debugServer = null, webSocketServer = null, remoteConsoleUI = null;
+
+    let debugServer, webSocketServer, rlInterface;
 
     beforeEach(function() {
+      rlInterface = readline.createInterface({
+        input: new ReadableMock(),
+        output: new WritableMock()
+      });
       global.tabris = {};
       global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
       webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
       debugServer = new DebugServer(webSocketServer);
       debugServer.start();
-      remoteConsoleUI = new RemoteConsoleUI(debugServer);
+      new RemoteConsoleUI(debugServer, rlInterface);
       const debugClientJs = getDebugClient('');
       eval(debugClientJs.replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
       spy(console, 'log');
@@ -86,7 +101,7 @@ describe('Remote Console UI', function() {
     it('send console.log command and print result', function() {
       const command = 'console.log(5 * 2)';
       return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        remoteConsoleUI._readline.emit('line', command);
+        rlInterface.emit('line', command);
         return waitForCalls(console.log, 3);
       }).then(log => {
         expect(log).to.contain('connected');
@@ -98,7 +113,7 @@ describe('Remote Console UI', function() {
     it('send plain JS command and print result', function() {
       const command = '5 * 2';
       return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        remoteConsoleUI._readline.emit('line', command);
+        rlInterface.emit('line', command);
         return waitForCalls(console.log, 3);
       }).then(log => {
         expect(log).to.contain('connected');
@@ -110,7 +125,7 @@ describe('Remote Console UI', function() {
     it('print object value without console log method', function() {
       const command = 'tabris.device';
       return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        remoteConsoleUI._readline.emit('line', command);
+        rlInterface.emit('line', command);
         return waitForCalls(console.log, 3);
       }).then(log => {
         expect(log).to.contain('connected');
@@ -123,8 +138,8 @@ describe('Remote Console UI', function() {
       const command = 'var a = "foo"; console.log(a + "bar");';
       const command2 = 'console.log("a is ", typeof a)';
       return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        remoteConsoleUI._readline.emit('line', command);
-        remoteConsoleUI._readline.emit('line', command2);
+        rlInterface.emit('line', command);
+        rlInterface.emit('line', command2);
         return waitForCalls(console.log, 5);
       }).then(log => {
         expect(log).to.contain('connected');
@@ -137,14 +152,14 @@ describe('Remote Console UI', function() {
     it('keep JS input and cursor position when new log message is arrived', function() {
       const command = '5 * 3', input = 'JavaScript input';
       return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        remoteConsoleUI._readline.line = input;
-        remoteConsoleUI._readline.cursor = input.length;
+        rlInterface.line = input;
+        rlInterface.cursor = input.length;
         console.log(new Function('return (' + command + ')')());
         return waitForCalls(console.log, 3);
       }).then(log => {
         expect(log).to.contain('connected');
-        expect(remoteConsoleUI._readline.line).to.equal(input);
-        expect(remoteConsoleUI._readline.cursor).to.equal(input.length);
+        expect(rlInterface.line).to.equal(input);
+        expect(rlInterface.cursor).to.equal(input.length);
         return true;
       });
     });
