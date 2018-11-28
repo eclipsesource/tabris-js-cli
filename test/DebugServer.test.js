@@ -40,7 +40,7 @@ describe('DebugServer', () => {
       createRemoteConsole(debugServer, webSocketFactory);
       return waitForCalls(console.log)
         .then(log =>
-          expect(log).to.contain('connected')
+          expect(log).to.contain(' connected')
         );
     });
 
@@ -49,8 +49,8 @@ describe('DebugServer', () => {
       rc._webSocket.close(1000);
       return waitForCalls(console.log, 2)
         .then(log =>
-          expect(log).to.contain('connected') &&
-          expect(log).to.contain('disconnected')
+          expect(log).to.contain(' connected') &&
+          expect(log).to.contain(' disconnected')
         );
     });
 
@@ -132,16 +132,16 @@ function waitForCalls(spyInstance, minCallCount = 1) {
   const maxAttempts = 15;
   return new Promise((resolve, reject) => {
     const interval = setInterval(() => {
+      let messages = [];
+      for (const call of spyInstance.getCalls()) {
+        messages.push(call.args.join(''));
+      }
       if (spyInstance.callCount === minCallCount) {
         clearInterval(interval);
-        let messages = [];
-        for (const call of spyInstance.getCalls()) {
-          messages.push(call.args.join(''));
-        }
         resolve(messages.join('\n'));
       } else if (++attempts > maxAttempts || spyInstance.callCount > minCallCount) {
         clearInterval(interval);
-        reject();
+        reject(new Error(messages.join('\n')));
       }
     }, 100);
   });
