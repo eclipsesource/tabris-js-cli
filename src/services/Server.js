@@ -168,6 +168,7 @@ module.exports = class Server extends EventEmitter {
       this._createDeliverEmitter(),
       this._createPackageJsonMiddleware(main),
       this._createBootJsMiddleware(appPath),
+      this._createDefaultRouteMiddleware(),
       ecstatic({root: appPath, showDir: false})
     ];
   }
@@ -222,6 +223,16 @@ module.exports = class Server extends EventEmitter {
     return (req, res, next) => {
       if (req.url === '/node_modules/tabris/boot.min.js') {
         return res.text(getBootJs(appPath, this.debugServer.getNewSessionId()));
+      }
+      next();
+    };
+  }
+
+  _createDefaultRouteMiddleware() {
+    return (req, res, next) => {
+      if (req.url === '/') {
+        const cliPackageJson = require('../../package.json');
+        return res.text(`Tabris.js CLI version ${cliPackageJson.version} is running`);
       }
       next();
     };

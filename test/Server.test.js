@@ -158,6 +158,17 @@ describe('Server', function() {
         });
     });
 
+    it('shows a static message on the default route', function() {
+      writeTabrisProject(path);
+      writeFileSync(join(path, 'package.json'), '{"main": "unused.js"}');
+      return server.serve(path)
+        .then(() => fetch(`http://127.0.0.1:${server.port}/`))
+        .then(response => response.text())
+        .then(text => {
+          expect(text).to.match(/Tabris\.js CLI version .* is running/);
+        });
+    });
+
   });
 
 });
