@@ -22,7 +22,7 @@
     "ws": "^5.2.0",
     "xml2js": "^0.4.17",
     "yauzl": "^2.8.0",
-    "yeoman-environment": "^1.6.6"
+    "yeoman-environment": "^2.3.4"
   },
   "bin": {
     "tabris": "src/tabris.js"
