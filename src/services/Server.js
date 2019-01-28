@@ -13,7 +13,7 @@ const FileService = require('./FileService');
 const {getBootJs} = require('./getBootJs');
 const ServerInfo = require('./ServerInfo');
 const RemoteConsoleUI = require('./RemoteConsoleUI');
-const Watcher = require('./Watcher');
+const AppReloader = require('./AppReloader');
 const {red, blue} = require('chalk');
 
 const BASE_PORT = 8080;
@@ -131,7 +131,7 @@ module.exports = class Server extends EventEmitter {
       RemoteConsoleUI.create(this);
     }
     if (this._autoReload) {
-      new Watcher(this).start();
+      new AppReloader(this).start();
     }
     return new ServerInfo(this, Server.externalAddresses).show();
   }

@@ -1,6 +1,6 @@
 const filewatcher = require('filewatcher');
 
-module.exports = class Watcher {
+module.exports = class AppReloader {
 
   constructor(server) {
     this._server = server;

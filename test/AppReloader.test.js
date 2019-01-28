@@ -2,14 +2,14 @@ const temp = require('temp');
 const fetch = require('node-fetch');
 const {join} = require('path');
 const Server = require('../src/services/Server');
-const Watcher = require('../src/services/Watcher');
+const AppReloader = require('../src/services/AppReloader');
 const {expect, restore, spy} = require('./test');
 const {writeFileSync, realpathSync, mkdirSync} = require('fs-extra');
 const TerminalMock = require('./TerminalMock.js');
 
-describe('Watcher', function() {
+describe('AppReloader', function() {
 
-  let server, path, oldCwd, watcher;
+  let server, path, oldCwd, reloader;
 
   this.timeout(10000);
 
@@ -18,13 +18,13 @@ describe('Watcher', function() {
     oldCwd = process.cwd();
     process.chdir(path);
     server = new Server({terminal: new TerminalMock()});
-    watcher = new Watcher(server);
-    watcher.start();
+    reloader = new AppReloader(server);
+    reloader.start();
   });
 
   afterEach(function() {
     process.chdir(oldCwd);
-    watcher.stop();
+    reloader.stop();
     restore();
   });
 
