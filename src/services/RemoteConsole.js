@@ -2,10 +2,10 @@ const os = require('os');
 const {join} = require('path');
 const {CLIHistory, DIRECTION_NEXT, DIRECTION_PREV} = require('./CLIHistory');
 
-module.exports = class RemoteConsoleUI {
+module.exports = class RemoteConsole {
 
   static create({debugServer, terminal}) {
-    return new RemoteConsoleUI(debugServer, terminal);
+    return new RemoteConsole(debugServer, terminal);
   }
 
   /**

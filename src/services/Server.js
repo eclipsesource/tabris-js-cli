@@ -12,7 +12,7 @@ const GetFilesMiddleware = require('./GetFilesMiddleware');
 const FileService = require('./FileService');
 const {getBootJs} = require('./getBootJs');
 const ServerInfo = require('./ServerInfo');
-const RemoteConsoleUI = require('./RemoteConsoleUI');
+const RemoteConsole = require('./RemoteConsole');
 const AppReloader = require('./AppReloader');
 const {red, blue} = require('chalk');
 
@@ -128,7 +128,7 @@ module.exports = class Server extends EventEmitter {
     this.debugServer = new DebugServer(webSocketServer, this.terminal);
     this.debugServer.start();
     if (this._interactive) {
-      RemoteConsoleUI.create(this);
+      RemoteConsole.create(this);
     }
     if (this._autoReload) {
       new AppReloader(this).start();

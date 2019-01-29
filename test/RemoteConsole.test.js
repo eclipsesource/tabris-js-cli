@@ -1,7 +1,7 @@
 const spawn = require('child_process').spawn;
 const temp = require('temp');
 const DebugServer = require('../src/services/DebugServer');
-const RemoteConsoleUI = require('../src/services/RemoteConsoleUI');
+const RemoteConsole = require('../src/services/RemoteConsole');
 const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
 const {expect, restore} = require('./test');
@@ -70,7 +70,7 @@ describe('Remote Console UI', function() {
       webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
       debugServer = new DebugServer(webSocketServer, terminal);
       debugServer.start();
-      new RemoteConsoleUI(debugServer, terminal);
+      new RemoteConsole(debugServer, terminal);
       eval(getDebugClient('').replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
     });
 
