@@ -1,5 +1,5 @@
 const {yellow, blue} = require('chalk');
-const readline = require('readline');
+const readline = require('../lib/readline/readline');
 const EventEmitter = require('events');
 
 module.exports = class Terminal extends EventEmitter {
@@ -113,8 +113,6 @@ module.exports = class Terminal extends EventEmitter {
   _restorePrompt() {
     if (this._promptEnabled) {
       const command = this._line || '';
-      // TODO: 'line' and 'cursor' seem to be internal API, but no alternative is documented
-      // Either adapt/fork readline or use another CLI library
       this._readline.line = command;
       this._readline.cursor = command.length;
       this._readline.prompt(true);
