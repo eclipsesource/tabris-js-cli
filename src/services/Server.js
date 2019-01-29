@@ -89,7 +89,14 @@ module.exports = class Server extends EventEmitter {
 
   _runProjectScript() {
     if (this._watch) {
-      const ps = proc.exec('npm', ['run', '--if-present', 'watch'], {cwd: this._appPath, stdio: [null, 'pipe', null]});
+      if (process.stdin.isTTY && !this._interactive) {
+        process.stdin.setRawMode(false);
+      }
+      const ps = proc.exec(
+        'npm',
+        ['run', '--if-present', 'watch'],
+        {cwd: this._appPath, stdio: [null, 'pipe', null]}
+      );
       ps.stdout.on('data', data => {
         const line = data.toString().trim();
         if (line !== '') {
