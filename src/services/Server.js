@@ -52,7 +52,9 @@ module.exports = class Server extends EventEmitter {
     this._appPath = appPath;
     return lstat(appPath).then((stats) => {
       if (stats.isDirectory()) {
-        this._packageJson = this._readPackageJson(appPath, main);
+        this._packageJson = this._readAppPackageJson(appPath, main);
+        this._tabrisVersion = parseInt(this._readTabrisPackageJson(appPath).version.split('.')[0], 10);
+        this._checkTabrisVersion();
         this._runProjectScript();
         return this._startServer(appPath, main);
       } else {
@@ -71,7 +73,7 @@ module.exports = class Server extends EventEmitter {
     });
   }
 
-  _readPackageJson(appPath, main) {
+  _readAppPackageJson(appPath, main) {
     let packageJsonPath = join(appPath, 'package.json');
     if (!existsSync(packageJsonPath)) {
       throw new Error('Directory must contain package.json');
@@ -84,7 +86,23 @@ module.exports = class Server extends EventEmitter {
       content.main = main;
     }
     return content;
+  }
 
+  _readTabrisPackageJson(appPath) {
+    let packageJsonPath = join(appPath, 'node_modules', 'tabris', 'package.json');
+    if (!existsSync(packageJsonPath)) {
+      throw new Error('No tabris module installed');
+    }
+    return readJsonSync(packageJsonPath);
+  }
+
+  _checkTabrisVersion() {
+    if (this._interactive && this._tabrisVersion < 3) {
+      throw new Error('Interactive console (-i, --interactive) feature requires a Tabris.js 3.x project');
+    }
+    if (this._autoReload && this._tabrisVersion < 3) {
+      throw new Error('Auto reload (-a, --auto-reload) feature requires a Tabris.js 3.x project');
+    }
   }
 
   _runProjectScript() {
@@ -198,6 +216,9 @@ module.exports = class Server extends EventEmitter {
   }
 
   _createBootJsMiddleware(appPath) {
+    if (this._tabrisVersion < 3) {
+      return (req, res, next) => next();
+    }
     return (req, res, next) => {
       if (req.url === '/node_modules/tabris/boot.min.js') {
         return res.text(getBootJs(appPath, this.debugServer.getNewSessionId()));

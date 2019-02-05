@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 const {join} = require('path');
 const Server = require('../src/services/Server');
 const AppReloader = require('../src/services/AppReloader');
-const {expect, restore, spy} = require('./test');
+const {expect, restore, spy, writeTabrisProject} = require('./test');
 const {writeFileSync, realpathSync, mkdirSync} = require('fs-extra');
 const TerminalMock = require('./TerminalMock.js');
 
@@ -31,8 +31,7 @@ describe('AppReloader', function() {
   describe('when changed file was never requested', function() {
 
     it('does not send reload command', function() {
-      writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-      writeFileSync(join(path, 'foo.js'), 'console.log("test")');
+      writeTabrisProject(path);
       return server.serve(path)
         .then(() => fetch(`http://127.0.0.1:${server.port}/foo.js`))
         .then(response => response.text())
@@ -53,8 +52,7 @@ describe('AppReloader', function() {
   describe('when changed file was requested', function() {
 
     it('sends a reload command', function() {
-      writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-      writeFileSync(join(path, 'foo.js'), 'console.log("test")');
+      writeTabrisProject(path);
       return server.serve(path)
         .then(() => fetch(`http://127.0.0.1:${server.port}/foo.js`))
         .then(response => response.text())
@@ -74,7 +72,7 @@ describe('AppReloader', function() {
 
     it('sends a reload command', function() {
       mkdirSync(join(path, 'bar'));
-      writeFileSync(join(path, 'package.json'), '{"main": "bar/foo.js"}');
+      writeTabrisProject(path, '{"main": "bar/foo.js"}');
       writeFileSync(join(path, 'bar', 'foo.js'), 'console.log("test")');
       writeFileSync(join(path, 'bar', 'baz.js'), 'console.log("test")');
       return server.serve(path)
@@ -95,8 +93,7 @@ describe('AppReloader', function() {
   describe('when changed source file is in requested project root directory', function() {
 
     it('sends a reload command', function() {
-      writeFileSync(join(path, 'package.json'), '{"main": "foo.js"}');
-      writeFileSync(join(path, 'foo.js'), 'console.log("test")');
+      writeTabrisProject(path);
       return server.serve(path)
         .then(() => fetch(`http://127.0.0.1:${server.port}/package.json?getfiles=${encodeURIComponent('*')}`))
         .then(response => response.text())
@@ -116,7 +113,7 @@ describe('AppReloader', function() {
 
     it('does not send reload command', function() {
       mkdirSync(join(path, 'bar'));
-      writeFileSync(join(path, 'package.json'), '{"main": "bar/foo.js"}');
+      writeTabrisProject(path, '{"main": "bar/foo.js"}');
       writeFileSync(join(path, 'bar', 'foo.js'), 'console.log("test")');
       writeFileSync(join(path, 'bar', 'baz'), 'console.log("test")');
       return server.serve(path)

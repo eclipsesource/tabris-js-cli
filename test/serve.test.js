@@ -1,7 +1,7 @@
 const {join, resolve} = require('path');
 const {writeFileSync, realpathSync} = require('fs-extra');
 const temp = require('temp');
-const {expect, restore} = require('./test');
+const {expect, restore, writeTabrisProject} = require('./test');
 const spawn = require('child_process').spawn;
 const fetch = require('node-fetch');
 const {platform} = require('os');
@@ -14,10 +14,6 @@ describe('serve', function() {
 
   let serve, path, env;
   const mockBinDir = join(__dirname, 'bin');
-
-  function writePackageJson(content = '{"main": "foo.js"}') {
-    writeFileSync(join(path, 'package.json'), content);
-  }
 
   beforeEach(function() {
     path = realpathSync(temp.mkdirSync('foo'));
@@ -53,7 +49,7 @@ describe('serve', function() {
   }).timeout(8000);
 
   it('fails when given project path is not a directory', function() {
-    writePackageJson();
+    writeTabrisProject(path);
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', join(path, 'package.json')], {env});
 
@@ -63,7 +59,7 @@ describe('serve', function() {
   }).timeout(8000);
 
   it('runs build script', function() {
-    writePackageJson();
+    writeTabrisProject(path);
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
@@ -74,7 +70,7 @@ describe('serve', function() {
   }).timeout(8000);
 
   it('runs watch script when -w option given', function() {
-    writePackageJson();
+    writeTabrisProject(path);
 
     serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path], {env});
 
@@ -85,7 +81,7 @@ describe('serve', function() {
   }).timeout(8000);
 
   it('starts a server on a directory given with -p', function() {
-    writePackageJson();
+    writeTabrisProject(path);
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
@@ -99,7 +95,7 @@ describe('serve', function() {
   }).timeout(8000);
 
   it('starts a server on a directory given with --project', function() {
-    writePackageJson();
+    writeTabrisProject(path);
 
     serve = spawn('node', ['./src/tabris', 'serve', '--project', path], {env});
 
@@ -114,7 +110,7 @@ describe('serve', function() {
 
   it('starts a server on cwd if project argument is missing', function() {
     let srcFile = resolve('./src/tabris');
-    writePackageJson();
+    writeTabrisProject(path);
 
     serve = spawn('node', [srcFile, 'serve'], {cwd: path, env});
 
@@ -132,7 +128,7 @@ describe('serve', function() {
     let srcFile = resolve('./src/tabris');
     let file = join(path, 'foo.js');
     writeFileSync(file, 'content');
-    writePackageJson('{}');
+    writeTabrisProject(path, '{}');
 
     serve = spawn('node', [srcFile, 'serve', '-m', 'foo.js'], {cwd: path, env});
 
@@ -149,7 +145,7 @@ describe('serve', function() {
     let srcFile = resolve('./src/tabris');
     let file = join(path, 'foo.js');
     writeFileSync(file, 'content');
-    writePackageJson('{}');
+    writeTabrisProject(path, '{}');
 
     serve = spawn('node', [srcFile, 'serve', '--main', 'foo.js'], {cwd: path, env});
 
@@ -165,7 +161,7 @@ describe('serve', function() {
   it('delivers a synthetic package.json when -m and -p switches are used', function() {
     let file = join(path, 'bar.js');
     writeFileSync(file, 'content');
-    writePackageJson();
+    writeTabrisProject(path);
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-m', 'bar.js'], {env});
 
@@ -183,7 +179,7 @@ describe('serve', function() {
     let srcFile = resolve('./src/tabris');
     let file = join(path, 'foo.js');
     writeFileSync(file, 'content');
-    writePackageJson('{}');
+    writeTabrisProject(path, '{}');
 
     serve = spawn('node', [srcFile, 'serve', '-m', 'foo.js'], {cwd: path, env});
 
@@ -199,7 +195,7 @@ describe('serve', function() {
   describe('when logging is enabled', function() {
 
     it('requests are logged to the console', function() {
-      writePackageJson();
+      writeTabrisProject(path);
 
       serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-l'], {env});
 
@@ -218,7 +214,7 @@ describe('serve', function() {
     }).timeout(30000);
 
     it('request errors are logged to the console', function() {
-      writePackageJson();
+      writeTabrisProject(path);
       serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-l'], {env});
 
       return waitForStdout(serve, 10000)

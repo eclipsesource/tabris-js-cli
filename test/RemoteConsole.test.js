@@ -4,15 +4,17 @@ const DebugServer = require('../src/services/DebugServer');
 const RemoteConsole = require('../src/services/RemoteConsole');
 const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
-const {expect, restore} = require('./test');
+const {expect, restore, writeTabrisProject} = require('./test');
 const {getDebugClient} = require('../src/services/getBootJs');
 const TerminalMock = require('./TerminalMock');
+const {realpathSync} = require('fs-extra');
+const {join} = require('path');
 
 const PORT = 9000;
 const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
 
 
-describe('Remote Console UI', function() {
+describe('Remote Console', function() {
 
   this.timeout(6000);
 
@@ -28,9 +30,22 @@ describe('Remote Console UI', function() {
 
   describe('integration tests', function() {
 
+    let path, oldCwd;
+
+    beforeEach(function() {
+      path = realpathSync(temp.mkdirSync('foo'));
+      oldCwd = process.cwd();
+      process.chdir(path);
+    });
+
+    afterEach(function() {
+      process.chdir(oldCwd);
+      restore();
+    });
+
     it('enables interactive console when option -i is given', function() {
-      let {path} = temp.openSync('foo');
-      serve = spawn('node', ['./src/tabris', 'serve', '-m', path, '-i']);
+      writeTabrisProject(path, '{}');
+      serve = spawn('node', [join(oldCwd, './src/tabris'), 'serve', '-m', './foo.js', '-i']);
 
       return waitForStdout(serve, 4000)
         .then(log =>
@@ -39,8 +54,8 @@ describe('Remote Console UI', function() {
     });
 
     it('prints error on input when no device is connected', function() {
-      let {path} = temp.openSync('foo');
-      serve = spawn('node', ['./src/tabris', 'serve', '-m', path, '-i']);
+      writeTabrisProject(path, '{}');
+      serve = spawn('node', [join(oldCwd, './src/tabris'), 'serve', '-m', './foo.js', '-i']);
 
       return waitForStdout(serve, 2700)
         .then(() => {
@@ -141,22 +156,6 @@ describe('Remote Console UI', function() {
       });
     });
 
-    // TODO: replace with Terminal test
-    // it('keep JS input and cursor position when new log message is arrived', function() {
-    //   const command = '5 * 3', input = 'JavaScript input';
-    //   return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-    //     terminal.line = input;
-    //     terminal.cursor = input.length;
-    //     console.log(new Function('return (' + command + ')')());
-    //     return waitForCalls(terminal.log, 3);
-    //   }).then(log => {
-    //     expect(log).to.contain('connected');
-    //     expect(terminal.line).to.equal(input);
-    //     expect(terminal.cursor).to.equal(input.length);
-    //     return true;
-    //   });
-    // });
-
     function createRemoteConsole(server, webSocketFactory) {
       const remoteConsole = new global.debugClient.RemoteConsole(webSocketFactory, server.getNewSessionId());
       return new Promise((resolve, reject) => {
@@ -182,7 +181,7 @@ describe('Remote Console UI', function() {
 function waitForStderr(process, timeout = 2000) {
   return new Promise((resolve, reject) => {
     process.stderr.once('data', data => resolve(data.toString()));
-    setTimeout(() => reject('waitForStderr timed out'), timeout);
+    setTimeout(() => reject(new Error('waitForStderr timed out')), timeout);
   });
 }
 
