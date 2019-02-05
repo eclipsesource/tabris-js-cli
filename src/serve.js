@@ -8,8 +8,10 @@ program
   .option('-p, --project [path]', 'path to the project root')
   .option('-m, --main [module]', 'main module of the project, overrides the "main" field of package.json if present')
   .option('-a, --auto-reload', 'auto reload the application when a source file is modified')
-  .option('-i, --interactive', 'enable interactive console for JavaScript input')
-  .option('-l, --logging', 'enable request logging')
+  .option('-i, --interactive', 'enable interactive console for JavaScript input (experimental)')
+  .option('-l, --logging', 'Logs requests to the internal HTTP server of the CLI.'
+    + ' Useful for debugging connection issues during app sideloading.'
+  )
   .option('-w, --watch', 'execute the "watch" instead of the "build" script of the app before serving')
   .description('Serves a Tabris.js app from the current or a given project directory. If a ' +
     'build script is present in package.json, it is executed beforehand.')

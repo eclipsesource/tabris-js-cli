@@ -45,13 +45,13 @@ Overrides the "main" field of package.json. The argument must be a valid module 
 
 Auto reload the application when a source file is modified.
 
-##### `-i, --interactive`
+##### `-i, --interactive` (Experimental)
 
 Enable interactive console for JavaScript input.
 
 ##### `-l, --logging`
 
-Enables request logging.
+Logs requests to the internal HTTP server of the CLI. Useful for debugging connection issues during app sideloading.
 
 ##### `-w, --watch`
 
