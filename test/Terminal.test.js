@@ -41,8 +41,15 @@ describe('Terminal', function() {
     });
 
     it('fires keypress event', function() {
+      terminal.promptEnabled = true;
       rlInterface.input.emit('keypress', {}, {name: 'up'});
       expect(listener).to.have.been.calledWith({name: 'up'});
+    });
+
+    it('does not fire keypress event when prompt is disabled', function() {
+      terminal.promptEnabled = false;
+      rlInterface.input.emit('keypress', {}, {name: 'up'});
+      expect(listener).not.to.have.been.calledWith({name: 'up'});
     });
 
   });

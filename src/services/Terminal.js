@@ -39,7 +39,11 @@ module.exports = class Terminal extends EventEmitter {
       }
     });
     this._readline.pause();
-    this._readline.input.on('keypress', (ev, key) => this.emit('keypress', key));
+    this._readline.input.on('keypress', (ev, key) => {
+      if (this._promptEnabled) {
+        this.emit('keypress', key);
+      }
+    });
     this._promptEnabled = false;
   }
 
