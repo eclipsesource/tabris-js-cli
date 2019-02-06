@@ -13,6 +13,7 @@ const {join} = require('path');
 const PORT = 9000;
 const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
 
+MockWebSocketServer.prototype.ping = () => {};
 
 describe('Remote Console', function() {
 
@@ -163,12 +164,10 @@ describe('Remote Console', function() {
         const interval = setInterval(() => {
           if (++count > 20) {
             reject('remote console could not connect');
-          } else {
-            if (debugServer._isConnectionAlive()) {
-              clearInterval(interval);
-              global.debugClient.remoteConsole = remoteConsole;
-              resolve(remoteConsole);
-            }
+          } else if (debugServer.activeConnections > 0) {
+            clearInterval(interval);
+            global.debugClient.remoteConsole = remoteConsole;
+            resolve(remoteConsole);
           }
         }, 100);
       });

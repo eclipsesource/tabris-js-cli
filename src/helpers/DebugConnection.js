@@ -12,15 +12,18 @@ module.exports = class DebugConnection {
       platform: '',
       model: ''
     };
-    this._isAlive = true;
+    this._waitingForPong = false;
     this._interval = null;
     this._onEvaluationCompleted = null;
-    this._webSocket.on('pong', () => this._isAlive = true);
+    this._webSocket.on('pong', () => this._waitingForPong = false);
     this._scheduleClientConnectionStateChecks();
     this._registerMessageHandler();
   }
 
   close(code) {
+    if (!this._webSocket) {
+      return;
+    }
     clearInterval(this._interval);
     if (this._onDisconnect) {
       this._onDisconnect(this);
@@ -29,11 +32,9 @@ module.exports = class DebugConnection {
   }
 
   send(command) {
-    if (command && this._isAlive) {
+    if (this._webSocket && command) {
       this._webSocket.send(command);
-      return true;
     }
-    return false;
   }
 
   set onConnect(cb) {
@@ -50,10 +51,6 @@ module.exports = class DebugConnection {
 
   set onActionResponse(cb) {
     this._onActionResponse = cb;
-  }
-
-  get isAlive() {
-    return this._isAlive;
   }
 
   get sessionId() {
@@ -84,17 +81,17 @@ module.exports = class DebugConnection {
 
   _scheduleClientConnectionStateChecks() {
     this._interval = setInterval(() => {
-      if (!this._isAlive) {
+      if (this._waitingForPong) {
         if (this._onDisconnect) {
           this._onDisconnect(this);
         }
         clearInterval(this._interval);
-        return this._webSocket.close();
+        this._webSocket.close();
+        this._webSocket = null;
+        return;
       }
-      this._isAlive = false;
-      if (this._webSocket.ping) {
-        this._webSocket.ping(() => {});
-      }
+      this._webSocket.ping(() => {});
+      this._waitingForPong = true;
     }, STATE_CHECK_INTERVAL);
   }
 

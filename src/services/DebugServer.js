@@ -31,19 +31,26 @@ module.exports = class DebugServer {
 
   // only using for unit testing
   stop() {
-    this._connection.close(1000);
+    if (this._connection) {
+      this._connection.close(1000);
+    }
     this._webSocketServer = null;
   }
 
   send(command) {
     if (this._connection) {
-      return this._connection.send(command);
+      this._connection.send(command);
+      return true;
     }
     return false;
   }
 
   getNewSessionId() {
     return ++this._sessionId;
+  }
+
+  get activeConnections() {
+    return this._connection ? 1 : 0;
   }
 
   set onEvaluationCompleted(cb) {
@@ -60,6 +67,7 @@ module.exports = class DebugServer {
 
   _onDisconnect(connection) {
     this._printClientState(connection.device, STATE_DISCONNECTED);
+    this._connection = null;
     if (this._onEvaluationCompleted) {
       this._onEvaluationCompleted();
     }
@@ -102,17 +110,13 @@ module.exports = class DebugServer {
   }
 
   _closeOutdatedConnection() {
-    if (this._isConnectionAlive() && !this._isMostRecentSession(this._connection.sessionId)) {
+    if (this._connection && !this._isMostRecentSession(this._connection.sessionId)) {
       this._connection.close(OUTDATED_CONNECTION_CLOSURE);
     }
   }
 
   _isMostRecentSession(id) {
     return id.toString() === this._sessionId.toString();
-  }
-
-  _isConnectionAlive() {
-    return this._connection && this._connection.isAlive;
   }
 
 };

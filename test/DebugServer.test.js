@@ -8,6 +8,8 @@ const TerminalMock = require('./TerminalMock');
 const PORT = 9000;
 const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
 
+MockWebSocketServer.prototype.ping = () => {};
+
 describe('DebugServer', () => {
 
   let webSocketFactory = {
@@ -39,7 +41,7 @@ describe('DebugServer', () => {
   describe('single device', function() {
 
     it('print device connected', function() {
-      createRemoteConsole(debugServer, webSocketFactory);
+      createRemoteConsoleClient(debugServer, webSocketFactory);
       return waitForCalls(terminal.log)
         .then(log =>
           expect(log).to.contain(' connected')
@@ -47,7 +49,7 @@ describe('DebugServer', () => {
     });
 
     it('print device disconnected on normal closure', function() {
-      const rc = createRemoteConsole(debugServer, webSocketFactory);
+      const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       rc._webSocket.close(1000);
       return waitForCalls(terminal.log, 2)
         .then(log =>
@@ -57,7 +59,7 @@ describe('DebugServer', () => {
     });
 
     it('print device disconnected on outdated session close', function() {
-      const rc = createRemoteConsole(debugServer, webSocketFactory);
+      const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       rc._webSocket.close(4900);
       return waitForCalls(terminal.log, 2)
         .then(log =>
@@ -67,7 +69,7 @@ describe('DebugServer', () => {
     });
 
     it('send log message', function() {
-      const rc = createRemoteConsole(debugServer, webSocketFactory);
+      const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'log message';
       rc.log(message);
       return waitForCalls(terminal.log, 2)
@@ -78,7 +80,7 @@ describe('DebugServer', () => {
     });
 
     it('send info message', function() {
-      const rc = createRemoteConsole(debugServer, webSocketFactory);
+      const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'info message';
       rc.info(message);
       return waitForCalls(terminal.info, 1)
@@ -88,7 +90,7 @@ describe('DebugServer', () => {
     });
 
     it('send error message', function() {
-      const rc = createRemoteConsole(debugServer, webSocketFactory);
+      const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'error message';
       rc.error(message);
       return waitForCalls(terminal.error, 1)
@@ -98,7 +100,7 @@ describe('DebugServer', () => {
     });
 
     it('send warn message', function() {
-      const rc = createRemoteConsole(debugServer, webSocketFactory);
+      const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'warn message';
       rc.warn(message);
       return waitForCalls(terminal.warn, 1)
@@ -108,7 +110,7 @@ describe('DebugServer', () => {
     });
 
     it('send debug message', function() {
-      const rc = createRemoteConsole(debugServer, webSocketFactory);
+      const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'debug message';
       rc.debug(message);
       return waitForCalls(terminal.debug, 1)
@@ -121,7 +123,7 @@ describe('DebugServer', () => {
 
 });
 
-function createRemoteConsole(server, webSocketFactory) {
+function createRemoteConsoleClient(server, webSocketFactory) {
   return new global.debugClient.RemoteConsole(webSocketFactory, server.getNewSessionId());
 }
 
