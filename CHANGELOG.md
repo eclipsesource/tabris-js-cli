@@ -1,3 +1,7 @@
+## 2.7.0
+
+Update generator dependency for consistency reasons.
+
 ## 2.6.3
 
 Update yeoman-environment dependency to fix CLI not working in latest node LTS release.
