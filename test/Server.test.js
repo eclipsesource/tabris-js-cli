@@ -81,7 +81,7 @@ describe('Server', function() {
     it('fails if tabris module is not installed', function() {
       writeTabrisProject(path, null, false);
       return server.serve(path).then(expectFail, err => {
-        expect(err.message).to.equal('No tabris module installed');
+        expect(err.message).to.equal('No tabris module installed; did you run npm install?');
       });
     });
 

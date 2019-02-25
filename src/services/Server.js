@@ -91,7 +91,7 @@ module.exports = class Server extends EventEmitter {
   _readTabrisPackageJson(appPath) {
     let packageJsonPath = join(appPath, 'node_modules', 'tabris', 'package.json');
     if (!existsSync(packageJsonPath)) {
-      throw new Error('No tabris module installed');
+      throw new Error('No tabris module installed; did you run npm install?');
     }
     return readJsonSync(packageJsonPath);
   }
