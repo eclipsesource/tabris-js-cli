@@ -25,11 +25,11 @@ The super tool for Tabris.js developers.
 
 Creates a new Tabris.js app in the current directory.
 
-*See: [Quick Start Guide - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/getting-started.html)*
+*See: [Quick Start Guide - Tabris.js Documentation](https://docs.tabris.com/2.0/getting-started.html)*
 
 ### `tabris serve [options]`
 
-Starts a server the [Tabris.js developer app](https://tabrisjs.com/documentation/2.0/developer-app) can be pointed to. If a build script is present in package.json, it is executed beforehand.
+Starts a server the [Tabris.js developer app](https://docs.tabris.com/2.0/developer-app) can be pointed to. If a build script is present in package.json, it is executed beforehand.
 
 #### options
 
@@ -63,7 +63,7 @@ Builds a Tabris.js app for the given platform.
 
 To speed up the build, pre-compiled build artifacts are kept in a build cache and are reused in subsequent builds. To clean up the build cache, e.g. after updating Cordova plug-ins, run `tabris clean`.
 
-*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
+*See: [Building a Tabris.js app - Tabris.js Documentation](https://docs.tabris.com/2.0/build.html)*
 
 *See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
 
@@ -71,7 +71,7 @@ To speed up the build, pre-compiled build artifacts are kept in a build cache an
 
 Builds a Tabris.js app and runs it on a connected device or emulator.
 
-*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
+*See: [Building a Tabris.js app - Tabris.js Documentation](https://docs.tabris.com/2.0/build.html)*
 
 *See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
 
@@ -114,7 +114,7 @@ Comma-separated list of variable replacements in config.xml. `--variables FOO=ba
 
 Path to a build configuration file passed to Cordova. Relative to the `cordova/` directory.
 
-See Cordova platform documentation ([iOS](https://cordova.apache.org/docs/en/6.x/guide/platforms/ios/index.html#using-buildjson), [Android](https://cordova.apache.org/docs/en/6.x/guide/platforms/android/index.html#using-buildjson)) for more information about the file format.
+See Cordova platform documentation ([iOS](https://cordova.apache.org/docs/en/latest/guide/platforms/ios/index.html#using-buildjson), [Android](https://cordova.apache.org/docs/en/latest/guide/platforms/android/index.html#using-buildjson)) for more information about the file format.
 
 You may want to include this file in `.gitignore` since it may contain sensitive information.
 
@@ -148,7 +148,7 @@ Print more verbose output.
 
 Platform-specific options passed to Cordova.
 
-*See: [Platform-specific options - Cordova CLI Reference](https://cordova.apache.org/docs/en/6.x/reference/cordova-cli/#platform-specific-options)*
+*See: [Platform-specific options - Cordova CLI Reference](https://cordova.apache.org/docs/en/latest/reference/cordova-cli/#platform-specific-options)*
 
 ## License
 
