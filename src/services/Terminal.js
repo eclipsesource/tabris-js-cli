@@ -29,22 +29,26 @@ module.exports = class Terminal extends EventEmitter {
     this._line = null;
     this._console = console;
     this._readline = readlineInterface;
+    this.promptEnabled = false;
     this._readline.on('close', () => this.emit('close'));
     this._readline.on('line', line => {
+      if (this._paused) {
+        return;
+      }
       if (line) {
-        this._line = null;
         this.emit('line', line);
       } else {
         this.clearInput();
       }
     });
-    this._readline.pause();
     this._readline.input.on('keypress', (ev, key) => {
+      if (this._paused) {
+        return;
+      }
       if (this._promptEnabled) {
         this.emit('keypress', key);
       }
     });
-    this._promptEnabled = false;
   }
 
   clearInput(line = '') {
@@ -57,16 +61,8 @@ module.exports = class Terminal extends EventEmitter {
   }
 
   set promptEnabled(enabled) {
-    if (this._promptEnabled === !!enabled) {
-      return;
-    }
-    if (!enabled) {
-      this._hidePrompt();
-    }
     this._promptEnabled = !!enabled;
-    if (this._promptEnabled) {
-      this._restorePrompt();
-    }
+    this._paused = !enabled;
   }
 
   get promptEnabled() {
@@ -109,7 +105,7 @@ module.exports = class Terminal extends EventEmitter {
       if (this._line === null) {
         this._line = this._readline.line;
       }
-      this._readline.pause();
+      this._paused = true;
       this._clearLine();
     }
   }
@@ -120,6 +116,7 @@ module.exports = class Terminal extends EventEmitter {
       this._readline.line = command;
       this._readline.cursor = command.length;
       this._readline.prompt(true);
+      this._paused = false;
       this._line = null;
     }
   }

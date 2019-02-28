@@ -64,10 +64,16 @@ describe('Terminal', function() {
     });
 
     it('fires keypress event', function() {
+      terminal.promptEnabled = true;
       rlInterface.emit('line', 'foo');
       expect(listener).to.have.been.calledWith('foo');
     });
 
+    it('does not fire keypress event when prompt is disabled', function() {
+      terminal.promptEnabled = false;
+      rlInterface.emit('line', 'foo');
+      expect(listener).not.to.have.been.called;
+    });
   });
 
   describe('on user cancel', function() {
@@ -107,7 +113,6 @@ describe('Terminal', function() {
       expect(rlInterface.output.write).to.have.been.calledWith('\x1b[2K\r');
       expect(rlInterface.line).to.equal('foo');
       expect(rlInterface.cursor).to.equal(3);
-      expect(rlInterface.prompt).to.have.been.calledWith(true);
     });
 
     it('can not replace input when prompt is disabled ', function() {
@@ -125,40 +130,6 @@ describe('Terminal', function() {
     it('can be set', function() {
       terminal.promptEnabled = true;
       expect(terminal.promptEnabled).to.be.true;
-    });
-
-    it('restores line when set to true', function() {
-      terminal.promptEnabled = true;
-      rlInterface.line = 'foo';
-      terminal.promptEnabled = false;
-      rlInterface.line = '';
-      spy(rlInterface.output, 'write');
-
-      terminal.promptEnabled = true;
-
-      expect(rlInterface.line).to.equal('foo');
-    });
-
-    it('enables prompt', function() {
-      terminal.promptEnabled = false;
-      spy(rlInterface, 'prompt');
-      spy(rlInterface, 'pause');
-
-      terminal.promptEnabled = true;
-
-      expect(rlInterface.prompt).to.have.been.calledWith(true);
-      expect(rlInterface.pause).not.to.have.been.called;
-    });
-
-    it('disables prompt', function() {
-      terminal.promptEnabled = true;
-      spy(rlInterface, 'prompt');
-      spy(rlInterface, 'pause');
-
-      terminal.promptEnabled = false;
-
-      expect(rlInterface.prompt).not.to.have.been.called;
-      expect(rlInterface.pause).to.have.been.called;
     });
 
   });
@@ -182,10 +153,13 @@ describe('Terminal', function() {
       });
 
       it('restores prompt', function() {
+        rlInterface.line = 'foo';
         terminal.promptEnabled = true;
         spy(rlInterface, 'prompt');
         terminal[level]('foo');
         expect(rlInterface.prompt).to.have.been.calledWith(true);
+        expect(rlInterface.line).to.equal('foo');
+        expect(rlInterface.cursor).to.equal(3);
       });
 
       it('does not re-enable prompt', function() {
@@ -218,10 +192,13 @@ describe('Terminal', function() {
     });
 
     it('restores prompt', function() {
+      rlInterface.line = 'foo';
       terminal.promptEnabled = true;
       spy(rlInterface, 'prompt');
       terminal.error('foo');
       expect(rlInterface.prompt).to.have.been.calledWith(true);
+      expect(rlInterface.line).to.equal('foo');
+      expect(rlInterface.cursor).to.equal(3);
     });
 
     it('does not re-enable prompt', function() {
