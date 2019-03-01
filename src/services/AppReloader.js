@@ -5,7 +5,7 @@ module.exports = class AppReloader {
   constructor(server) {
     this._server = server;
     this._watcher = filewatcher({
-      debounce: 1000,
+      debounce: 100,
       persistent: true
     });
     this._server.on('deliver', url => {
