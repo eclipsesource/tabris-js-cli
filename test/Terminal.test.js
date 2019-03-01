@@ -153,8 +153,8 @@ describe('Terminal', function() {
       });
 
       it('restores prompt', function() {
-        rlInterface.line = 'foo';
         terminal.promptEnabled = true;
+        rlInterface.line = 'foo';
         spy(rlInterface, 'prompt');
         terminal[level]('foo');
         expect(rlInterface.prompt).to.have.been.calledWith(true);
@@ -192,8 +192,8 @@ describe('Terminal', function() {
     });
 
     it('restores prompt', function() {
-      rlInterface.line = 'foo';
       terminal.promptEnabled = true;
+      rlInterface.line = 'foo';
       spy(rlInterface, 'prompt');
       terminal.error('foo');
       expect(rlInterface.prompt).to.have.been.calledWith(true);

@@ -29,10 +29,11 @@ module.exports = class Terminal extends EventEmitter {
     this._line = null;
     this._console = console;
     this._readline = readlineInterface;
-    this.promptEnabled = false;
+    this._promptEnabled = false;
+    this._ignoreInput = true;
     this._readline.on('close', () => this.emit('close'));
     this._readline.on('line', line => {
-      if (this._paused) {
+      if (this._ignoreInput) {
         return;
       }
       if (line) {
@@ -42,10 +43,7 @@ module.exports = class Terminal extends EventEmitter {
       }
     });
     this._readline.input.on('keypress', (ev, key) => {
-      if (this._paused) {
-        return;
-      }
-      if (this._promptEnabled) {
+      if (!this._ignoreInput) {
         this.emit('keypress', key);
       }
     });
@@ -61,8 +59,13 @@ module.exports = class Terminal extends EventEmitter {
   }
 
   set promptEnabled(enabled) {
-    this._promptEnabled = !!enabled;
-    this._paused = !enabled;
+    if (enabled && !this._promptEnabled) {
+      this._promptEnabled = true;
+      this._restorePrompt();
+    } else if (!enabled && this._promptEnabled) {
+      this._hidePrompt();
+      this._promptEnabled = false;
+    }
   }
 
   get promptEnabled() {
@@ -105,7 +108,7 @@ module.exports = class Terminal extends EventEmitter {
       if (this._line === null) {
         this._line = this._readline.line;
       }
-      this._paused = true;
+      this._ignoreInput = true;
       this._clearLine();
     }
   }
@@ -116,7 +119,7 @@ module.exports = class Terminal extends EventEmitter {
       this._readline.line = command;
       this._readline.cursor = command.length;
       this._readline.prompt(true);
-      this._paused = false;
+      this._ignoreInput = false;
       this._line = null;
     }
   }
