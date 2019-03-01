@@ -83,6 +83,7 @@ describe('Remote Console', function() {
       terminal = new TerminalMock();
       global.tabris = {};
       global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
+      global.tabris.format = v => `format(${v})`;
       webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
       debugServer = new DebugServer(webSocketServer, terminal);
       debugServer.start();
@@ -131,13 +132,13 @@ describe('Remote Console', function() {
     });
 
     it('print object value without console log method', function() {
-      const command = 'tabris.device';
+      const command = 'tabris.device.platform';
       return createRemoteConsole(debugServer, webSocketFactory).then(() => {
         terminal.emit('line', command);
         return waitForCalls(terminal.log, 3);
       }).then(log => {
         expect(log).to.contain('connected');
-        expect(log).to.contain(JSON.stringify(global.tabris.device));
+        expect(log).to.contain('format(Android)');
         return true;
       });
     });
