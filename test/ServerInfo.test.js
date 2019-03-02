@@ -35,7 +35,7 @@ describe('ServerInfo', function() {
 
     it('returns address of wifi interface', async function() {
       let serverInfo = new ServerInfo({port: '8080', wsPort: '8081'}, ['127.0.0.1', '127.0.0.2']);
-      stub(serverInfo, 'getFirstWifiInterface').returns(Promise.resolve({address: '127.0.0.2'}));
+      stub(serverInfo, 'getFirstWifiInterface').returns(Promise.resolve('127.0.0.2'));
 
       let address = await serverInfo.selectAddressForQRCode();
 

@@ -12,7 +12,7 @@ module.exports = class ServerInfo {
     return this.selectAddressForQRCode().then((address) => {
       this.generateQRCode(this.createURL(address, this.server.port), out => this.server.terminal.log(out));
       this.server.terminal.log(yellow(
-        `Available URLs:\n${this.determineAvailableURLs(this.externalAddresses, this.server.port)}`
+        `Available URLs:\n${this.determineAvailableURLs(this.externalAddresses, this.server.port, address)}`
       ));
     });
   }
@@ -21,8 +21,10 @@ module.exports = class ServerInfo {
     return `http://${address}:${port}`;
   }
 
-  determineAvailableURLs(addresses, port) {
-    return addresses.map(address => '  ' + green(this.createURL(address, port))).join('\n');
+  determineAvailableURLs(addresses, port, selectedAddress) {
+    return addresses.map(address => {
+      return '  ' + green(this.createURL(address, port) + (address === selectedAddress ? ' <= QR code' : ''));
+    }).join('\n');
   }
 
   /**
@@ -34,8 +36,9 @@ module.exports = class ServerInfo {
     const firstAddress = this.externalAddresses[0];
     if (this.externalAddresses.length > 1) {
       return this.getFirstWifiInterface()
-        .catch(() => firstAddress)
-        .then(iface => iface.address);
+        .catch(() => {
+          return firstAddress;
+        });
     }
     return Promise.resolve(firstAddress);
   }
@@ -44,14 +47,20 @@ module.exports = class ServerInfo {
    * Returns the first IPv4 address of the first connected wifi interface.
    */
   getFirstWifiInterface() {
-    const wifi = require('node-wifi');
-    wifi.init();
-    return wifi.getCurrentConnections().then(
-      (connections) => {
+    try {
+      const wifi = require('node-wifi');
+      wifi.init();
+      return wifi.getCurrentConnections().then((connections) => {
+        if(!connections.length) {
+          throw new Error('No connected WiFi interface');
+        }
         let firstWifiConnection = connections[0];
         let firstWifiInterface = os.networkInterfaces()[firstWifiConnection.iface];
-        return firstWifiInterface.filter((address) => address.family === 'IPv4')[0];
+        return firstWifiInterface.filter((address) => address.family === 'IPv4')[0].address;
       });
+    } catch(e) {
+      return Promise.reject(e.message);
+    }
   }
 
   generateQRCode(str, outputCallBack) {
