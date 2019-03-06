@@ -47,7 +47,7 @@ module.exports = class IndexHtml {
               },
               span: {
                 $: {style: 'font-style: italic'},
-                _: address === main ? '(QR Code)' : '&nbsp'
+                _: address === main ? '(QR Code)' : ''
               }
             }))
           }

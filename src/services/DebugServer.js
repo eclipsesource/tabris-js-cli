@@ -7,25 +7,45 @@ const STATE_DISCONNECTED = 'disconnected';
 
 module.exports = class DebugServer {
 
-  constructor(webSocketServer, terminal) {
+  /**
+   * @param {import('ws').Server} webSocketServer
+   * @param {import('./Terminal')} terminal
+   * @param {string} serverId
+   */
+  constructor(webSocketServer, terminal, serverId) {
     this._webSocketServer = webSocketServer;
-    this._sessionId = 0;
+    this._sessionCounter = 0;
+    this._serverId = serverId;
+    /** @type {DebugConnection} */
     this._connection = null;
     this._terminal = terminal;
   }
 
   start() {
     this._webSocketServer.on('connection', (webSocket, req) => {
-      const requestUrl = webSocket.url || req.url;
-      const sessionId = url.parse(requestUrl, true).query.id;
-      if (this._isMostRecentSession(sessionId)) {
-        this._closeOutdatedConnection();
-        this._connection = new DebugConnection({sessionId, webSocket});
-        this._connection.onConnect = this._onConnect.bind(this);
-        this._connection.onDisconnect = this._onDisconnect.bind(this);
-        this._connection.onLog = this._onLog.bind(this);
-        this._connection.onActionResponse = this._onActionResponse.bind(this);
+      const address = req.connection.remoteAddress;
+      const urlParam = new url.URLSearchParams(url.parse(webSocket.url || req.url).query);
+      const sessionId = parseInt(urlParam.get('session'), 10);
+      const serverId = urlParam.get('server');
+      if (isNaN(sessionId)) {
+        throw new Error('Invalid session id');
       }
+      if (!serverId) {
+        throw new Error('No server id');
+      }
+      if (serverId !== this._serverId) {
+        return webSocket.close(OUTDATED_CONNECTION_CLOSURE);
+      }
+      if (this._connection) {
+        if (address === this._connection.address) {
+          return this._connection.open(webSocket, serverId);
+        }
+        if (sessionId < this._connection.sessionId) {
+          return webSocket.close(OUTDATED_CONNECTION_CLOSURE);
+        }
+        this._connection.close(OUTDATED_CONNECTION_CLOSURE);
+      }
+      this._connection = this._createConnection(webSocket, sessionId, address);
     });
   }
 
@@ -46,7 +66,7 @@ module.exports = class DebugServer {
   }
 
   getNewSessionId() {
-    return ++this._sessionId;
+    return ++this._sessionCounter;
   }
 
   get activeConnections() {
@@ -67,7 +87,6 @@ module.exports = class DebugServer {
 
   _onDisconnect(connection) {
     this._printClientState(connection.device, STATE_DISCONNECTED);
-    this._connection = null;
     if (this._onEvaluationCompleted) {
       this._onEvaluationCompleted();
     }
@@ -106,17 +125,17 @@ module.exports = class DebugServer {
   }
 
   _printClientState(device, state) {
-    this._terminal.log(`[${device.platform}][${device.model}][${this._sessionId}]: ${state}`);
+    this._terminal.log(`[${device.platform}][${device.model}]: ${state}`);
   }
 
-  _closeOutdatedConnection() {
-    if (this._connection && !this._isMostRecentSession(this._connection.sessionId)) {
-      this._connection.close(OUTDATED_CONNECTION_CLOSURE);
-    }
-  }
-
-  _isMostRecentSession(id) {
-    return id.toString() === this._sessionId.toString();
+  _createConnection(webSocket, sessionId, address) {
+    const connection = new DebugConnection(address);
+    connection.onConnect = this._onConnect.bind(this);
+    connection.onDisconnect = this._onDisconnect.bind(this);
+    connection.onLog = this._onLog.bind(this);
+    connection.onActionResponse = this._onActionResponse.bind(this);
+    connection.open(webSocket, sessionId);
+    return connection;
   }
 
 };

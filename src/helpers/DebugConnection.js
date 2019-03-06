@@ -5,18 +5,31 @@ const TYPE_ACTION_RESPONSE = 'action-response';
 
 module.exports = class DebugConnection {
 
-  constructor({sessionId, webSocket}) {
-    this._sessionId = sessionId;
-    this._webSocket = webSocket;
+  /**
+   * @param {string} address
+   */
+  constructor(address) {
+    this._sessionId = -1;
+    this.address = address;
     this.device = {
       platform: '',
       model: ''
     };
-    this._waitingForPong = false;
     this._interval = null;
     this._onEvaluationCompleted = null;
-    this._webSocket.on('pong', () => this._waitingForPong = false);
-    this._scheduleClientConnectionStateChecks();
+  }
+
+  /**
+   * @param {import('ws')} webSocket
+   * @param {number} sessionId
+   */
+  open(webSocket, sessionId) {
+    if (this._webSocket) {
+      this._closeWebSocket();
+    }
+    this._webSocket = webSocket;
+    this._sessionId = sessionId;
+    this._startConnectionChecks();
     this._registerMessageHandler();
   }
 
@@ -24,11 +37,7 @@ module.exports = class DebugConnection {
     if (!this._webSocket) {
       return;
     }
-    clearInterval(this._interval);
-    if (this._onDisconnect) {
-      this._onDisconnect(this);
-    }
-    this._webSocket.close(code);
+    this._closeWebSocket(code);
   }
 
   send(command) {
@@ -79,20 +88,37 @@ module.exports = class DebugConnection {
     });
   }
 
-  _scheduleClientConnectionStateChecks() {
+  _startConnectionChecks() {
+    let waitingForPong = false;
+    this._webSocket.on('pong', () => waitingForPong = false);
     this._interval = setInterval(() => {
-      if (this._waitingForPong) {
-        if (this._onDisconnect) {
-          this._onDisconnect(this);
-        }
-        clearInterval(this._interval);
-        this._webSocket.close();
-        this._webSocket = null;
+      if (waitingForPong) {
+        this._closeWebSocket();
         return;
       }
       this._webSocket.ping(() => {});
-      this._waitingForPong = true;
+      waitingForPong = true;
     }, STATE_CHECK_INTERVAL);
+  }
+
+  _closeWebSocket(code) {
+    this._stopConnectionChecks();
+    if (this._onDisconnect) {
+      this._onDisconnect(this);
+    }
+    // Mock used in tests does not implement "terminate"
+    if (!arguments.length && this._webSocket.terminate) {
+      this._webSocket.terminate();
+    } else {
+      this._webSocket.close(code);
+    }
+    this._webSocket = null;
+  }
+
+  _stopConnectionChecks() {
+    if (this._interval !== null) {
+      clearInterval(this._interval);
+    }
   }
 
 };

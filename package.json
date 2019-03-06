@@ -49,7 +49,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "htmllint": "^0.8.0",
     "mocha": "^3.1.2",
-    "mock-socket": "^7.1.0",
+    "mock-socket": "7.1.0",
     "node-fetch": "^1.6.3",
     "sinon": "^2.1.0",
     "sinon-chai": "^2.9.0",

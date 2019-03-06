@@ -11,7 +11,9 @@ const {realpathSync} = require('fs-extra');
 const {join} = require('path');
 
 const PORT = 9000;
-const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
+const SERVER_ID = 'fooserver';
+const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?session=1&server=${SERVER_ID}`;
+const REMOTE_URL = '192.168.1.1';
 
 MockWebSocketServer.prototype.ping = () => {};
 
@@ -68,7 +70,10 @@ describe('Remote Console', function() {
 
     let webSocketFactory = {
       createWebSocket() {
-        return new MockWebSocketClient(WEBSOCKET_URL);
+        const client = new MockWebSocketClient(WEBSOCKET_URL);
+        // Mock is missing this in 'connect' event:
+        client.connection = {remoteAddress: REMOTE_URL};
+        return client;
       }
     };
 
@@ -80,7 +85,7 @@ describe('Remote Console', function() {
       global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
       global.tabris.format = v => `format(${v})`;
       webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
-      debugServer = new DebugServer(webSocketServer, terminal);
+      debugServer = new DebugServer(webSocketServer, terminal, SERVER_ID);
       debugServer.start();
       new RemoteConsole(debugServer, terminal);
       eval(getDebugClient('').replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));

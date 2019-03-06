@@ -34,6 +34,7 @@ module.exports = class Server extends EventEmitter {
     this._watch = !!watch;
     this._interactive = !!interactive;
     this._autoReload  = !!autoReload;
+    this.serverId = null;
     this.debugServer = null;
   }
 
@@ -54,6 +55,7 @@ module.exports = class Server extends EventEmitter {
       throw new Error('path missing');
     }
     this._appPath = appPath;
+    this.serverId = join(appPath, (main || 'package.json')) + '#' + Date.now();
     let stats = await this._lstat(appPath);
     if (stats.isDirectory()) {
       this._packageJson = this._readAppPackageJson(appPath, main);
@@ -157,7 +159,7 @@ module.exports = class Server extends EventEmitter {
 
   _startServices() {
     const webSocketServer = new WebSocket.Server({server: this._server});
-    this.debugServer = new DebugServer(webSocketServer, this.terminal);
+    this.debugServer = new DebugServer(webSocketServer, this.terminal, this.serverId);
     this.debugServer.start();
     if (this._interactive) {
       RemoteConsole.create(this);
@@ -228,7 +230,11 @@ module.exports = class Server extends EventEmitter {
     }
     return (req, res, next) => {
       if (req.url === '/node_modules/tabris/boot.min.js') {
-        return res.text(getBootJs(appPath, this.debugServer.getNewSessionId()));
+        return res.text(getBootJs(
+          appPath,
+          this.debugServer.getNewSessionId(),
+          encodeURIComponent(this.serverId)
+        ));
       }
       next();
     };

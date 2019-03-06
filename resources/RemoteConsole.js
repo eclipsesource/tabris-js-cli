@@ -2,151 +2,169 @@
 (function() {
 
   const AUTO_RECONNECT_INTERVAL = 2000;
-  const SEND_INTERVAL = 500;
   const MAX_RECONNECT_ATTEMPTS = 5;
-  const MAX_SEND_ATTEMPTS = 5;
-  const NORMAL_CLOSURE = 1000;
-  const OUTDATED_CONNECTION_CLOSURE = 4900;
-  const OUTDATED_CONNECTION_MESSAGE = 'Connection to debug websocket was closed.';
+  const CODE_NORMAL_CLOSURE = 1000;
+  const CODE_OUTDATED_CONNECTION_CLOSURE = 4900;
+  const NORMAL_CLOSURE_MESSAGE = 'Connection to debug websocket was closed.';
   const CONNECTION_PROBLEM_MESSAGE = 'Connection to debug websocket could not be established.';
 
   debugClient.RemoteConsole = class RemoteConsole {
 
-    constructor(webSocketFactory, sessionId) {
+    /**
+     * @param {{createWebSocket: () => WebSocket}} webSocketFactory
+     */
+    constructor(webSocketFactory) {
       this._webSocketFactory = webSocketFactory;
+      /** @type {WebSocket} */
       this._webSocket = null;
-      this._sessionId = sessionId;
+      this._reconnectScheduled = false;
       this._reconnectAttempts = 0;
-      this._sendAttempts = 0;
       this._buffer = [];
-      this._isOpen = false;
       this._isDisposed = false;
       this._connect();
     }
 
     log(data) {
-      this._disposeCheck();
-      this._sendBuffered({level: 'log', message: data});
+      this._sendMessageBuffered({level: 'log', message: data});
     }
 
     info(data) {
-      this._disposeCheck();
-      this._sendBuffered({level: 'info', message: data});
+      this._sendMessageBuffered({level: 'info', message: data});
     }
 
     error(data) {
-      this._disposeCheck();
-      this._sendBuffered({level: 'error', message: data});
+      this._sendMessageBuffered({level: 'error', message: data});
     }
 
     warn(data) {
-      this._disposeCheck();
-      this._sendBuffered({level: 'warn', message: data});
+      this._sendMessageBuffered({level: 'warn', message: data});
     }
 
     debug(data) {
-      this._disposeCheck();
-      this._sendBuffered({level: 'debug', message: data});
+      this._sendMessageBuffered({level: 'debug', message: data});
     }
 
     dispose() {
-      this._webSocket.onclose = null;
-      this._webSocket.onopen = null;
-      this._webSocket.onmessage = null;
-      this._webSocket = null;
+      this._disposeSocket();
+      this._buffer = null;
       this._isDisposed = true;
     }
 
     _connect() {
+      if (this._isConnectionOpen() || this._isDisposed) {
+        return;
+      }
       this._webSocket = this._webSocketFactory.createWebSocket();
-      this._webSocket.onclose = (event) => {
-        if (this._isOpen && event.code !== NORMAL_CLOSURE) {
-          this._isOpen = false;
-          if (event.code === OUTDATED_CONNECTION_CLOSURE) {
-            console.info(OUTDATED_CONNECTION_MESSAGE);
-          } else {
-            setTimeout(() => {
-              this._reconnect();
-            }, AUTO_RECONNECT_INTERVAL);
-          }
-        }
-      };
-      this._webSocket.onopen = () => {
-        if (this._send({type: 'connect', parameter: {
-          platform: tabris.device.platform,
-          model: tabris.device.model
-        }})) {
-          this._isOpen = true;
-          this._reconnectAttempts = 0;
-          this._sendBufferedMessages();
-        } else {
-          this._reconnect();
-        }
-      };
-      this._webSocket.onmessage = event => {
-        try {
-          let result = eval((function() {return event.data;})());
-          // VT100 escape code for grey color
-          this.log(`\x1b[;37m<- ${tabris.format(result)}\x1b[0m`);
-        } catch (ex) {
-          console.warn(ex);
-        } finally {
-          this._send({type: 'action-response', parameter: {enablePrompt: true}});
-        }
-      };
+      this._webSocket.onopen = () => this._handleSockedOpen();
+      this._webSocket.onmessage = event => this._handleServerMessage(event);
+      this._webSocket.onclose = event => this._handleSocketClosed(event);
     }
 
-    _reconnect() {
+    _scheduleReconnect() {
+      if (this._isDisposed || this._reconnectScheduled) {
+        return;
+      }
+      if (++this._reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+        console.info(CONNECTION_PROBLEM_MESSAGE);
+        this.dispose();
+        return;
+      }
+      this._disposeSocket();
+      this._reconnectScheduled = true;
+      setTimeout(() => {
+        this._reconnectScheduled = false;
+        this._connect();
+      }, AUTO_RECONNECT_INTERVAL);
+    }
+
+    _handleSockedOpen() {
+      const success = this._send('connect', {
+        platform: tabris.device.platform,
+        model: tabris.device.model
+      });
+      if (success) {
+        this._reconnectAttempts = 0;
+        this._sendBufferedMessages();
+      }
+    }
+
+    /**
+     * @param {MessageEvent} event
+     */
+    _handleServerMessage(event) {
+      try {
+        let result = eval((function() {return event.data;})());
+        // VT100 escape code for grey color
+        this.log(`\x1b[;37m<- ${tabris.format(result)}\x1b[0m`);
+      } catch (ex) {
+        console.warn(ex);
+      } finally {
+        this._send('action-response', {enablePrompt: true});
+      }
+    }
+
+    /**
+     * @param {CloseEvent} event
+     */
+    _handleSocketClosed(event) {
+      if (event.code === CODE_NORMAL_CLOSURE || event.code === CODE_OUTDATED_CONNECTION_CLOSURE) {
+        console.info(NORMAL_CLOSURE_MESSAGE);
+      } else {
+        this._scheduleReconnect();
+      }
+    }
+
+    _sendMessageBuffered(clientMessage) {
       if (this._isDisposed) {
         return;
       }
-      this._webSocket = null;
-      if (++this._reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
-        this._connect();
-      } else {
-        console.info(CONNECTION_PROBLEM_MESSAGE);
+      const success = this._send('log', {messages: [clientMessage]});
+      if (!success) {
+        this._buffer.push(clientMessage);
       }
-    }
-
-    _sendBuffered(clientMessage) {
-      if (this._isConnectionOpen()) {
-        this._send({type: 'log', parameter: {messages: [clientMessage]}});
-      } else {
-        this._addToBuffer(clientMessage);
-      }
-    }
-
-    _addToBuffer(event) {
-      this._buffer.push(event);
     }
 
     _sendBufferedMessages() {
-      if (this._send({type: 'log', parameter: {messages: this._buffer}})) {
-        this._sendAttempts = 0;
+      const success = this._send('log', {messages: this._buffer});
+      if (success) {
         this._buffer = [];
-      } else {
-        if (++this._sendAttempts < MAX_SEND_ATTEMPTS) {
-          setTimeout(() => {
-            this._sendBufferedMessages();
-          }, SEND_INTERVAL);
-        }
       }
     }
 
-    _send({type, parameter}) {
+    /**
+     * @param {string} type
+     * @param {any} parameter
+     */
+    _send(type, parameter) {
+      this._disposeCheck();
+      if (!this._isConnectionOpen()) {
+        return false;
+      }
       try {
         this._webSocket.send(JSON.stringify({
-          sessionId: this._sessionId,
           type,
           parameter
         }));
         return true;
-      } catch (ex) {}
+      } catch (ex) {
+        console.warn(ex);
+        this._scheduleReconnect();
+      }
       return false;
     }
 
     _isConnectionOpen() {
       return this._webSocket && this._webSocket.readyState === WebSocket.OPEN;
+    }
+
+    _disposeSocket() {
+      if (this._webSocket) {
+        this._webSocket.onclose = null;
+        this._webSocket.onopen = null;
+        this._webSocket.onmessage = null;
+        this._webSocket.close();
+        this._webSocket = null;
+      }
     }
 
     _disposeCheck() {

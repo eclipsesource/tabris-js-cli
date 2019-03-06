@@ -4,6 +4,7 @@
   debugClient = {
 
     sessionId: '{{SessionId}}',
+    serverId: '{{ServerId}}',
 
     start() {
       this.ModulePreLoader.patchModuleClass();
@@ -12,10 +13,10 @@
         .match(/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i)[1];
       const webSocketFactory = {
         createWebSocket: () => {
-          return new WebSocket(`ws://${serverUrl}/?id=${this.sessionId}`, '');
+          return new WebSocket(`ws://${serverUrl}/?session=${this.sessionId}&server=${this.serverId}`, '');
         }
       };
-      const rc = new debugClient.RemoteConsole(webSocketFactory, this.sessionId);
+      const rc = new debugClient.RemoteConsole(webSocketFactory);
       const SUPPORTED_EVENTS = ['log', 'info', 'error', 'warn', 'debug'];
       tabris.on('log', (event) => {
         if (!SUPPORTED_EVENTS.includes(event.level)) {

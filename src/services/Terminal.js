@@ -101,7 +101,6 @@ module.exports = class Terminal extends EventEmitter {
     this._hidePrompt();
     this._console.error(text);
     this._restorePrompt();
-
   }
 
   _hidePrompt() {

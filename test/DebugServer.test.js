@@ -6,7 +6,9 @@ const {getDebugClient} = require('../src/services/getBootJs');
 const TerminalMock = require('./TerminalMock');
 
 const PORT = 9000;
-const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?id=1`;
+const SERVER_ID = 'fooserver';
+const WEBSOCKET_URL = `ws://127.0.0.1:${PORT}/?session=1&server=${SERVER_ID}`;
+const REMOTE_URL = '192.168.1.1';
 
 MockWebSocketServer.prototype.ping = () => {};
 
@@ -14,7 +16,10 @@ describe('DebugServer', () => {
 
   let webSocketFactory = {
     createWebSocket() {
-      return new MockWebSocketClient(WEBSOCKET_URL);
+      const client = new MockWebSocketClient(WEBSOCKET_URL);
+      // Mock is missing this in 'connect' event:
+      client.connection = {remoteAddress: REMOTE_URL};
+      return client;
     }
   };
   let debugServer = null, webSocketServer = null;
@@ -25,7 +30,7 @@ describe('DebugServer', () => {
     global.tabris = {};
     global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
     webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
-    debugServer = new DebugServer(webSocketServer, terminal);
+    debugServer = new DebugServer(webSocketServer, terminal, SERVER_ID);
     debugServer.start();
     eval(getDebugClient('').replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
   });
