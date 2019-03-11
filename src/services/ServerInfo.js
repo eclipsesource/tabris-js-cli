@@ -32,7 +32,7 @@ module.exports = class ServerInfo {
    */
   selectAddressForQRCode() {
     const firstAddress = this.externalAddresses[0];
-    if (this.externalAddresses.length > 1) {
+    if (this.externalAddresses.length > 1 && os.platform() !== 'darwin') {
       return this.getFirstWifiInterface()
         .catch(() => firstAddress)
         .then(iface => iface.address);
