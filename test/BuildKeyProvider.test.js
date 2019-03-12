@@ -28,21 +28,21 @@ describe('BuildKeyProvider', function() {
 
     describe('when TABRIS_BUILD_KEY environment variable is set', function() {
 
-      it('returns TABRIS_BUILD_KEY value', function() {
+      it('returns TABRIS_BUILD_KEY value', async function() {
         process.env.TABRIS_BUILD_KEY = 'foo';
 
-        return provider.getBuildKey().then(result => {
-          expect(result).to.equal('foo');
-        });
+        let result = await provider.getBuildKey();
+
+        expect(result).to.equal('foo');
       });
 
-      it('returns TABRIS_BUILD_KEY value when both build.key exists and TABRIS_BUILD_KEY is set', function() {
+      it('returns TABRIS_BUILD_KEY value when both build.key exists and TABRIS_BUILD_KEY is set', async function() {
         process.env.TABRIS_BUILD_KEY = 'foo';
         fs.writeFileSync(buildKeyPath, 'invalidKey', 'utf8');
 
-        return provider.getBuildKey().then(result => {
-          expect(result).to.equal('foo');
-        });
+        let result = await provider.getBuildKey();
+
+        expect(result).to.equal('foo');
       });
 
     });
@@ -55,125 +55,134 @@ describe('BuildKeyProvider', function() {
           process.stdout.isTTY = false;
         });
 
-        it('throws an error', function() {
-          return provider.getBuildKey().then(() => {
+        it('throws an error', async function() {
+          try {
+            await provider.getBuildKey();
             throw 'Expected rejection';
-          }).catch(e => {
+          } catch(e) {
             expect(e.message).to.match(/TABRIS_BUILD_KEY must be set/);
-          });
+          }
         });
 
       });
 
       describe('when build.key file exists', function() {
 
-        it('returns build.key file contents', function() {
+        it('returns build.key file contents', async function() {
           fs.writeFileSync(buildKeyPath, VALID_KEY, 'utf8');
 
-          return provider.getBuildKey().then(result => {
-            expect(result).to.equal(VALID_KEY);
-          });
+          let result = await provider.getBuildKey();
+
+          expect(result).to.equal(VALID_KEY);
         });
 
-        it('returns build.key file contents when build key ends with new line', function() {
+        it('returns build.key file contents when build key ends with new line', async function() {
           fs.writeFileSync(buildKeyPath, VALID_KEY + '\n', 'utf8');
 
-          return provider.getBuildKey().then(result => {
-            expect(result).to.equal(VALID_KEY);
-          });
+          let result = await provider.getBuildKey();
+
+          expect(result).to.equal(VALID_KEY);
         });
 
-        it('rejects when build key was invalid', function() {
+        it('rejects when build key was invalid', async function() {
           fs.writeFileSync(buildKeyPath, 'invalidKey', 'utf8');
-
-          return provider.getBuildKey().then(() => {
+          try {
+            await provider.getBuildKey();
             throw 'Expected rejection';
-          }).catch(e => {
+          } catch(e) {
             expect(e.message).to.equal('Invalid build key.');
-          });
+          }
         });
 
       });
 
       describe('when build.key file does not exist', function() {
 
-        it('resolves with given string when valid build key given', function() {
-          let promise = provider.getBuildKey().then(key => {
+        it('resolves with given string when valid build key given', async function() {
+          let promise = (async () => {
+            let key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).not.to.have.been.calledWith('Invalid build key.\n');
-          });
+          })();
           sendLine(VALID_KEY);
-          return promise;
+          await promise;
         });
 
-        it('prints input label', function() {
-          let promise = provider.getBuildKey().then(() => {
+        it('prints input label', async function() {
+          let promise = (async () => {
+            await provider.getBuildKey();
             expect(process.stdout.write).to.have.been.calledWithMatch(/build key:/);
-          });
+          })();
           sendLine(VALID_KEY);
-          return promise;
+          await promise;
         });
 
-        it('creates build.key file with given key', function() {
-          let promise = provider.getBuildKey().then(key => {
+        it('creates build.key file with given key', async function() {
+          let promise = (async () => {
+            let key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(fs.readFileSync(buildKeyPath, 'utf8')).to.equal(VALID_KEY);
-          });
+          })();
           sendLine(VALID_KEY);
-          return promise;
+          await promise;
         });
 
         // TODO: does not pass on environments where tests are run by the super user
-        xit('rejects with error when writing key file fails', function() {
+        xit('rejects with error when writing key file fails', async function() {
           fs.chmodSync(cliDataDir, '0000');
-          let promise = provider.getBuildKey()
-            .then(() => {
+          try {
+            let promise = (async () => {
+              await provider.getBuildKey();
               throw 'Expected rejection';
-            })
-            .catch(e => {
-              expect(e.message).to.equal('Writing build.key file failed');
-            });
-          sendLine(VALID_KEY);
-          return promise;
+            })();
+            sendLine(VALID_KEY);
+            await promise;
+          } catch(e) {
+            expect(e.message).to.equal('Writing build.key file failed');
+          }
         });
 
-        it('prompts again for key when given key was wrong and resolves with key', function(done) {
-          provider.getBuildKey().then(key => {
+        it('prompts again for key when given key was wrong and resolves with key', async function() {
+          let promise = (async () => {
+            let key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
-            done();
-          }).catch(e => done('Error: ' + e));
+          })();
           sendLine('boo');
           sendLine(VALID_KEY);
+          await promise;
         });
 
-        it('keys shorter than 36 characters are invalid', function() {
-          let promise = provider.getBuildKey().then(() => {
+        it('keys shorter than 36 characters are invalid', async function() {
+          let promise = (async () => {
+            await provider.getBuildKey();
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
-          });
+          })();
           sendLine(VALID_KEY.slice(0, -1));
           sendLine(VALID_KEY);
-          return promise;
+          await promise;
         });
 
-        it('keys longer than 36 characters are invalid', function() {
-          let promise = provider.getBuildKey().then(key => {
+        it('keys longer than 36 characters are invalid', async function() {
+          let promise = (async () => {
+            let key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
-          });
+          })();
           sendLine(VALID_KEY + 'x');
           sendLine(VALID_KEY);
-          return promise;
+          await promise;
         });
 
-        it('keys containing disallowed characters are invalid', function() {
-          let promise = provider.getBuildKey().then(key => {
+        it('keys containing disallowed characters are invalid', async function() {
+          let promise = (async () => {
+            let key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
-          });
+          })();
           sendLine(VALID_KEY.replace(/.$/, '_'));
           sendLine(VALID_KEY);
-          return promise;
+          await promise;
         });
 
       });

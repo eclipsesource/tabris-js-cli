@@ -18,63 +18,58 @@ module.exports = class PlatformProvider {
     this._platformsCache = new PlatformsCache(cliDataDir);
   }
 
-  getPlatform(platform) {
-    return new Promise((resolve, reject) => {
-      let envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
-      if (envVarPlatformSpec) {
-        resolve(envVarPlatformSpec);
-      } else if (this._platformsCache.has(platform)) {
-        resolve(this._platformsCache.get(platform));
-      } else {
-        this._downloadPlatform(platform)
-          .then(resolve)
-          .catch(reject);
-      }
-    });
+  async getPlatform(platform) {
+    let envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
+    if (envVarPlatformSpec) {
+      return envVarPlatformSpec;
+    } else if (this._platformsCache.has(platform)) {
+      return this._platformsCache.get(platform);
+    } else {
+      let path = await this._downloadPlatform(platform);
+      return path;
+    }
   }
 
-  _downloadPlatform(platform) {
-    return new Promise((resolve, reject) => {
-      let zipPath = join(this._platformsDir, `.download-${platform.name}-${platform.version}.zip`);
-      let extractedZipPath = join(this._platformsDir, `.extracted-${platform.name}-${platform.version}`);
-      let platformDir = join(extractedZipPath, `tabris-${platform.name}`);
-      return fs.mkdirs(this._platformsDir)
-        .then(() => this._buildKeyProvider.getBuildKey())
-        .then(buildKey => this._downloadPlatformZip(zipPath, buildKey, platform))
-        .then(() => this._unzipPlatform(zipPath, extractedZipPath))
-        .then(() => this._platformsCache.set(platform, platformDir))
-        .then(() => fs.remove(extractedZipPath))
-        .then(() => fs.remove(zipPath))
-        .then(() => {
-          this._platformsCache.prune();
-          resolve(this._platformsCache.get(platform));
-        })
-        .catch(e => reject(e));
-    });
+  async _downloadPlatform(platform) {
+    let zipPath = join(this._platformsDir, `.download-${platform.name}-${platform.version}.zip`);
+    let extractedZipPath = join(this._platformsDir, `.extracted-${platform.name}-${platform.version}`);
+    let platformDir = join(extractedZipPath, `tabris-${platform.name}`);
+    await fs.mkdirs(this._platformsDir);
+    let buildKey = await this._buildKeyProvider.getBuildKey();
+    await this._downloadPlatformZip(zipPath, buildKey, platform);
+    await this._unzipPlatform(zipPath, extractedZipPath);
+    this._platformsCache.set(platform, platformDir);
+    await fs.remove(extractedZipPath);
+    await fs.remove(zipPath);
+    this._platformsCache.prune();
+    return this._platformsCache.get(platform);
   }
 
-  _downloadPlatformZip(platformZipPath, buildKey, platform) {
-    return new Promise((resolve, reject) => {
-      log.command(`Downloading ${platform.name} platform version ${platform.version}...`);
-      let options = {
-        host: HOST,
-        path: `${PATH}/${platform.version}/${platform.name}`,
-        headers: {'X-Tabris-Build-Key': buildKey}
-      };
-      let progressBar = new progress.Bar({
-        clearOnComplete: true,
-        stopOnComplete: true,
-        format: ' {bar} {percentage}% | ETA: {eta}s | {value}/{total} MB'
-      }, progress.Presets.shades_classic);
+  async _downloadPlatformZip(platformZipPath, buildKey, platform) {
+    log.command(`Downloading ${platform.name} platform version ${platform.version}...`);
+    let options = {
+      host: HOST,
+      path: `${PATH}/${platform.version}/${platform.name}`,
+      headers: {'X-Tabris-Build-Key': buildKey}
+    };
+    let progressBar = new progress.Bar({
+      clearOnComplete: true,
+      stopOnComplete: true,
+      format: ' {bar} {percentage}% | ETA: {eta}s | {value}/{total} MB'
+    }, progress.Presets.shades_classic);
+    await new Promise((resolve, reject) => {
       new FileDownloader(options, platformZipPath)
-        .on('error', e => {
-          if (e.statusCode === 401) {
-            console.error('\nBuild key rejected. Please enter your key again.');
-            resolve(this._buildKeyProvider.promptBuildKey()
-              .then(buildKey => this._downloadPlatformZip(platformZipPath, buildKey, platform)));
-          } else {
-            reject(new Error('Unable to download platform: ' + e.message || e));
-          }
+        .on('error', async e => {
+          try {
+            if (e.statusCode === 401) {
+              console.error('\nBuild key rejected. Please enter your key again.');
+              let buildKey = await this._buildKeyProvider.promptBuildKey();
+              await this._downloadPlatformZip(platformZipPath, buildKey, platform);
+              resolve();
+            } else {
+              reject(new Error('Unable to download platform: ' + e.message || e));
+            }
+          } catch(e) { reject(e); }
         })
         .on('done', resolve)
         .on('progress', ({current, total}) => {

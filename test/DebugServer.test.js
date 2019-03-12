@@ -40,83 +40,67 @@ describe('DebugServer', () => {
 
   describe('single device', function() {
 
-    it('print device connected', function() {
+    it('print device connected', async function() {
       createRemoteConsoleClient(debugServer, webSocketFactory);
-      return waitForCalls(terminal.log)
-        .then(log =>
-          expect(log).to.contain(' connected')
-        );
+      const log = await waitForCalls(terminal.log);
+      expect(log).to.contain(' connected');
     });
 
-    it('print device disconnected on normal closure', function() {
+    it('print device disconnected on normal closure', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       rc._webSocket.close(1000);
-      return waitForCalls(terminal.log, 2)
-        .then(log =>
-          expect(log).to.contain(' connected') &&
-          expect(log).to.contain(' disconnected')
-        );
+      const log = await waitForCalls(terminal.log, 2);
+      expect(log).to.contain(' connected');
+      expect(log).to.contain(' disconnected');
     });
 
-    it('print device disconnected on outdated session close', function() {
+    it('print device disconnected on outdated session close', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       rc._webSocket.close(4900);
-      return waitForCalls(terminal.log, 2)
-        .then(log =>
-          expect(log).to.contain('connected') &&
-          expect(log).to.contain('disconnected')
-        );
+      const log = await waitForCalls(terminal.log, 2);
+      expect(log).to.contain('connected');
+      expect(log).to.contain('disconnected');
     });
 
-    it('send log message', function() {
+    it('send log message', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'log message';
       rc.log(message);
-      return waitForCalls(terminal.log, 2)
-        .then(log =>
-          expect(log).to.contain('connected') &&
-          expect(log).to.contain(message)
-        );
+      const log = await waitForCalls(terminal.log, 2);
+      expect(log).to.contain('connected');
+      expect(log).to.contain(message);
     });
 
-    it('send info message', function() {
+    it('send info message', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'info message';
       rc.info(message);
-      return waitForCalls(terminal.info, 1)
-        .then(log =>
-          expect(log).to.contain(message)
-        );
+      const log = await waitForCalls(terminal.info, 1);
+      expect(log).to.contain(message);
     });
 
-    it('send error message', function() {
+    it('send error message', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'error message';
       rc.error(message);
-      return waitForCalls(terminal.error, 1)
-        .then(log =>
-          expect(log).to.contain(message)
-        );
+      const log = await waitForCalls(terminal.error, 1);
+      expect(log).to.contain(message);
     });
 
-    it('send warn message', function() {
+    it('send warn message', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'warn message';
       rc.warn(message);
-      return waitForCalls(terminal.warn, 1)
-        .then(log =>
-          expect(log).to.contain(message)
-        );
+      const log = await waitForCalls(terminal.warn, 1);
+      expect(log).to.contain(message);
     });
 
-    it('send debug message', function() {
+    it('send debug message', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'debug message';
       rc.debug(message);
-      return waitForCalls(terminal.debug, 1)
-        .then(log =>
-          expect(log).to.contain(message)
-        );
+      const log = await waitForCalls(terminal.debug, 1);
+      expect(log).to.contain(message);
     });
 
   });

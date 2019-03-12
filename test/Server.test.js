@@ -41,132 +41,138 @@ describe('Server', function() {
       expect(server.port).to.be.null;
     });
 
-    it('returns port number when started', function() {
+    it('returns port number when started', async function() {
       writeTabrisProject(path);
-      return server.serve(path).then(() => {
-        expect(server.port).to.be.a('number');
-        expect(server.port).to.be.at.least(8080);
-      });
+      await server.serve(path);
+      expect(server.port).to.be.a('number');
+      expect(server.port).to.be.at.least(8080);
     });
 
   });
 
   describe('serve', function() {
 
-    it('fails without path argument', function() {
-      return server.serve().then(expectFail, err => {
-        expect(err.message).to.equal('path missing');
-      });
+    it('fails without path argument', async function() {
+      try {
+        await server.serve();
+        expectFail();
+      } catch(e) {
+        expect(e.message).to.equal('path missing');
+      }
     });
 
-    it('fails with non-existent path', function() {
-      return server.serve('foobar.js').then(expectFail, err => {
-        expect(err.message).to.equal('No such file or directory: foobar.js');
-      });
+    it('fails with non-existent path', async function() {
+      try {
+        await server.serve('foobar.js');
+        expectFail();
+      } catch(e) {
+        expect(e.message).to.equal('No such file or directory: foobar.js');
+      }
     });
 
-    it('fails with a directory that is missing a package.json', function() {
-      return server.serve(path).then(expectFail, err => {
-        expect(err.message).to.equal('Directory must contain package.json');
-      });
+    it('fails with a directory that is missing a package.json', async function() {
+      try {
+        await server.serve(path);
+        expectFail();
+      } catch(e) {
+        expect(e.message).to.equal('Directory must contain package.json');
+      }
     });
 
-    it('fails with package.json that is missing a `main` field', function() {
+    it('fails with package.json that is missing a `main` field', async function() {
       writeTabrisProject(path, '{}');
-      return server.serve(path).then(expectFail, err => {
-        expect(err.message).to.equal('package.json must contain a "main" field');
-      });
+      try {
+        await server.serve(path);
+        expectFail();
+      } catch(e) {
+        expect(e.message).to.equal('package.json must contain a "main" field');
+      }
     });
 
-    it('fails if tabris module is not installed', function() {
+    it('fails if tabris module is not installed', async function() {
       writeTabrisProject(path, null, false);
-      return server.serve(path).then(expectFail, err => {
-        expect(err.message).to.equal('No tabris module installed; did you run npm install?');
-      });
+      try {
+        await server.serve(path);
+        expectFail();
+      } catch(e) {
+        expect(e.message).to.equal('No tabris module installed; did you run npm install?');
+      }
     });
 
-    it('fails with interactive flag if tabris version is not supported', function() {
+    it('fails with interactive flag if tabris version is not supported', async function() {
       writeTabrisProject(path, null, '{"version": "2.0.0"}');
       server =  new Server({watch: true, terminal: new TerminalMock(), interactive: true});
 
-      return server.serve(path).then(expectFail, err => {
-        expect(err.message).to.equal(
-          'Interactive console (-i, --interactive) feature requires a Tabris.js 3.x project'
-        );
-      });
+      try {
+        await server.serve(path);
+        expectFail();
+      } catch(e) {
+        expect(e.message).to.equal('Interactive console (-i, --interactive) feature requires a Tabris.js 3.x project');
+      }
     });
 
-    it('fails with autoReload flag if tabris version is not supported', function() {
+    it('fails with autoReload flag if tabris version is not supported', async function() {
       writeTabrisProject(path, null, '{"version": "2.0.0"}');
       server =  new Server({watch: true, terminal: new TerminalMock(), autoReload: true});
 
-      return server.serve(path).then(expectFail, err => {
-        expect(err.message).to.equal('Auto reload (-a, --auto-reload) feature requires a Tabris.js 3.x project');
-      });
+      try {
+        await server.serve(path);
+        expectFail();
+      } catch(e) {
+        expect(e.message).to.equal('Auto reload (-a, --auto-reload) feature requires a Tabris.js 3.x project');
+      }
     });
 
-    it('runs build script', function() {
+    it('runs build script', async function() {
       writeTabrisProject(path);
-      return server.serve(path)
-        .then(() => {
-          expect(proc.execSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
-        });
+      await server.serve(path);
+      expect(proc.execSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
     });
 
-    it('runs watch script when watch option given', function() {
+    it('runs watch script when watch option given', async function() {
       server =  new Server({watch: true, terminal: new TerminalMock()});
       writeTabrisProject(path);
-      return server.serve(path)
-        .then(() => {
-          expect(proc.execSync).not.to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
-          expect(proc.exec).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {
-            cwd: path,
-            stdio: [null, 'pipe', null]
-          });
-        });
-    });
-
-    it('starts a server', function() {
-      writeTabrisProject(path);
-      return server.serve(path)
-        .then(() => getPortStatus(server.port))
-        .then((status) => {
-          expect(status).to.equal('open');
-        });
-    });
-
-    it('uses next unused port', function() {
-      writeTabrisProject(path);
-      let server2 = new Server({terminal: new TerminalMock()});
-      return server.serve(path).then(() => {
-        return server2.serve(path).then(() => {
-          expect(server.port).to.be.ok;
-          expect(server2.port).to.be.ok;
-          expect(server2.port).to.not.equal(server.port);
-        });
+      await server.serve(path);
+      expect(proc.execSync).not.to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
+      expect(proc.exec).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {
+        cwd: path,
+        stdio: [null, 'pipe', null]
       });
     });
 
-    it('delivers directory contents', function() {
+    it('starts a server', async function() {
       writeTabrisProject(path);
-      writeFileSync(join(path, 'foo.js'), 'content');
-      return server.serve(path)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/foo.js`))
-        .then(response => response.text())
-        .then(text => {
-          expect(text).to.equal('content');
-        });
+      await server.serve(path);
+      let status = await getPortStatus(server.port);
+      expect(status).to.equal('open');
     });
 
-    it('shows a static message on the default route', function() {
+    it('uses next unused port', async function() {
+      writeTabrisProject(path);
+      let server2 = new Server({terminal: new TerminalMock()});
+      await server.serve(path);
+      await server2.serve(path);
+      expect(server.port).to.be.ok;
+      expect(server2.port).to.be.ok;
+      expect(server2.port).to.not.equal(server.port);
+    });
+
+    it('delivers directory contents', async function() {
+      writeTabrisProject(path);
+      writeFileSync(join(path, 'foo.js'), 'content');
+      await server.serve(path);
+      let response = await fetch(`http://127.0.0.1:${server.port}/foo.js`);
+      let text = await response.text();
+      expect(text).to.equal('content');
+    });
+
+    it('shows a static message on the default route', async function() {
       writeTabrisProject(path);
       writeFileSync(join(path, 'package.json'), '{"main": "unused.js"}');
-      return server.serve(path)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/`))
-        .then(response => response.text())
-        .then(text => {
-          expect(text).to.match(/Tabris\.js CLI version .* is running/);
-        });
+      await server.serve(path);
+      let response = await fetch(`http://127.0.0.1:${server.port}/`);
+      let text = await response.text();
+      expect(text).to.match(/Tabris\.js CLI version .* is running/);
     });
 
   });

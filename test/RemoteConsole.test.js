@@ -44,27 +44,22 @@ describe('Remote Console', function() {
       restore();
     });
 
-    it('enables interactive console when option -i is given', function() {
+    it('enables interactive console when option -i is given', async function() {
       writeTabrisProject(path, '{}');
       serve = spawn('node', [join(oldCwd, './src/tabris'), 'serve', '-m', './foo.js', '-i']);
 
-      return waitForStdout(serve, 4000)
-        .then(log =>
-          expect(log).to.contain('>>')
-        );
+      const log = await waitForStdout(serve, 4000);
+      expect(log).to.contain('>>');
     });
 
-    it('prints error on input when no device is connected', function() {
+    it('prints error on input when no device is connected', async function() {
       writeTabrisProject(path, '{}');
       serve = spawn('node', [join(oldCwd, './src/tabris'), 'serve', '-m', './foo.js', '-i']);
 
-      return waitForStdout(serve, 2700)
-        .then(() => {
-          serve.stdin.write('test command\n');
-          return waitForStderr(serve, 2700);
-        }).then(log =>
-          expect(log).to.contain('Command could not be sent: no device connected')
-        );
+      await waitForStdout(serve, 2700);
+      serve.stdin.write('test command\n');
+      const log = await waitForStderr(serve, 2700);
+      expect(log).to.contain('Command could not be sent: no device connected');
     });
 
   });
@@ -107,55 +102,44 @@ describe('Remote Console', function() {
       }
     });
 
-    it('send console.log command and print result', function() {
+    it('send console.log command and print result', async function() {
       const command = 'global.debugClient.remoteConsole.log(5 * 2)';
-      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        terminal.emit('line', command);
-        return waitForCalls(terminal.log, 3);
-      }).then(log => {
-        expect(log).to.contain('connected');
-        expect(log).to.contain('10');
-        return true;
-      });
+      await createRemoteConsole(debugServer, webSocketFactory);
+      terminal.emit('line', command);
+      const log = await waitForCalls(terminal.log, 3);
+      expect(log).to.contain('connected');
+      expect(log).to.contain('10');
     });
 
-    it('send plain JS command and print result', function() {
+    it('send plain JS command and print result', async function() {
       const command = '5 * 2';
-      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        terminal.emit('line', command);
-        return waitForCalls(terminal.log, 3);
-      }).then(log => {
-        expect(log).to.contain('connected');
-        expect(log).to.contain('10');
-        return true;
-      });
+      await createRemoteConsole(debugServer, webSocketFactory);
+      terminal.emit('line', command);
+      const log = await waitForCalls(terminal.log, 3);
+      expect(log).to.contain('connected');
+      expect(log).to.contain('10');
+      return true;
     });
 
-    it('print object value without console log method', function() {
+    it('print object value without console log method', async function() {
       const command = 'tabris.device.platform';
-      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        terminal.emit('line', command);
-        return waitForCalls(terminal.log, 3);
-      }).then(log => {
-        expect(log).to.contain('connected');
-        expect(log).to.contain('format(Android)');
-        return true;
-      });
+      await createRemoteConsole(debugServer, webSocketFactory);
+      terminal.emit('line', command);
+      const log = await waitForCalls(terminal.log, 3);
+      expect(log).to.contain('connected');
+      expect(log).to.contain('format(Android)');
     });
 
-    it('can not create local variable', function() {
+    it('can not create local variable', async function() {
       const command = 'var a = "foo"; global.debugClient.remoteConsole.log(a + "bar");';
       const command2 = 'global.debugClient.remoteConsole.log("a is " + typeof a)';
-      return createRemoteConsole(debugServer, webSocketFactory).then(() => {
-        terminal.emit('line', command);
-        terminal.emit('line', command2);
-        return waitForCalls(terminal.log, 5);
-      }).then(log => {
-        expect(log).to.contain('connected');
-        expect(log).to.contain('foobar');
-        expect(log).to.contain('a is undefined');
-        return true;
-      });
+      await createRemoteConsole(debugServer, webSocketFactory);
+      terminal.emit('line', command);
+      terminal.emit('line', command2);
+      const log = await waitForCalls(terminal.log, 5);
+      expect(log).to.contain('connected');
+      expect(log).to.contain('foobar');
+      expect(log).to.contain('a is undefined');
     });
 
     function createRemoteConsole(server, webSocketFactory) {

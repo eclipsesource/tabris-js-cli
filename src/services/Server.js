@@ -48,29 +48,32 @@ module.exports = class Server extends EventEmitter {
     return this._server ? this._server.address().port : null;
   }
 
-  serve(appPath, main) {
+  async serve(appPath, main) {
+    if (!appPath) {
+      throw new Error('path missing');
+    }
     this._appPath = appPath;
-    return lstat(appPath).then((stats) => {
-      if (stats.isDirectory()) {
-        this._packageJson = this._readAppPackageJson(appPath, main);
-        this._tabrisVersion = parseInt(this._readTabrisPackageJson(appPath).version.split('.')[0], 10);
-        this._checkTabrisVersion();
-        this._runProjectScript();
-        return this._startServer(appPath, main);
-      } else {
-        throw new Error('Project must be a directory.');
+    let stats = await this._lstat(appPath);
+    if (stats.isDirectory()) {
+      this._packageJson = this._readAppPackageJson(appPath, main);
+      this._tabrisVersion = parseInt(this._readTabrisPackageJson(appPath).version.split('.')[0], 10);
+      this._checkTabrisVersion();
+      this._runProjectScript();
+      await this._startServer(appPath, main);
+    } else {
+      throw new Error('Project must be a directory.');
+    }
+    await this._startServices();
+  }
+
+  async _lstat(path) {
+    try {
+      return await lstat(path);
+    } catch(e) {
+      if (e.code === 'ENOENT') {
+        throw new Error('No such file or directory: ' + path);
       }
-    }).then(() => {
-      return this._startServices();
-    }).catch((err) => {
-      if (!appPath) {
-        throw new Error('path missing');
-      }
-      if (err.code === 'ENOENT') {
-        throw new Error('No such file or directory: ' + appPath);
-      }
-      throw err;
-    });
+    }
   }
 
   _readAppPackageJson(appPath, main) {
@@ -126,7 +129,7 @@ module.exports = class Server extends EventEmitter {
     }
   }
 
-  _startServer(appPath, main) {
+  async _startServer(appPath, main) {
     if (!Server.externalAddresses.length) {
       throw new Error('No remotely accessible network interfaces');
     }
@@ -137,18 +140,18 @@ module.exports = class Server extends EventEmitter {
         res.end();
       }
     });
-    return this._findAvailablePort()
-      .then(port => new Promise(resolve => {
-        this._server.listen(port, err => {
-          if (err) {
-            throw err;
-          }
-          resolve();
-        });
-      }));
+    let port = await this._findAvailablePort();
+    return new Promise((resolve, reject) => {
+      this._server.listen(port, err => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+    });
   }
 
-  _startServices() {
+  async _startServices() {
     const webSocketServer = new WebSocket.Server({server: this._server});
     this.debugServer = new DebugServer(webSocketServer, this.terminal);
     this.debugServer.start();
@@ -158,7 +161,7 @@ module.exports = class Server extends EventEmitter {
     if (this._autoReload) {
       new AppReloader(this).start();
     }
-    return new ServerInfo(this, Server.externalAddresses).show();
+    await new ServerInfo(this, Server.externalAddresses).show();
   }
 
   _createMiddlewares(appPath, main) {

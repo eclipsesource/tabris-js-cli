@@ -41,10 +41,9 @@ describe('PlatformProvider', function() {
         delete process.env.TABRIS_BAR_PLATFORM;
       });
 
-      it('resolves with custom platform spec', function() {
-        return provider.getPlatform({name, version}).then(platform => {
-          expect(platform).to.equal('customSpec');
-        });
+      it('resolves with custom platform spec', async function() {
+        let platform = await provider.getPlatform({name, version});
+        expect(platform).to.equal('customSpec');
       });
 
     });
@@ -55,10 +54,9 @@ describe('PlatformProvider', function() {
         mkdirsSync(platformPath);
       });
 
-      it('resolves with platform path', function() {
-        return provider.getPlatform({name, version}).then(platform => {
-          expect(platform).to.equal(platformPath);
-        });
+      it('resolves with platform path', async function() {
+        let platform = await provider.getPlatform({name, version});
+        expect(platform).to.equal(platformPath);
       });
 
     });
@@ -69,13 +67,12 @@ describe('PlatformProvider', function() {
         fakeResponse(200);
       });
 
-      it('downloads and extracts platform', function() {
-        return provider.getPlatform({name, version}).then(() => {
-          expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
-        });
+      it('downloads and extracts platform', async function() {
+        await provider.getPlatform({name, version});
+        expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
       });
 
-      it('prunes cache on download success', function() {
+      it('prunes cache on download success', async function() {
         let nightly1 = join(cliDataDir, 'platforms', 'foo', '1.0.0-dev.20150101');
         let nightly2 = join(cliDataDir, 'platforms', 'foo', '1.0.0-dev.20150102');
         let notNightly = join(cliDataDir, 'platforms', 'foo', '1.0.0-aaa');
@@ -83,24 +80,22 @@ describe('PlatformProvider', function() {
         mkdirsSync(nightly2);
         mkdirsSync(notNightly);
 
-        return provider.getPlatform({name, version}).then(() => {
-          expect(existsSync(nightly1)).to.be.false;
-          expect(existsSync(nightly2)).to.be.true;
-          expect(existsSync(notNightly)).to.be.true;
-        });
+        await provider.getPlatform({name, version});
+
+        expect(existsSync(nightly1)).to.be.false;
+        expect(existsSync(nightly2)).to.be.true;
+        expect(existsSync(notNightly)).to.be.true;
       });
 
-      it('resolves with platform spec', function() {
-        return provider.getPlatform({name, version}).then(platform => {
-          expect(platform).to.equal(platformPath);
-        });
+      it('resolves with platform spec', async function() {
+        let platform = await provider.getPlatform({name, version});
+        expect(platform).to.equal(platformPath);
       });
 
-      it('removes temporary files', function() {
-        return provider.getPlatform({name, version}).then(() => {
-          let children = readdirSync(join(cliDataDir, 'platforms'));
-          expect(children).to.deep.equal([name]);
-        });
+      it('removes temporary files', async function() {
+        await provider.getPlatform({name, version});
+        let children = readdirSync(join(cliDataDir, 'platforms'));
+        expect(children).to.deep.equal([name]);
       });
 
     });
@@ -111,17 +106,23 @@ describe('PlatformProvider', function() {
         fakeResponse(418);
       });
 
-      it('fails on unexpected statusCode', function() {
-        return provider.getPlatform({name, version}).then(expectFail, (err) => {
-          expect(err.message).to.equal('Unable to download platform: Unexpected status code 418');
-        });
+      it('fails on unexpected statusCode', async function() {
+        try {
+          await provider.getPlatform({name, version});
+          expectFail();
+        } catch(e) {
+          expect(e.message).to.equal('Unable to download platform: Unexpected status code 418');
+        }
       });
 
-      it('does not create any files', function() {
-        return provider.getPlatform({name, version}).then(expectFail, () => {
+      it('does not create any files', async function() {
+        try {
+          await provider.getPlatform({name, version});
+          expectFail();
+        } catch(e) {
           let children = readdirSync(join(cliDataDir, 'platforms'));
           expect(children).to.be.empty;
-        });
+        }
       });
 
     });
@@ -132,26 +133,24 @@ describe('PlatformProvider', function() {
         fakeResponse(401);
       });
 
-      it('prompts build key again', function() {
+      it('prompts build key again', async function() {
         stub(provider._buildKeyProvider, 'promptBuildKey').callsFake(() => {
           fakeResponse(200);
           return Promise.resolve('key');
         });
-        return provider.getPlatform({name, version}).then(() => {
-          expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
-        });
+        await provider.getPlatform({name, version});
+        expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
       });
 
-      it('prompts build key again more than once', function() {
+      it('prompts build key again more than once', async function() {
         stub(provider._buildKeyProvider, 'promptBuildKey')
           .onCall(0).returns(Promise.resolve('key'))
           .onCall(1).callsFake(() => {
             fakeResponse(200);
             return Promise.resolve('key');
           });
-        return provider.getPlatform({name, version}).then(() => {
-          expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
-        });
+        await provider.getPlatform({name, version});
+        expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
       });
 
     });

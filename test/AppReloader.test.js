@@ -30,105 +30,89 @@ describe('AppReloader', function() {
 
   describe('when changed file was never requested', function() {
 
-    it('does not send reload command', function() {
+    it('does not send reload command', async function() {
       writeTabrisProject(path);
-      return server.serve(path)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/foo.js`))
-        .then(response => response.text())
-        .then(text => {
-          spy(server.debugServer, 'send');
-          writeFileSync(join(path, 'bar.js'), `${text};`);
-          return new Promise(resolve => {
-            setTimeout(() => {
-              expect(server.debugServer.send).not.to.have.been.called;
-              resolve();
-            }, 1500);
-          });
-        });
+      await server.serve(path);
+      let response = await fetch(`http://127.0.0.1:${server.port}/foo.js`);
+      let text = await response.text();
+      spy(server.debugServer, 'send');
+      writeFileSync(join(path, 'bar.js'), `${text};`);
+      return new Promise(resolve => {
+        setTimeout(() => {
+          expect(server.debugServer.send).not.to.have.been.called;
+          resolve();
+        }, 1500);
+      });
     }).timeout(6000);
 
   });
 
   describe('when changed file was requested', function() {
 
-    it('sends a reload command', function() {
+    it('sends a reload command', async function() {
       writeTabrisProject(path);
-      return server.serve(path)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/foo.js`))
-        .then(response => response.text())
-        .then(text => {
-          spy(server.debugServer, 'send');
-          writeFileSync(join(path, 'foo.js'), `${text};`);
-          return waitForCalls(server.debugServer.send, 1)
-            .then(log =>
-              expect(log).to.contain('tabris.app.reload()')
-            );
-        });
+      await server.serve(path);
+      let response = await fetch(`http://127.0.0.1:${server.port}/foo.js`);
+      let text = await response.text();
+      spy(server.debugServer, 'send');
+      writeFileSync(join(path, 'foo.js'), `${text};`);
+      let log = await waitForCalls(server.debugServer.send, 1);
+      expect(log).to.contain('tabris.app.reload()');
     }).timeout(6000);
 
   });
 
   describe('when changed source file is in requested directory', function() {
 
-    it('sends a reload command', function() {
+    it('sends a reload command', async function() {
       mkdirSync(join(path, 'bar'));
       writeTabrisProject(path, '{"main": "bar/foo.js"}');
       writeFileSync(join(path, 'bar', 'foo.js'), 'console.log("test")');
       writeFileSync(join(path, 'bar', 'baz.js'), 'console.log("test")');
-      return server.serve(path)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/bar?getfiles=${encodeURIComponent('*')}`))
-        .then(response => response.text())
-        .then(text => {
-          spy(server.debugServer, 'send');
-          writeFileSync(join(path, 'bar', 'baz.js'), `${text};`);
-          return waitForCalls(server.debugServer.send, 1)
-            .then(log =>
-              expect(log).to.contain('tabris.app.reload()')
-            );
-        });
+      await server.serve(path);
+      let response = await fetch(`http://127.0.0.1:${server.port}/bar?getfiles=${encodeURIComponent('*')}`);
+      let text = await response.text();
+      spy(server.debugServer, 'send');
+      writeFileSync(join(path, 'bar', 'baz.js'), `${text};`);
+      let log = await waitForCalls(server.debugServer.send, 1);
+      expect(log).to.contain('tabris.app.reload()');
     }).timeout(6000);
 
   });
 
   describe('when changed source file is in requested project root directory', function() {
 
-    it('sends a reload command', function() {
+    it('sends a reload command', async function() {
       writeTabrisProject(path);
-      return server.serve(path)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/package.json?getfiles=${encodeURIComponent('*')}`))
-        .then(response => response.text())
-        .then(text => {
-          spy(server.debugServer, 'send');
-          writeFileSync(join(path, 'foo.js'), `${text};`);
-          return waitForCalls(server.debugServer.send, 1)
-            .then(log =>
-              expect(log).to.contain('tabris.app.reload()')
-            );
-        });
+      await server.serve(path);
+      let response = await fetch(`http://127.0.0.1:${server.port}/package.json?getfiles=${encodeURIComponent('*')}`);
+      let text = await response.text();
+      spy(server.debugServer, 'send');
+      writeFileSync(join(path, 'foo.js'), `${text};`);
+      let log = await waitForCalls(server.debugServer.send, 1);
+      expect(log).to.contain('tabris.app.reload()');
     }).timeout(6000);
 
   });
 
   describe('when changed non-source file is in request directory', function() {
 
-    it('does not send reload command', function() {
+    it('does not send reload command', async function() {
       mkdirSync(join(path, 'bar'));
       writeTabrisProject(path, '{"main": "bar/foo.js"}');
       writeFileSync(join(path, 'bar', 'foo.js'), 'console.log("test")');
       writeFileSync(join(path, 'bar', 'baz'), 'console.log("test")');
-      return server.serve(path)
-        .then(() => fetch(`http://127.0.0.1:${server.port}/bar?getfiles=${encodeURIComponent('*')}`))
-        .then(response => response.text())
-        .then(text => {
-          spy(server.debugServer, 'send');
-          writeFileSync(join(path, 'bar', 'baz'), `${text};`);
-          return new Promise(resolve => {
-            setTimeout(() => {
-              expect(server.debugServer.send).not.to.have.been.called;
-              resolve();
-            }, 1500);
-          });
-        });
+      await server.serve(path);
+      let response = await fetch(`http://127.0.0.1:${server.port}/bar?getfiles=${encodeURIComponent('*')}`);
+      let text = await response.text();
+      spy(server.debugServer, 'send');
+      writeFileSync(join(path, 'bar', 'baz'), `${text};`);
+      return new Promise(resolve => {
+        setTimeout(() => {
+          expect(server.debugServer.send).not.to.have.been.called;
+          resolve();
+        }, 1500);
+      });
     }).timeout(6000);
 
   });

@@ -18,29 +18,29 @@ describe('zip', function() {
 
     afterEach(restore);
 
-    it('rejects when zip is an invalid file', function() {
+    it('rejects when zip is an invalid file', async function() {
       let path = join(cwd, 'invalidZip.zip');
       writeFileSync(path, 'foo');
-      return unzip(path).then(() => {
+      try {
+        await unzip(path);
         throw 'Expected rejection';
-      }).catch(e => {
+      } catch(e) {
         expect(e.message).to.equal('Error unzipping file');
-      });
+      }
     });
 
-    it('unzips archive', function() {
+    it('unzips archive', async function() {
       let extractedPath = join(cwd, 'destination');
       let zipPath = join(cwd, 'fakeZip.zip');
       outputFileSync(join(cwd, 'foo.file'), 'foo');
       outputFileSync(join(cwd, 'bar.file'), 'bar');
-      return createZipWithFiles(zipPath, [
+      await createZipWithFiles(zipPath, [
         {path: join(cwd, 'foo.file'), zipPath: 'foo.file'},
         {path: join(cwd, 'bar.file'), zipPath: 'a/long/path/bar.file'}
-      ]).then(() => unzip(zipPath, extractedPath))
-        .then(() => {
-          expect(readFileSync(join(extractedPath, 'foo.file'), 'utf8')).to.equal('foo');
-          expect(readFileSync(join(extractedPath, 'a','long', 'path', 'bar.file'), 'utf8')).to.equal('bar');
-        });
+      ]);
+      await unzip(zipPath, extractedPath);
+      expect(readFileSync(join(extractedPath, 'foo.file'), 'utf8')).to.equal('foo');
+      expect(readFileSync(join(extractedPath, 'a','long', 'path', 'bar.file'), 'utf8')).to.equal('bar');
     });
 
   });

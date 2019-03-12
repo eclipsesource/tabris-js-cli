@@ -20,32 +20,30 @@ class BuildKeyProvider {
     this._buildKeyFilePath = join(this._cliDataDir, 'build.key');
   }
 
-  getBuildKey() {
-    return new Promise((resolve, reject) => {
-      if (!process.env[BUILD_KEY_ENV_VAR] && !process.stdout.isTTY) {
-        throw new Error('TABRIS_BUILD_KEY must be set when Tabris.js CLI is not running within a TTY context.');
-      }
-      if (process.env[BUILD_KEY_ENV_VAR]) {
-        return resolve(process.env[BUILD_KEY_ENV_VAR]);
-      }
-      if (fs.existsSync(this._buildKeyFilePath)) {
-        let buildKey = fs.readFileSync(this._buildKeyFilePath, 'utf8').trim();
-        this._validateBuildKey(buildKey);
-        return resolve(buildKey);
-      }
-      this.promptBuildKey().then(resolve).catch(reject);
-    });
+  async getBuildKey() {
+    if (!process.env[BUILD_KEY_ENV_VAR] && !process.stdout.isTTY) {
+      throw new Error('TABRIS_BUILD_KEY must be set when Tabris.js CLI is not running within a TTY context.');
+    }
+    if (process.env[BUILD_KEY_ENV_VAR]) {
+      return process.env[BUILD_KEY_ENV_VAR];
+    }
+    if (fs.existsSync(this._buildKeyFilePath)) {
+      let buildKey = fs.readFileSync(this._buildKeyFilePath, 'utf8').trim();
+      this._validateBuildKey(buildKey);
+      return buildKey;
+    }
+    let buildKey = await this.promptBuildKey();
+    return buildKey;
   }
 
-  promptBuildKey() {
-    return promptly.prompt(BUILD_KEY_PROMPT, {
+  async promptBuildKey() {
+    let key = await promptly.prompt(BUILD_KEY_PROMPT, {
       silent: true,
       replace: INPUT_REPLACE_CHAR,
       validator: this._validateBuildKey
-    }).then(key => {
-      this._writeBuildKey(key);
-      return key;
     });
+    this._writeBuildKey(key);
+    return key;
   }
 
   _validateBuildKey(value) {

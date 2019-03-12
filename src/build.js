@@ -45,40 +45,38 @@ function registerBuildCommand(name, description) {
   }
 }
 
-function build(name, platform, cordovaPlatformOpts, options) {
+async function build(name, platform, cordovaPlatformOpts, options) {
   const TabrisApp = require('./services/TabrisApp');
   const PlatformProvider = require('./services/PlatformProvider');
   const ConfigXml = require('./services/ConfigXml');
   const packageJson = require('../package.json');
   const {join} = require('path');
-
-  let {
-    debug = !('debug' in options) && !('release' in options) ? true : false,
-    release,
-    replaceEnvVars,
-    variables
-  } = options;
-  validateArguments({platform, debug, release});
-  let variableReplacements = Object.assign({
-    IS_DEBUG: !!debug,
-    IS_RELEASE: !!release
-  }, replaceEnvVars && process.env, variables);
-  let {installedTabrisVersion} = new TabrisApp(APP_DIR)
-    .runPackageJsonBuildScripts(platform)
-    .createCordovaProject(CORDOVA_PROJECT_DIR)
-    .validateInstalledTabrisVersion(packageJson.version);
-  let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
-  ConfigXml.readFrom(configXmlPath)
-    .adjustContentPath()
-    .replaceVariables(variableReplacements)
-    .writeTo(configXmlPath);
-  new PlatformProvider(CLI_DATA_DIR).getPlatform({name: platform, version: installedTabrisVersion})
-    .then(platformSpec => {
-      return copyBuildKeyHash().then(() =>
-        executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options})
-      );
-    })
-    .catch(fail);
+  try {
+    let {
+      debug = !('debug' in options) && !('release' in options) ? true : false,
+      release,
+      replaceEnvVars,
+      variables
+    } = options;
+    validateArguments({platform, debug, release});
+    let variableReplacements = Object.assign({
+      IS_DEBUG: !!debug,
+      IS_RELEASE: !!release
+    }, replaceEnvVars && process.env, variables);
+    let {installedTabrisVersion} = new TabrisApp(APP_DIR)
+      .runPackageJsonBuildScripts(platform)
+      .createCordovaProject(CORDOVA_PROJECT_DIR)
+      .validateInstalledTabrisVersion(packageJson.version);
+    let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
+    ConfigXml.readFrom(configXmlPath)
+      .adjustContentPath()
+      .replaceVariables(variableReplacements)
+      .writeTo(configXmlPath);
+    let platformProvider = new PlatformProvider(CLI_DATA_DIR);
+    let platformSpec = await platformProvider.getPlatform({name: platform, version: installedTabrisVersion});
+    await copyBuildKeyHash();
+    await executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options});
+  } catch(e) { fail(e); }
 }
 
 function executeCordovaCommands({name, platform, platformSpec, options, cordovaPlatformOpts}) {
@@ -115,21 +113,22 @@ function validateArguments({debug, release, platform}) {
   }
 }
 
-function copyBuildKeyHash() {
-  return new Promise((resolve, reject) => {
-    let buildKeyPath = join(CLI_DATA_DIR, 'build.key');
-    let buildKeyHashPath = join(CORDOVA_PROJECT_DIR, 'www', 'build-key.sha256');
-    if (!existsSync(buildKeyPath)) {
-      return resolve();
-    }
-    let hash = crypto.createHash('sha256');
-    hash.on('readable', () => {
-      let data = hash.read();
-      if (data) {
-        writeFile(buildKeyHashPath, data.toString('hex'))
-          .then(resolve)
-          .catch(reject);
-      }
+async function copyBuildKeyHash() {
+  let buildKeyPath = join(CLI_DATA_DIR, 'build.key');
+  let buildKeyHashPath = join(CORDOVA_PROJECT_DIR, 'www', 'build-key.sha256');
+  if (!existsSync(buildKeyPath)) {
+    return;
+  }
+  let hash = crypto.createHash('sha256');
+  await new Promise((resolve, reject) => {
+    hash.on('readable', async () => {
+      try {
+        let data = hash.read();
+        if (data) {
+          await writeFile(buildKeyHashPath, data.toString('hex'));
+          resolve();
+        }
+      } catch(e) { reject(e); }
     });
     hash.write(readFileSync(buildKeyPath, 'utf8').trim());
     hash.end();
