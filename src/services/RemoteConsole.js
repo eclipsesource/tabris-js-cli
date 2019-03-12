@@ -28,7 +28,7 @@ module.exports = class RemoteConsole {
   }
 
   _submitCommand(line) {
-    const command = line.replace(/\;*$/, '');
+    const command = line.replace(/;*$/, '');
     if (command !== '') {
       if (command === 'exit') {
         process.exit(0);

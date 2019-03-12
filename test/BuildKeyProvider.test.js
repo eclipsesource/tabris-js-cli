@@ -58,8 +58,7 @@ describe('BuildKeyProvider', function() {
         it('throws an error', function() {
           return provider.getBuildKey().then(() => {
             throw 'Expected rejection';
-          })
-          .catch(e => {
+          }).catch(e => {
             expect(e.message).to.match(/TABRIS_BUILD_KEY must be set/);
           });
         });
@@ -89,8 +88,7 @@ describe('BuildKeyProvider', function() {
 
           return provider.getBuildKey().then(() => {
             throw 'Expected rejection';
-          })
-          .catch(e => {
+          }).catch(e => {
             expect(e.message).to.equal('Invalid build key.');
           });
         });

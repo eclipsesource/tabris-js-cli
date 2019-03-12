@@ -9,7 +9,7 @@
       this.ModulePreLoader.patchModuleClass();
       const serverUrl = tabris.app
         .getResourceLocation('package.json')
-        .match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i)[1];
+        .match(/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i)[1];
       const webSocketFactory = {
         createWebSocket: () => {
           return new WebSocket(`ws://${serverUrl}/?id=${this.sessionId}`, '');

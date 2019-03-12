@@ -46,7 +46,7 @@
   "homepage": "https://github.com/eclipsesource/tabris-js-cli#readme",
   "devDependencies": {
     "chai": "^3.5.0",
-    "eslint": "^3.15.0",
+    "eslint": "^5.15.1",
     "mocha": "^3.1.2",
     "mock-socket": "^7.1.0",
     "node-fetch": "^1.6.3",

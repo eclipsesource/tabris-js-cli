@@ -133,12 +133,12 @@ describe('serve', function() {
     serve = spawn('node', [srcFile, 'serve', '-m', 'foo.js'], {cwd: path, env});
 
     return waitForStdout(serve)
-    .then(stdout => getPortFromStdout(stdout, 20))
-    .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
-    .then(response => response.json())
-    .then(data =>
-      expect(data.main).to.equal('foo.js')
-    );
+      .then(stdout => getPortFromStdout(stdout, 20))
+      .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
+      .then(response => response.json())
+      .then(data =>
+        expect(data.main).to.equal('foo.js')
+      );
   }).timeout(8000);
 
   it('delivers a synthetic package.json when --main switch is used', function() {
@@ -150,12 +150,12 @@ describe('serve', function() {
     serve = spawn('node', [srcFile, 'serve', '--main', 'foo.js'], {cwd: path, env});
 
     return waitForStdout(serve)
-    .then(stdout => getPortFromStdout(stdout, 20))
-    .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
-    .then(response => response.json())
-    .then(data =>
-      expect(data.main).to.equal('foo.js')
-    );
+      .then(stdout => getPortFromStdout(stdout, 20))
+      .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
+      .then(response => response.json())
+      .then(data =>
+        expect(data.main).to.equal('foo.js')
+      );
   }).timeout(8000);
 
   it('delivers a synthetic package.json when -m and -p switches are used', function() {
@@ -166,12 +166,12 @@ describe('serve', function() {
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-m', 'bar.js'], {env});
 
     return waitForStdout(serve)
-    .then(stdout => getPortFromStdout(stdout, 20))
-    .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
-    .then(response => response.json())
-    .then(data =>
-      expect(data.main).to.equal('bar.js')
-    );
+      .then(stdout => getPortFromStdout(stdout, 20))
+      .then(port => fetch(`http://127.0.0.1:${port}/package.json`))
+      .then(response => response.json())
+      .then(data =>
+        expect(data.main).to.equal('bar.js')
+      );
   }).timeout(8000);
 
   it('delivers a synthetic package.json via getFiles', function() {
@@ -184,12 +184,12 @@ describe('serve', function() {
     serve = spawn('node', [srcFile, 'serve', '-m', 'foo.js'], {cwd: path, env});
 
     return waitForStdout(serve)
-    .then(stdout => getPortFromStdout(stdout, 20))
-    .then(port => fetch(`http://127.0.0.1:${port}/package.json?getfiles=${encodeURIComponent('*')}`))
-    .then(response => response.json())
-    .then(data =>
-      expect(JSON.parse(data['.']['package.json'].content).main).to.equal('foo.js')
-    );
+      .then(stdout => getPortFromStdout(stdout, 20))
+      .then(port => fetch(`http://127.0.0.1:${port}/package.json?getfiles=${encodeURIComponent('*')}`))
+      .then(response => response.json())
+      .then(data =>
+        expect(JSON.parse(data['.']['package.json'].content).main).to.equal('foo.js')
+      );
   }).timeout(8000);
 
   describe('when logging is enabled', function() {
