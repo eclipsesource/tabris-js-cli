@@ -1,5 +1,6 @@
 {
   "extends": "eslint:recommended",
+  "plugins": ["promise"],
   "parserOptions": {
     "ecmaVersion": 2017,
     "sourceType": "module"
@@ -27,6 +28,18 @@
     "quotes": ["error", "single", "avoid-escape"],
     "curly": ["error", "all"],
     "eol-last": "error",
-    "no-with": "error"
+    "no-with": "error",
+    "no-async-promise-executor": "error",
+    "require-await": "error",
+    "require-atomic-updates": "error",
+    "no-return-await": "error",
+    "promise/no-return-wrap": "error",
+    "promise/param-names": "error",
+    "promise/catch-or-return": "error",
+    "promise/no-nesting": "warn",
+    "promise/no-promise-in-callback": "error",
+    "promise/no-new-statics": "error",
+    "promise/no-return-in-finally": "error",
+    "promise/valid-params": "error"
   }
 }

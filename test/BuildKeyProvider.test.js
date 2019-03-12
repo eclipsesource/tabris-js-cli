@@ -137,11 +137,12 @@ describe('BuildKeyProvider', function() {
           return promise;
         });
 
-        it('prompts again for key when given key was wrong and resolves with key', function() {
+        it('prompts again for key when given key was wrong and resolves with key', function(done) {
           provider.getBuildKey().then(key => {
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
-          });
+            done();
+          }).catch(e => done('Error: ' + e));
           sendLine('boo');
           sendLine(VALID_KEY);
         });
