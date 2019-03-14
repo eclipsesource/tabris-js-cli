@@ -55,33 +55,21 @@ describe('TabrisApp', function() {
       mkdirsSync(join(cwd, 'www', 'app', 'node_modules', 'tabris'));
     });
 
-    it('does not throw if tabris has lower patch version', function() {
-      tabrisApp._installedTabrisVersion = '2.0.0';
-      expect(() => tabrisApp.validateInstalledTabrisVersion('2.0.1'))
-        .not.to.throw();
-    });
-
-    it('does not throw if tabris has higher patch version', function() {
+    it('does not throw if installed tabris version >= 2', function() {
       tabrisApp._installedTabrisVersion = '2.0.2';
-      expect(() => tabrisApp.validateInstalledTabrisVersion('2.0.1'))
+      expect(() => tabrisApp.validateInstalledTabrisVersion())
         .not.to.throw();
     });
 
-    it('throws if tabris major version is lower', function() {
+    it('throws if tabris major version is lower than 2', function() {
       tabrisApp._installedTabrisVersion = '1.5.0';
-      expect(() => tabrisApp.validateInstalledTabrisVersion('2.1.3'))
-        .to.throw(/App uses incompatible tabris version: 1.5.0, 2.x.x required/);
-    });
-
-    it('throws if tabris major version is higher', function() {
-      tabrisApp._installedTabrisVersion = '3.0.0';
-      expect(() => tabrisApp.validateInstalledTabrisVersion('2.1.3'))
-        .to.throw(/App uses incompatible tabris version: 3.0.0, 2.x.x required/);
+      expect(() => tabrisApp.validateInstalledTabrisVersion())
+        .to.throw(/App uses incompatible tabris version: 1.5.0, >= 2.0.0 required/);
     });
 
     it('throws if tabris version is invalid', function() {
       tabrisApp._installedTabrisVersion = 'bogus.crap';
-      expect(() => tabrisApp.validateInstalledTabrisVersion('2.1.3'))
+      expect(() => tabrisApp.validateInstalledTabrisVersion())
         .to.throw(/App uses invalid tabris version: bogus.crap/);
     });
 

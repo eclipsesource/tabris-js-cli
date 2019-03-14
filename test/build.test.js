@@ -1,5 +1,13 @@
 const {join} = require('path');
-const {readFileSync, writeFileSync, existsSync, realpathSync, mkdirsSync, removeSync} = require('fs-extra');
+const {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  realpathSync,
+  mkdirsSync,
+  symlinkSync,
+  removeSync
+} = require('fs-extra');
 const {spawnSync} = require('child_process');
 const expect = require('chai').expect;
 const temp = require('temp');
@@ -20,6 +28,7 @@ const mockBinDir = join(__dirname, 'bin');
 
     beforeEach(function() {
       let dir = temp.mkdirSync('test');
+      let fakeCordova = join(mockBinDir, 'cordova');
       cwd = realpathSync(dir);
       home = join(cwd, 'test_home');
       mkdirsSync(join(home, '.tabris-cli', 'platforms', 'ios', packageJson.version));
@@ -36,9 +45,12 @@ const mockBinDir = join(__dirname, 'bin');
       mkdirsSync(join(cwd, 'cordova'));
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"></widget>');
       writeFileSync(join(cwd, 'package.json'), '{"main": "foo.js"}');
-      mkdirsSync(join(cwd, 'test_install/node_modules/tabris'));
-      writeFileSync(join(cwd, 'test_install/node_modules/tabris/package.json'),
+      mkdirsSync(join(cwd, 'test_install', 'node_modules', 'tabris'));
+      writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'),
         `{"version": "${packageJson.version}"}`);
+      mkdirsSync(join(cwd, 'test_install_cordova', 'node_modules', '.bin'));
+      symlinkSync(fakeCordova, join(cwd, 'test_install_cordova', 'node_modules', '.bin', 'cordova'));
+      symlinkSync(fakeCordova, join(cwd, 'test_install_cordova', 'node_modules', '.bin', 'cordova.cmd'));
     });
 
     afterEach(restore);
@@ -296,6 +308,58 @@ const mockBinDir = join(__dirname, 'bin');
 
       expect(result.stderr).to.equal('');
       expect(result.status).to.equal(0);
+    });
+
+    it('reuses Cordova 8.1.2 from cache for 3.x projects', function() {
+      let cordovaPath = join(mockBinDir, 'cordova');
+      writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'), '{"version": "3.0.0"}');
+      mkdirsSync(join(home, '.tabris-cli', 'cordova', '8.1.2', 'node_modules', '.bin'));
+      symlinkSync(cordovaPath, join(home, '.tabris-cli', 'cordova', '8.1.2', 'node_modules', '.bin', 'cordova'));
+
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
+
+      expect(result.stdout).not.to.contain('NPM install cordova');
+      expect(result.stderr).to.equal('');
+      expect(result.status).to.equal(0);
+    });
+
+    it('reuses Cordova 6.5.0 from cache for 2.x projects', function() {
+      let cordovaPath = join(mockBinDir, 'cordova');
+      writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'), '{"version": "2.0.0"}');
+      mkdirsSync(join(home, '.tabris-cli', 'cordova', '6.5.0', 'node_modules', '.bin'));
+      symlinkSync(cordovaPath, join(home, '.tabris-cli', 'cordova', '6.5.0', 'node_modules', '.bin', 'cordova'));
+
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
+
+      expect(result.stdout).not.to.contain('NPM install cordova');
+      expect(result.stderr).to.equal('');
+      expect(result.status).to.equal(0);
+    });
+
+    it('installs Cordova 8.1.2 for 3.x projects', function() {
+      writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'), '{"version": "3.0.0"}');
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
+
+      expect(result.stdout).to.contain('NPM install cordova@8.1.2');
+      expect(result.stderr).to.equal('');
+      expect(result.status).to.equal(0);
+    });
+
+    it('installs Cordova 6.5.0 for 2.x projects', function() {
+      writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'), '{"version": "2.0.0"}');
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
+
+      expect(result.stdout).to.contain('NPM install cordova@6.5.0');
+      expect(result.stderr).to.equal('');
+      expect(result.status).to.equal(0);
+    });
+
+    it('fails for 1.x projects', function() {
+      writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'), '{"version": "1.0.0"}');
+      let result = spawnSync('node', [tabris, command, 'android'], opts);
+
+      expect(result.stderr.trim()).to.equal('App uses incompatible tabris version: 1.0.0, >= 2.0.0 required.');
+      expect(result.status).to.equal(1);
     });
 
     if (command === 'run') {

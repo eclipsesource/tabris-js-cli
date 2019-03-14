@@ -16,10 +16,9 @@ describe('CordovaCli', function() {
   beforeEach(function() {
     stub(proc, 'execSync');
     stub(fs, 'removeSync');
-    proc.execSync.withArgs('npm', ['bin']).returns({stdout: 'path'});
     let dir = temp.mkdirSync();
     cwd = realpathSync(dir);
-    cli = new CordovaCli(cwd);
+    cli = new CordovaCli(cwd, 'path/cordova');
   });
 
   afterEach(restore);

@@ -1,10 +1,12 @@
 const crypto = require('crypto');
 const os = require('os');
 const {join} = require('path');
+const semver = require('semver');
 const {writeFile, existsSync, readFileSync} = require('fs-extra');
 const commander = require('commander');
 const {handleErrors, fail} = require('./helpers/errorHandler');
 const {parseVariables} = require('./helpers/argumentsParser');
+const CordovaCliInstaller = require('./services/CordovaCliInstaller');
 
 const APP_DIR = '.';
 const CORDOVA_PROJECT_DIR = 'build/cordova';
@@ -49,7 +51,6 @@ async function build(name, platform, cordovaPlatformOpts, options) {
   const TabrisApp = require('./services/TabrisApp');
   const PlatformProvider = require('./services/PlatformProvider');
   const ConfigXml = require('./services/ConfigXml');
-  const packageJson = require('../package.json');
   const {join} = require('path');
   try {
     let {
@@ -66,7 +67,7 @@ async function build(name, platform, cordovaPlatformOpts, options) {
     let {installedTabrisVersion} = new TabrisApp(APP_DIR)
       .runPackageJsonBuildScripts(platform)
       .createCordovaProject(CORDOVA_PROJECT_DIR)
-      .validateInstalledTabrisVersion(packageJson.version);
+      .validateInstalledTabrisVersion();
     let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
     ConfigXml.readFrom(configXmlPath)
       .adjustContentPath()
@@ -75,11 +76,18 @@ async function build(name, platform, cordovaPlatformOpts, options) {
     let platformProvider = new PlatformProvider(CLI_DATA_DIR);
     let platformSpec = await platformProvider.getPlatform({name: platform, version: installedTabrisVersion});
     await copyBuildKeyHash();
-    await executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options});
+    await executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options, installedTabrisVersion});
   } catch(e) { fail(e); }
 }
 
-function executeCordovaCommands({name, platform, platformSpec, options, cordovaPlatformOpts}) {
+function executeCordovaCommands({
+  name,
+  platform,
+  platformSpec,
+  options,
+  cordovaPlatformOpts,
+  installedTabrisVersion
+}) {
   const CordovaCli = require('./services/CordovaCli');
 
   let platformAddOptions = [options.verbose && 'verbose'];
@@ -93,7 +101,9 @@ function executeCordovaCommands({name, platform, platformSpec, options, cordovaP
     options.target && `target=${options.target}`,
     options.listTargets && 'list'
   ];
-  new CordovaCli(CORDOVA_PROJECT_DIR)
+  let cordovaVersion = semver(installedTabrisVersion).major === 3 ? '8.1.2' : '6.5.0';
+  let cliPath = new CordovaCliInstaller(CLI_DATA_DIR).install(cordovaVersion);
+  new CordovaCli(CORDOVA_PROJECT_DIR, cliPath)
     .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
     .platformCommand(name, platform, {options: platformCommandOptions, cordovaPlatformOpts});
 }

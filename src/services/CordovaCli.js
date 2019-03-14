@@ -5,15 +5,9 @@ const proc = require('../helpers/proc');
 
 class CordovaCli {
 
-  constructor(cwd) {
+  constructor(cwd, cordovaPath) {
     this._cwd = cwd;
-    this._resolveCordovaPath();
-  }
-
-  _resolveCordovaPath() {
-    let binPath = proc.execSync('npm', ['bin'], {cwd: __dirname, stdio: 'pipe'});
-    let dir = binPath.stdout.toString().trim();
-    this._cordovaPath = join(dir, 'cordova');
+    this._cordovaPath = cordovaPath;
   }
 
   platformAddSafe(platform, spec, {options = []} = {}) {
