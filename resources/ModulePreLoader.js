@@ -81,27 +81,32 @@
 
     getSourceMap(url) {
       if (!(url in this._sourceMaps)) {
-        const src = this._load(url) || '';
-        if (sourceMapUrl.test(src)) {
-          const match = src.match(sourceMapUrl);
-          const mapUri = (match ? match[1] || match[2] || '' : '');
-          const dataUriMatch = mapUri.match(dataUriRegex);
-          if (dataUriMatch) {
-            const mimeType = dataUriMatch[1] || '';
-            if (jsonMimeTypeRegex.test(mimeType)) {
-              const encodedMap = (dataUriMatch[3] || '').replace(/^\)\]\}'/, '');
-              this._sourceMaps[url] = JSON.parse(
-                dataUriMatch[2] === ';base64' ? atob(encodedMap) : decodeURIComponent(encodedMap)
-              );
+        try {
+          const src = this._load(url) || '';
+          if (sourceMapUrl.test(src)) {
+            const match = src.match(sourceMapUrl);
+            const mapUri = (match ? match[1] || match[2] || '' : '');
+            const dataUriMatch = mapUri.match(dataUriRegex);
+            if (dataUriMatch) {
+              const mimeType = dataUriMatch[1] || '';
+              if (jsonMimeTypeRegex.test(mimeType)) {
+                const encodedMap = (dataUriMatch[3] || '').replace(/^\)\]\}'/, '');
+                this._sourceMaps[url] = JSON.parse(
+                  dataUriMatch[2] === ';base64' ? atob(encodedMap) : decodeURIComponent(encodedMap)
+                );
+              } else {
+                this._sourceMaps[url] = null;
+                throw new Error('Unexpected source map mime type: "' + mimeType + '"');
+              }
+            } else if (mapUri) {
+              this._sourceMaps[url] = this.readJSON(url.slice(0, url.lastIndexOf('/')) + '/' + mapUri);
             } else {
               this._sourceMaps[url] = null;
-              throw new Error('Unexpected source map mime type: "' + mimeType + '"');
             }
-          } else if (mapUri) {
-            this._sourceMaps[url] = this.readJSON(url.slice(0, url.lastIndexOf('/')) + '/' + mapUri);
-          } else {
-            this._sourceMaps[url] = null;
           }
+        } catch (ex) {
+          console.warn('Error loading source map ' + url);
+          this._sourceMaps[url] = null;
         }
       }
       return this._sourceMaps[url] || null;
