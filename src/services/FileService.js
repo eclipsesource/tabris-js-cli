@@ -1,4 +1,4 @@
-const {readFileSync, existsSync, lstatSync, readdirSync} = require('fs-extra');
+const {readFileSync, existsSync, lstatSync, readdirSync, readlinkSync} = require('fs-extra');
 const {join} = require('path');
 
 module.exports = class FileService {
@@ -7,8 +7,9 @@ module.exports = class FileService {
     this._overlay = overlay;
   }
 
+  /** @param {string} path */
   getDir(path) {
-    if (existsSync(path) && lstatSync(path).isDirectory()) {
+    if (this._isDir(path)) {
       let list = readdirSync(path, {withFileTypes: true});
       return list.map(this._toFileEntry(path));
     }
@@ -28,6 +29,21 @@ module.exports = class FileService {
       }
       return {name: entry, isFile: () => lstatSync(join(path, entry)).isFile()};
     };
+  }
+
+  /** @param {string} path */
+  _isDir(path) {
+    if (!existsSync(path)) {
+      return false;
+    }
+    const stat = lstatSync(path);
+    if (stat.isDirectory(path)) {
+      return true;
+    }
+    if (stat.isSymbolicLink()) {
+      return this._isDir(readlinkSync(path));
+    }
+    return false;
   }
 
 };
