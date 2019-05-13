@@ -1,3 +1,8 @@
+## 3.0.0 rc1
+
+* Now compatible with both Tabris.js 2.x and 3.x Apps
+* The `init` command now supports generating unit tests for 3.x Apps
+
 ## 3.0.0 beta1
 
 `tabris serve`:
