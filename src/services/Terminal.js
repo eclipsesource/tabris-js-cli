@@ -1,14 +1,15 @@
 const {yellow, blue} = require('chalk');
 const readline = require('../lib/readline/readline');
 const EventEmitter = require('events');
+const {Readable} = require('stream');
 
 module.exports = class Terminal extends EventEmitter {
 
-  static create() {
+  static create(options) {
     const readlineInterface = readline.createInterface({
-      input: process.stdin,
+      input: options.interactive ? process.stdin : new Readable({read: () => undefined}),
       output: process.stdout,
-      prompt: blue('>> '),
+      prompt: options.interactive ? blue('>> ') : '',
       historySize: 0
     });
     return new Terminal(console, readlineInterface);

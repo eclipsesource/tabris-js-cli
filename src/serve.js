@@ -18,7 +18,7 @@ program
   .action(handleErrors(serve));
 
 function serve(options) {
-  const terminal = Terminal.create();
+  const terminal = Terminal.create(options);
   let server = new Server({
     terminal,
     watch: options.watch,
