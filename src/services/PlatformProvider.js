@@ -41,7 +41,6 @@ module.exports = class PlatformProvider {
     this._platformsCache.set(platform, platformDir);
     await fs.remove(extractedZipPath);
     await fs.remove(zipPath);
-    this._platformsCache.prune();
     return this._platformsCache.get(platform);
   }
 

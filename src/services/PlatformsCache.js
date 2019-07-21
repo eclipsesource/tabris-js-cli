@@ -11,6 +11,9 @@ module.exports = class PlatformsCache {
     let cachePath = join(this._cachePath, platform.name, platform.version);
     try {
       copySync(path, cachePath);
+      if (isNightly(platform.version)) {
+        this._removeOtherNightlies(platform);
+      }
     } catch(e) {
       throw new Error('Could not copy platform to ' + cachePath + '. Error: ' + (e.message || e));
     }
@@ -28,29 +31,11 @@ module.exports = class PlatformsCache {
     return !!this.get(platform);
   }
 
-  prune() {
-    this._cleanUpNightlies();
-  }
-
-  _cleanUpNightlies() {
-    let nightlies = this._getPlatformNightlies();
-    Object.keys(nightlies).forEach(platform => {
-      let [, ...tail] = nightlies[platform].sort().reverse();
-      tail.forEach(version => removeSync(join(this._cachePath, platform, version)));
-    });
-  }
-
-  _getPlatformNightlies() {
-    let nightlies = {};
-    listDirectories(this._cachePath).forEach(platform => {
-      listDirectories(join(this._cachePath, platform)).forEach(version => {
-        if (isNightly(version)) {
-          nightlies[platform] = nightlies[platform] || [];
-          nightlies[platform].push(version);
-        }
-      });
-    });
-    return nightlies;
+  _removeOtherNightlies(platform) {
+    listDirectories(join(this._cachePath, platform.name))
+      .filter(isNightly)
+      .filter(version => version !== platform.version)
+      .forEach(version => removeSync(join(this._cachePath, platform.name, version)));
   }
 
 };

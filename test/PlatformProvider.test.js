@@ -1,4 +1,4 @@
-const {mkdirsSync, existsSync, readFileSync, readdirSync} = require('fs-extra');
+const {mkdirsSync, readFileSync, readdirSync} = require('fs-extra');
 const {join} = require('path');
 const https = require('https');
 const yazl = require('yazl');
@@ -70,21 +70,6 @@ describe('PlatformProvider', function() {
       it('downloads and extracts platform', async function() {
         await provider.getPlatform({name, version});
         expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
-      });
-
-      it('prunes cache on download success', async function() {
-        let nightly1 = join(cliDataDir, 'platforms', 'foo', '1.0.0-dev.20150101');
-        let nightly2 = join(cliDataDir, 'platforms', 'foo', '1.0.0-dev.20150102');
-        let notNightly = join(cliDataDir, 'platforms', 'foo', '1.0.0-aaa');
-        mkdirsSync(nightly1);
-        mkdirsSync(nightly2);
-        mkdirsSync(notNightly);
-
-        await provider.getPlatform({name, version});
-
-        expect(existsSync(nightly1)).to.be.false;
-        expect(existsSync(nightly2)).to.be.true;
-        expect(existsSync(notNightly)).to.be.true;
       });
 
       it('resolves with platform spec', async function() {
