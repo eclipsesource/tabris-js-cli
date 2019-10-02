@@ -207,9 +207,10 @@ describe('serve', function() {
 });
 
 function waitForStderr(process, timeout = 2000) {
-  return new Promise((resolve, reject) => {
-    process.stderr.once('data', data => resolve(data));
-    setTimeout(() => reject('waitForStderr timed out'), timeout);
+  let stderr = '';
+  return new Promise(resolve => {
+    process.stderr.on('data', data => stderr += data);
+    setTimeout(() => resolve(stderr), timeout);
   });
 }
 
@@ -219,8 +220,10 @@ function waitForStdout(process, timeout = 2000) {
     stdout += data;
   });
   return new Promise((resolve, reject) => {
-    process.stderr.once('data', data => {
-      reject(new Error('waitForStdout rejected with stderr ' + data.toString()));
+    process.stderr.on('data', data => {
+      if (data.indexOf('DeprecationWarning') === -1) {
+        reject(new Error('waitForStdout rejected with stderr ' + data.toString()));
+      }
     });
     setTimeout(() => resolve(stdout), timeout);
   });
