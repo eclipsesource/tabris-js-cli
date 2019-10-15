@@ -1,3 +1,7 @@
+## 3.2.1
+
+* Fix filename of generated MVVM test
+
 ## 3.2.0
 
 * The `init` command now provides an option to generate a MVVM example
