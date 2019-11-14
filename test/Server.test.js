@@ -7,6 +7,7 @@ const {expect, stub, restore, spy, writeTabrisProject} = require('./test');
 const Server = require('../src/services/Server');
 const proc = require('../src/helpers/proc');
 const TerminalMock = require('./TerminalMock.js');
+const htmllint = require('htmllint');
 
 describe('Server', function() {
 
@@ -166,13 +167,23 @@ describe('Server', function() {
       expect(text).to.equal('content');
     });
 
-    it('shows a static message on the default route', async function() {
+    it('shows a dynamic message on the default route', async function() {
       writeTabrisProject(path);
       writeFileSync(join(path, 'package.json'), '{"main": "unused.js"}');
       await server.serve(path);
+
       let response = await fetch(`http://127.0.0.1:${server.port}/`);
       let text = await response.text();
-      expect(text).to.match(/Tabris\.js CLI version .* is running/);
+
+      expect(text).to.match(/Tabris\.js CLI is running/);
+      expect(text).to.match(/src="data:image\/png;base64/);
+      expect(text).to.match(/Available URLs:/);
+      expect(await htmllint(text, {
+        'attr-bans': [],
+        'indent-style': 'spaces',
+        'indent-width': 2,
+        'img-req-alt': false
+      })).to.deep.equal([]);
     });
 
   });

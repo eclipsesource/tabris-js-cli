@@ -5,8 +5,9 @@ const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
 const union = require('union');
 const portscanner = require('portscanner');
-const proc = require('../helpers/proc');
+const {red, blue} = require('chalk');
 const WebSocket = require('ws');
+const proc = require('../helpers/proc');
 const DebugServer = require('./DebugServer');
 const GetFilesMiddleware = require('./GetFilesMiddleware');
 const FileService = require('./FileService');
@@ -14,7 +15,7 @@ const {getBootJs} = require('./getBootJs');
 const ServerInfo = require('./ServerInfo');
 const RemoteConsole = require('./RemoteConsole');
 const AppReloader = require('./AppReloader');
-const {red, blue} = require('chalk');
+const IndexHtml = require('./IndexHtml');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
@@ -64,6 +65,9 @@ module.exports = class Server extends EventEmitter {
       throw new Error('Project must be a directory.');
     }
     await this._startServices();
+    this._serverInfo = new ServerInfo(this, Server.externalAddresses);
+    this._html = new IndexHtml(this._serverInfo);
+    await this._serverInfo.show();
   }
 
   async _lstat(path) {
@@ -151,7 +155,7 @@ module.exports = class Server extends EventEmitter {
     });
   }
 
-  async _startServices() {
+  _startServices() {
     const webSocketServer = new WebSocket.Server({server: this._server});
     this.debugServer = new DebugServer(webSocketServer, this.terminal);
     this.debugServer.start();
@@ -161,7 +165,6 @@ module.exports = class Server extends EventEmitter {
     if (this._autoReload) {
       new AppReloader(this).start();
     }
-    await new ServerInfo(this, Server.externalAddresses).show();
   }
 
   _createMiddlewares(appPath, main) {
@@ -232,12 +235,12 @@ module.exports = class Server extends EventEmitter {
   }
 
   _createDefaultRouteMiddleware() {
-    return (req, res, next) => {
+    return async (req, res, next) => {
       if (req.url === '/') {
-        const cliPackageJson = require('../../package.json');
-        return res.text(`Tabris.js CLI version ${cliPackageJson.version} is running`);
+        res.html(await this._html.generate());
+      } else {
+        next();
       }
-      next();
     };
   }
 

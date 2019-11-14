@@ -10,7 +10,7 @@ module.exports = class ServerInfo {
 
   async show() {
     let address = await this.selectAddressForQRCode();
-    this.generateQRCode(this.createURL(address, this.server.port), out => this.server.terminal.log(out));
+    this.generateTextQRCode(this.createURL(address, this.server.port), out => this.server.terminal.log(out));
     this.server.terminal.log(yellow(
       `Available URLs:\n${this.determineAvailableURLs(this.externalAddresses, this.server.port, address)}`
     ));
@@ -62,9 +62,28 @@ module.exports = class ServerInfo {
     }
   }
 
-  generateQRCode(str, outputCallBack) {
-    const qrcode = require('qrcode-terminal');
-    return qrcode.generate(str, {small: true}, outputCallBack);
+  generateTextQRCode(str, outputCallBack) {
+    const qrcode = require('qrcode');
+    qrcode.toString(str, {margin: 0}, (error, result) => {
+      if (error) {
+        console.warn(error);
+        outputCallBack('');
+      } else {
+        outputCallBack(result);
+      }
+    });
+  }
+
+  generateDataUrlQRCode(str, outputCallBack) {
+    const qrcode = require('qrcode');
+    qrcode.toDataURL(str, {margin: 0, scale: 8}, (error, result) => {
+      if (error) {
+        console.warn(error);
+        outputCallBack('');
+      } else {
+        outputCallBack(result.trim());
+      }
+    });
   }
 
 };
