@@ -1,4 +1,4 @@
-const {join, normalize} = require('path');
+const {join, normalize, posix} = require('path');
 const GetFilesMiddleware = require('../src/services/GetFilesMiddleware');
 const {expect, restore, spy, stub} = require('./test');
 const {getDebugClient} = require('../src/services/getBootJs');
@@ -11,7 +11,11 @@ const isFile = () => true;
 /*globals debugClient: false */
 describe('GetFilesMiddleware', () => {
 
-  let middleware, fileService;
+  /** @type {GetFilesMiddleware} */
+  let middleware;
+
+  /** @type {import('../src/services/FileService')} */
+  let fileService;
 
   beforeEach(function() {
     fileService = {
@@ -161,6 +165,16 @@ describe('GetFilesMiddleware', () => {
         const loader = preLoader.createLoader('./foo/bar.js');
 
         expect(loader).to.be.instanceOf(Function);
+      });
+
+      it('emits deliver event', function() {
+        const listener = spy();
+        middleware.on('deliver', listener);
+
+        preLoader.createLoader('./foo/bar.js');
+
+        expect(listener).to.have.been.calledWith(posix.join(posix.normalize(APP_PATH), 'foo', 'bar.js'));
+        expect(listener).to.have.been.calledWith(posix.join(APP_PATH, 'foo', 'baz.json'));
       });
 
       it('createLoader names parameters', function() {

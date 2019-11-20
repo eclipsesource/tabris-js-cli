@@ -50,7 +50,7 @@ module.exports = class GetFilesMiddleware extends EventEmitter {
       result[name] = {};
       if (name.endsWith('.js') || name.endsWith('.json') || name.endsWith('.js.map')) {
         result[name].content = this._fs.getFileContent(path, name);
-        this.emit('deliver', posix.join(localPath, name));
+        this.emit('deliver', posix.join(this._appPath, localPath, name));
       }
     });
     return result;
