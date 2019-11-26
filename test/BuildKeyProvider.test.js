@@ -88,7 +88,7 @@ describe('BuildKeyProvider', function() {
           fs.writeFileSync(buildKeyPath, 'invalidKey', 'utf8');
           try {
             await provider.getBuildKey();
-            throw 'Expected rejection';
+            throw new Error('Expected rejection');
           } catch(e) {
             expect(e.message).to.equal('Invalid build key.');
           }
@@ -128,19 +128,19 @@ describe('BuildKeyProvider', function() {
         });
 
         // TODO: does not pass on environments where tests are run by the super user
-        xit('rejects with error when writing key file fails', async function() {
-          fs.chmodSync(cliDataDir, '0000');
-          try {
-            let promise = (async () => {
-              await provider.getBuildKey();
-              throw 'Expected rejection';
-            })();
-            sendLine(VALID_KEY);
-            await promise;
-          } catch(e) {
-            expect(e.message).to.equal('Writing build.key file failed');
-          }
-        });
+        // it('rejects with error when writing key file fails', async function() {
+        //   fs.chmodSync(cliDataDir, '0000');
+        //   try {
+        //     let promise = (async () => {
+        //       await provider.getBuildKey();
+        //       throw 'Expected rejection';
+        //     })();
+        //     sendLine(VALID_KEY);
+        //     await promise;
+        //   } catch(e) {
+        //     expect(e.message).to.equal('Writing build.key file failed');
+        //   }
+        // });
 
         it('prompts again for key when given key was wrong and resolves with key', async function() {
           let promise = (async () => {

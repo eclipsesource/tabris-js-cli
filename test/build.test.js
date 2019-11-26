@@ -33,14 +33,14 @@ const mockBinDir = join(__dirname, 'bin');
       home = join(cwd, 'test_home');
       mkdirsSync(join(home, '.tabris-cli', 'platforms', 'ios', packageJson.version));
       mkdirsSync(join(home, '.tabris-cli', 'platforms', 'android', packageJson.version));
-      env = {
+      env = Object.assign({}, process.env, {
         HOME: home,
         USERPROFILE: home,
         APPDATA: 'appdata',
         PATH: mockBinDir + (platform() === 'win32' ? ';' : ':') + process.env.PATH,
         TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
         TABRIS_IOS_PLATFORM: 'path/to/tabris-ios'
-      };
+      });
       opts = {cwd, env, encoding: 'utf8'};
       mkdirsSync(join(cwd, 'cordova'));
       writeFileSync(join(cwd, 'cordova', 'config.xml'), '<widget id="test"></widget>');
