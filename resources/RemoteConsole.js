@@ -97,7 +97,19 @@
         // VT100 escape code for grey color
         this.log(`\x1b[;37m<- ${tabris.format(result)}\x1b[0m`);
       } catch (ex) {
-        console.warn(ex);
+        if (ex instanceof Error) {
+          const stackStr = ex.toString();
+          const stack = stackStr.split('\n');
+          const cutOff = stack.findIndex(line => line.indexOf('_handleServerMessage') !== -1);
+          if (cutOff > 0) {
+            console.warn(stack.slice(0, cutOff).join('\n'));
+          } else {
+            console.warn(stackStr);
+          }
+        } else {
+          console.warn('Non-Error thrown:');
+          console.warn(ex);
+        }
       } finally {
         this._send('action-response', {enablePrompt: true});
       }
