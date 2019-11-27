@@ -101,7 +101,7 @@ function executeCordovaCommands({
     options.target && `target=${options.target}`,
     options.listTargets && 'list'
   ];
-  let cordovaVersion = semver(installedTabrisVersion).major === 3 ? '8.1.2' : '6.5.0';
+  let cordovaVersion = semver(installedTabrisVersion).major === 3 ? '8.1.2' : '7.0.0';
   let cliPath = new CordovaCliInstaller(CLI_DATA_DIR).install(cordovaVersion);
   new CordovaCli(CORDOVA_PROJECT_DIR, cliPath)
     .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
