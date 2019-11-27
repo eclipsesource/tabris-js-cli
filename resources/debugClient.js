@@ -8,12 +8,12 @@
 
     start() {
       this.ModulePreLoader.patchModuleClass();
-      const serverUrl = tabris.app
-        .getResourceLocation('package.json')
-        .match(/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i)[1];
+      const packageJson = tabris.app.getResourceLocation('package.json');
+      const serverUrl = packageJson.match(/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i)[1];
+      const protocol = packageJson.indexOf('https') === 0 ? 'wss' : 'ws';
       const webSocketFactory = {
         createWebSocket: () => {
-          return new WebSocket(`ws://${serverUrl}/?session=${this.sessionId}&server=${this.serverId}`, '');
+          return new WebSocket(`${protocol}://${serverUrl}/?session=${this.sessionId}&server=${this.serverId}`, '');
         }
       };
       const rc = new debugClient.RemoteConsole(webSocketFactory);
