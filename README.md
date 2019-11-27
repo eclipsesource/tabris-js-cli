@@ -45,7 +45,7 @@ Overrides the "main" field of package.json. The argument must be a valid module 
 
 Auto reload the application when a source file is modified.
 
-##### `-i, --interactive` (Experimental)
+##### `-i, --interactive`
 
 Enable interactive console for JavaScript input.
 
@@ -56,6 +56,18 @@ Logs requests to the internal HTTP server of the CLI. Useful for debugging conne
 ##### `-w, --watch`
 
 Executes the _watch_ instead of the _build_ script given in the package.json of the app before serving. The _watch_ script can be a long-running task.
+
+##### `--no-intro`
+
+Does not print the available external URLs or QR code to the console, only the port. They can still be viewed by opening the given port in a browser.
+
+##### `--external [url]`
+
+Uses the given string as the advertised public URL, to the exclusion of all other. Must include protocol and port. Should be used with `--port` to ensure the actual port matches this one.
+
+##### `--port [port]`
+
+Changes the port the HTTP server listens to. Causes an error if the port is not available.
 
 ### `tabris build [options] <platform> [cordova-platform-opts]`
 

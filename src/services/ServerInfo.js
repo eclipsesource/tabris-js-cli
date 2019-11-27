@@ -1,28 +1,46 @@
 const {green, yellow} = require('chalk');
 const os = require('os');
+const {URL} = require('url');
 
 module.exports = class ServerInfo {
 
-  constructor(server, externalAddresses) {
+  /**
+   * @param {import('./Server')} server
+   * @param {URL[]} externalURLs
+   * @param {boolean} noIntro
+   */
+  constructor(server, externalURLs, noIntro) {
     this.server = server;
-    this.externalAddresses = externalAddresses;
+    this.externalURLs = externalURLs;
+    this.noIntro = noIntro;
   }
 
   async show() {
-    let address = await this.selectAddressForQRCode();
-    this.generateTextQRCode(this.createURL(address, this.server.port), out => this.server.terminal.log(out));
-    this.server.terminal.log(yellow(
-      `Available URLs:\n${this.determineAvailableURLs(this.externalAddresses, this.server.port, address)}`
-    ));
+    let mainUrl = await this.selectUrlForQRCode();
+    if (this.noIntro) {
+      this.server.terminal.log(yellow('CLI running on port ' + this.server.port));
+    } else {
+      this.generateTextQRCode(this.formatUrl(mainUrl), out => this.server.terminal.log(out));
+      this.server.terminal.log(yellow(
+        `Available URLs:\n${this.determineAvailableURLs(mainUrl)}`
+      ));
+    }
   }
 
-  createURL(address, port) {
-    return `http://${address}:${port}`;
+  /**
+   * @param {URL} url
+   */
+  formatUrl(url) {
+    const port = url.port || (url.protocol === 'https:' ? '443' : '80');
+    return `${url.protocol}//${url.hostname}:${port}`;
   }
 
-  determineAvailableURLs(addresses, port, selectedAddress) {
-    return addresses.map(address => {
-      return '  ' + green(this.createURL(address, port) + (address === selectedAddress ? ' <= QR code' : ''));
+  /**
+   * @param {URL} mainUrl
+   */
+  determineAvailableURLs(mainUrl) {
+    return this.externalURLs.map(url => {
+      return '  ' + green(this.formatUrl(url) + (url.host === mainUrl.host ? ' <= QR code' : ''));
     }).join('\n');
   }
 
@@ -31,22 +49,22 @@ module.exports = class ServerInfo {
    * If WLAN interfaces exists, the address of the first WLAN interface
    * will be returned.
    */
-  async selectAddressForQRCode() {
-    const firstAddress = this.externalAddresses[0];
-    if (this.externalAddresses.length > 1 && os.platform() !== 'darwin') {
+  async selectUrlForQRCode() {
+    const firstUrl = this.externalURLs[0];
+    if (this.externalURLs.length > 1 && os.platform() !== 'darwin') {
       try {
-        return await this.getFirstWifiInterface();
+        return new URL(`http://${await this.getFirstWifiAddress()}:${this.server.port}`);
       } catch(e) {
-        return firstAddress;
+        return firstUrl;
       }
     }
-    return firstAddress;
+    return firstUrl;
   }
 
   /**
    * Returns the first IPv4 address of the first connected wifi interface.
    */
-  async getFirstWifiInterface() {
+  async getFirstWifiAddress() {
     try {
       const wifi = require('node-wifi');
       wifi.init();

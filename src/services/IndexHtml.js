@@ -22,11 +22,12 @@ module.exports = class IndexHtml {
    * @param {number} options.mainUrl
    */
   async generate() {
-    const main = await this.info.selectAddressForQRCode();
+    const mainUrl = await this.info.selectUrlForQRCode();
     const qrCode = await new Promise(resolve =>
-      this.info.generateDataUrlQRCode(this.info.createURL(main, this.info.server.port), resolve)
+      this.info.generateDataUrlQRCode(this.info.formatUrl(mainUrl), resolve)
     );
     const builder = new xml2js.Builder({headless: true, preserveChildrenOrder: true});
+    const multiAddress = this.info.externalURLs.length > 1;
     const data = {
       html: {
         $: {lang: 'en'},
@@ -37,17 +38,30 @@ module.exports = class IndexHtml {
         },
         body: {
           h1: {_: 'Tabris.js CLI is running'},
+          p: {
+            span: {
+              _: 'Scan the QR Code below using the',
+            },
+            a: {
+              _: 'Tabris.js Developer App',
+              $: {
+                href: 'https://docs.tabris.com/latest/developer-app.html',
+                target: '_blank',
+                rel: 'noreferrer'
+              }
+            }
+          },
           img: {$:{src: qrCode}},
-          h3: {_: 'Available URLs:'},
+          h3: {_: multiAddress ? 'Available URLs:' : 'URL:'},
           ul: {
-            li: this.info.externalAddresses.map(address => ({
+            li: this.info.externalURLs.map(url => ({
               code: {
                 $: {style: 'font-weight: bold'},
-                _: this.info.createURL(address, this.info.server.port)
+                _: this.info.formatUrl(url)
               },
               span: {
                 $: {style: 'font-style: italic'},
-                _: address === main ? '(QR Code)' : ''
+                _: ((url.host === mainUrl.host) && multiAddress) ? '(QR Code)' : ''
               }
             }))
           }

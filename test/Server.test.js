@@ -177,12 +177,15 @@ describe('Server', function() {
 
       expect(text).to.match(/Tabris\.js CLI is running/);
       expect(text).to.match(/src="data:image\/png;base64/);
-      expect(text).to.match(/Available URLs:/);
+      expect(text).to.match(/URL/);
+      expect(text).to.match(/Scan the QR Code below/);
+      expect(text).to.match(/href="https:\/\/docs.tabris.com\/latest\/developer-app.html"/);
       expect(await htmllint(text, {
         'attr-bans': [],
         'indent-style': 'spaces',
         'indent-width': 2,
-        'img-req-alt': false
+        'img-req-alt': false,
+        'tag-close': false
       })).to.deep.equal([]);
     });
 

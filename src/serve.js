@@ -13,6 +13,9 @@ program
     + ' Useful for debugging connection issues during app sideloading.'
   )
   .option('-w, --watch', 'execute the "watch" instead of the "build" script of the app before serving')
+  .option('--no-intro', 'do not print the available external URLs or QR code.')
+  .option('--external [url]', 'use this url as the advertised public URL')
+  .option('--port [url]', 'use this port for the HTTP server')
   .description('Serves a Tabris.js app from the current or a given project directory. If a ' +
     'build script is present in package.json, it is executed beforehand.')
   .action(handleErrors(serve));
@@ -24,7 +27,10 @@ function serve(options) {
     watch: options.watch,
     requestLogging: options.logging,
     interactive: options.interactive,
-    autoReload: options.autoReload
+    autoReload: options.autoReload,
+    noIntro: !options.intro,
+    external: options.external,
+    port: options.port
   });
   server.serve(options.project || process.cwd(), options.main).catch(fail);
 }

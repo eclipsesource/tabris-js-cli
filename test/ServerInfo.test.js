@@ -3,6 +3,7 @@ const os = require('os');
 const {expect, stub, restore} = require('./test');
 const ServerInfo = require('../src/services/ServerInfo');
 const TerminalMock = require('./TerminalMock');
+const {URL} = require('url');
 
 describe('ServerInfo', function() {
 
@@ -14,27 +15,78 @@ describe('ServerInfo', function() {
       const terminal = new TerminalMock();
       const serverInfo = new ServerInfo({
         port: '8080',
-        wsPort: '8081',
         terminal
-      }, ['127.0.0.1']);
+      }, [new URL('http://127.0.0.1:8080')], false);
 
       await serverInfo.show();
 
       expect(terminal.log).to.have.been.calledWithMatch(/[▄█]+/);
     });
 
+    it('prints given external URL', async function() {
+      const terminal = new TerminalMock();
+      const serverInfo = new ServerInfo({
+        port: '8081',
+        terminal
+      }, [new URL('http://127.0.0.1:8080')], false);
+
+      await serverInfo.show();
+
+      expect(terminal.log).to.have.been.calledWithMatch(/Available URLs/);
+      expect(terminal.log).to.have.been.calledWithMatch(/http:\/\/127.0.0.1:8080/);
+    });
+
+    it('prints given external URL with https default prot', async function() {
+      const terminal = new TerminalMock();
+      const serverInfo = new ServerInfo({
+        port: '8081',
+        terminal
+      }, [new URL('https://127.0.0.1:443')], false);
+
+      await serverInfo.show();
+
+      expect(terminal.log).to.have.been.calledWithMatch(/Available URLs/);
+      expect(terminal.log).to.have.been.calledWithMatch(/https:\/\/127.0.0.1:443/);
+    });
+
+    it('does not print QR code to console if noIntro is true', async function() {
+      const terminal = new TerminalMock();
+      const serverInfo = new ServerInfo({
+        port: '8080',
+        terminal
+      }, [new URL('http://127.0.0.1:8080')], true);
+
+      await serverInfo.show();
+
+      expect(terminal.log).not.to.have.been.calledWithMatch(/[▄█]+/);
+    });
+
+    it('prints actual port if noIntro is true', async function() {
+      const terminal = new TerminalMock();
+      const serverInfo = new ServerInfo({
+        port: '8081',
+        terminal
+      }, [new URL('http://127.0.0.1:8080')], true);
+
+      await serverInfo.show();
+
+      expect(terminal.log).to.have.been.calledWithMatch(/CLI running on port 8081/);
+    });
+
   });
 
-  describe('.selectAddressForQRCode()', function() {
+  describe('.selectUrlForQRCode()', function() {
 
     it('returns address of only interface', async function() {
-      let serverInfo = new ServerInfo({port: '8080', wsPort: '8081'}, ['127.0.0.1']);
-      stub(serverInfo, 'getFirstWifiInterface');
+      let serverInfo = new ServerInfo({port: '8080', wsPort: '8081'}, [new URL('http://127.0.0.1:8080')]);
+      stub(serverInfo, 'getFirstWifiAddress');
 
-      let address = await serverInfo.selectAddressForQRCode();
+      let url = await serverInfo.selectUrlForQRCode();
 
-      expect(serverInfo.getFirstWifiInterface).to.have.not.been.called;
-      expect(address).to.equal('127.0.0.1');
+      expect(serverInfo.getFirstWifiAddress).to.have.not.been.called;
+      expect(url.hostname).to.equal('127.0.0.1');
+      expect(url.protocol).to.equal('http:');
+      expect(url.port).to.equal('8080');
     });
 
     describe('when more than external address available', function() {
@@ -44,17 +96,24 @@ describe('ServerInfo', function() {
         mockPlatform('any');
 
         it('returns first external address if there are no current WiFi connections', async function() {
-          let serverInfo = new ServerInfo({port: '8080', wsPort: '8081'}, ['127.0.0.1', '127.0.0.2']);
+          let serverInfo = new ServerInfo(
+            {port: '8080'},
+            [new URL('http://127.0.0.1:8080'), new URL('http://127.0.0.2:8081')]
+          );
           stub(nodeWifi, 'init');
           stub(nodeWifi, 'getCurrentConnections').callsFake(() => Promise.resolve([]));
 
-          let address = await serverInfo.selectAddressForQRCode();
+          let url = await serverInfo.selectUrlForQRCode();
 
-          expect(address).to.equal('127.0.0.1');
+          expect(url.host).to.equal('127.0.0.1:8080');
+          expect(url.protocol).to.equal('http:');
         });
 
         it('returns IPv4 WiFi interface address', async function() {
-          let serverInfo = new ServerInfo({port: '8080', wsPort: '8081'}, ['127.0.0.1', '127.0.0.2']);
+          let serverInfo = new ServerInfo(
+            {port: '8080'},
+            [new URL('http://127.0.0.1:8080'), new URL('http://127.0.0.2:8081')]
+          );
           stub(nodeWifi, 'init');
           stub(nodeWifi, 'getCurrentConnections').callsFake(() => Promise.resolve([{iface: 'my-iface'}]));
           stub(os, 'networkInterfaces').callsFake(() => ({
@@ -64,13 +123,17 @@ describe('ServerInfo', function() {
             ]
           }));
 
-          let address = await serverInfo.selectAddressForQRCode();
+          let url = await serverInfo.selectUrlForQRCode();
 
-          expect(address).to.equal('ipv4-address');
+          expect(url.host).to.equal('ipv4-address:8080');
+          expect(url.protocol).to.equal('http:');
         });
 
         it('returns first IPv4 WiFi interface address when multiple are available', async function() {
-          let serverInfo = new ServerInfo({port: '8080', wsPort: '8081'}, ['127.0.0.1', '127.0.0.2']);
+          let serverInfo = new ServerInfo(
+            {port: '8080'},
+            [new URL('http://127.0.0.1:8080'), new URL('http://127.0.0.2:8081')]
+          );
           stub(nodeWifi, 'init');
           stub(nodeWifi, 'getCurrentConnections').callsFake(() => Promise.resolve([{iface: 'my-iface'}]));
           stub(os, 'networkInterfaces').callsFake(() => ({
@@ -81,10 +144,10 @@ describe('ServerInfo', function() {
             ]
           }));
 
-          let address = await serverInfo.selectAddressForQRCode();
+          let url = await serverInfo.selectUrlForQRCode();
 
-          expect(address).to.equal('ipv4-address-1');
-        });
+          expect(url.host).to.equal('ipv4-address-1:8080');
+          expect(url.protocol).to.equal('http:');        });
 
       });
 
@@ -93,15 +156,19 @@ describe('ServerInfo', function() {
         mockPlatform('darwin');
 
         it('returns first external address and does not use node-wifi', async function() {
-          let serverInfo = new ServerInfo({port: '8080', wsPort: '8081'}, ['127.0.0.1', '127.0.0.2']);
+          let serverInfo = new ServerInfo(
+            {port: '8080'},
+            [new URL('http://127.0.0.1:8080'), new URL('http://127.0.0.2:8081')]
+          );
           stub(nodeWifi, 'init');
           stub(nodeWifi, 'getCurrentConnections');
 
-          let address = await serverInfo.selectAddressForQRCode();
+          let url = await serverInfo.selectUrlForQRCode();
 
           expect(nodeWifi.getCurrentConnections).not.to.have.been.called;
           expect(nodeWifi.init).not.to.have.been.called;
-          expect(address).to.equal('127.0.0.1');
+          expect(url.host).to.equal('127.0.0.1:8080');
+          expect(url.protocol).to.equal('http:');
         });
 
       });

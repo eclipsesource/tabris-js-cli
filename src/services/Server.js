@@ -16,24 +16,29 @@ const ServerInfo = require('./ServerInfo');
 const RemoteConsole = require('./RemoteConsole');
 const AppReloader = require('./AppReloader');
 const IndexHtml = require('./IndexHtml');
+const {URL} = require('url');
 
 const BASE_PORT = 8080;
 const MAX_PORT = 65535;
 
 module.exports = class Server extends EventEmitter {
 
-  constructor({watch, requestLogging, interactive, autoReload, terminal}) {
+  constructor(options) {
     super();
-    if (!terminal) {
+    if (!options.terminal) {
       throw new Error('Terminal is missing');
     }
-    this.terminal = terminal;
-    if (requestLogging) {
+    this.terminal = options.terminal;
+    if (options.requestLogging) {
       this.on('request', this._logRequest);
     }
-    this._watch = !!watch;
-    this._interactive = !!interactive;
-    this._autoReload  = !!autoReload;
+    this._watch = !!options.watch;
+    this._interactive = !!options.interactive;
+    this._autoReload  = !!options.autoReload;
+    this._noIntro = options.noIntro;
+
+    this._external = options.external;
+    this._port = options.port;
     this.serverId = null;
     this.debugServer = null;
   }
@@ -67,9 +72,18 @@ module.exports = class Server extends EventEmitter {
       throw new Error('Project must be a directory.');
     }
     await this._startServices();
-    this._serverInfo = new ServerInfo(this, Server.externalAddresses);
+    this._serverInfo = new ServerInfo(this, this._getPublicURLs(), this._noIntro);
     this._html = new IndexHtml(this._serverInfo);
     await this._serverInfo.show();
+  }
+
+  _getPublicURLs() {
+    if (this._external) {
+      return [new URL(this._external)];
+    }
+    return Server.externalAddresses.map(address => {
+      return new URL(`http://${address}:${this.port}`);
+    });
   }
 
   async _lstat(path) {
@@ -146,7 +160,7 @@ module.exports = class Server extends EventEmitter {
         res.end();
       }
     });
-    let port = await this._findAvailablePort();
+    let port = this._port || await this._findAvailablePort();
     return new Promise((resolve, reject) => {
       this._server.listen(port, err => {
         if (err) {
