@@ -1,10 +1,20 @@
 const yauzl = require('yauzl');
 const fs = require('fs-extra');
 const {join, dirname} = require('path');
+const {execSync} = require('./proc');
+const os = require('os');
 
 const ERROR_UNZIPPING_FILE = new Error('Error unzipping file');
 
 function unzip(source, destination) {
+  if (os.platform() === 'darwin') {
+    return nativeUnzip(source, destination);
+  }
+  return yauzlUnzip(source, destination);
+}
+
+
+function yauzlUnzip(source, destination) {
   return new Promise((resolve, reject) => {
     yauzl.open(source, {lazyEntries: true}, (err, zipfile) => {
       if (err) {
@@ -34,6 +44,15 @@ function unzip(source, destination) {
       });
     });
   });
+}
+
+function nativeUnzip(source, destination) {
+  try {
+    execSync('unzip', [source, '-d', destination]);
+    return Promise.resolve();
+  } catch (ex) {
+    return Promise.reject(new Error('Error unzipping file'));
+  }
 }
 
 module.exports = {unzip};
