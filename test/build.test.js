@@ -310,11 +310,11 @@ const mockBinDir = join(__dirname, 'bin');
       expect(result.status).to.equal(0);
     });
 
-    it('reuses Cordova 8.1.2 from cache for 3.x projects', function() {
+    it('reuses Cordova 9.0.0 from cache for 3.x projects', function() {
       let cordovaPath = join(mockBinDir, 'cordova');
       writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'), '{"version": "3.0.0"}');
-      mkdirsSync(join(home, '.tabris-cli', 'cordova', '8.1.2', 'node_modules', '.bin'));
-      symlinkSync(cordovaPath, join(home, '.tabris-cli', 'cordova', '8.1.2', 'node_modules', '.bin', 'cordova'));
+      mkdirsSync(join(home, '.tabris-cli', 'cordova', '9.0.0', 'node_modules', '.bin'));
+      symlinkSync(cordovaPath, join(home, '.tabris-cli', 'cordova', '9.0.0', 'node_modules', '.bin', 'cordova'));
 
       let result = spawnSync('node', [tabris, command, 'android'], opts);
 
@@ -336,11 +336,11 @@ const mockBinDir = join(__dirname, 'bin');
       expect(result.status).to.equal(0);
     });
 
-    it('installs Cordova 8.1.2 for 3.x projects', function() {
+    it('installs Cordova 9.0.0 for 3.x projects', function() {
       writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'), '{"version": "3.0.0"}');
       let result = spawnSync('node', [tabris, command, 'android'], opts);
 
-      expect(result.stdout).to.contain('NPM install cordova@8.1.2');
+      expect(result.stdout).to.contain('NPM install cordova@9.0.0');
       expect(result.stderr).to.equal('');
       expect(result.status).to.equal(0);
     });
