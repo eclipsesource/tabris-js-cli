@@ -19,6 +19,8 @@ module.exports = class DebugServer {
     /** @type {DebugConnection} */
     this._connection = null;
     this._terminal = terminal;
+    this._printStateTimer = -1;
+    this._printStateDelay = 3000;
   }
 
   start() {
@@ -82,14 +84,21 @@ module.exports = class DebugServer {
   }
 
   _onConnect(connection) {
-    this._printClientState(connection.device, STATE_CONNECTED);
+    if (this._printStateTimer !== -1) {
+      clearTimeout(this._printStateTimer);
+      this._printStateTimer = -1;
+    } else {
+      this._printClientState(connection.device, STATE_CONNECTED);
+    }
   }
 
   _onDisconnect(connection) {
-    this._printClientState(connection.device, STATE_DISCONNECTED);
-    if (this._onEvaluationCompleted) {
-      this._onEvaluationCompleted();
-    }
+    this._printStateTimer = setTimeout(() => {
+      this._printClientState(connection.device, STATE_DISCONNECTED);
+      if (this._onEvaluationCompleted) {
+        this._onEvaluationCompleted();
+      }
+    }, this._printStateDelay);
   }
 
   _onLog(connection, {messages}) {

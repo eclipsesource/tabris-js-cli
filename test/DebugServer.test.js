@@ -54,18 +54,30 @@ describe('DebugServer', () => {
     it('print device disconnected on normal closure', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       rc._webSocket.close(1000);
-      const log = await waitForCalls(terminal.log, 2);
+      const log = await waitForCalls(terminal.log, 2, 4000);
       expect(log).to.contain(' connected');
       expect(log).to.contain(' disconnected');
-    });
+    }).timeout(6000);
 
     it('print device disconnected on outdated session close', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       rc._webSocket.close(4900);
-      const log = await waitForCalls(terminal.log, 2);
+      const log = await waitForCalls(terminal.log, 2, 4000);
       expect(log).to.contain('connected');
       expect(log).to.contain('disconnected');
-    });
+    }).timeout(6000);
+
+    it('prints no disconnected on quick reconnect', async function() {
+      const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
+      rc._webSocket.close(1000);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      rc._disposeSocket();
+      rc._connect();
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      for (const call of terminal.log.getCalls()) {
+        expect(call.args.join('')).not.to.contain('disconnected');
+      }
+    }).timeout(6000);
 
     it('send log message', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
@@ -116,9 +128,9 @@ function createRemoteConsoleClient(server, webSocketFactory) {
   return new global.debugClient.RemoteConsole(webSocketFactory, server.getNewSessionId());
 }
 
-function waitForCalls(spyInstance, minCallCount = 1) {
+function waitForCalls(spyInstance, minCallCount = 1, maxDelay = 1500) {
   let attempts = 0;
-  const maxAttempts = 15;
+  const maxAttempts = Math.ceil(maxDelay / 100);
   return new Promise((resolve, reject) => {
     const interval = setInterval(() => {
       let messages = [];

@@ -120,17 +120,16 @@ describe('Remote Console', function() {
       const command = '5 * 2';
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', command);
-      const log = await waitForCalls(terminal.log, 3);
+      const log = await waitForCalls(terminal.log, 2);
       expect(log).to.contain('connected');
       expect(log).to.contain('10');
-      return true;
     });
 
     it('print object value without console log method', async function() {
       const command = 'tabris.device.platform';
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', command);
-      const log = await waitForCalls(terminal.log, 3);
+      const log = await waitForCalls(terminal.log, 2);
       expect(log).to.contain('connected');
       expect(log).to.contain('format(Android)');
     });
