@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/eclipsesource/tabris-js-cli.svg?branch=master)](https://travis-ci.org/eclipsesource/tabris-js-cli)
 
-The super tool for Tabris.js developers.
+A command line tool to create, build and serve Tabris.js apps.
 
 ## Table of Contents
 * [Installation](#installation)
