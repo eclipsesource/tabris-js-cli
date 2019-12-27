@@ -25,11 +25,11 @@ The super tool for Tabris.js developers.
 
 Creates a new Tabris.js app in the current directory.
 
-*See: [Quick Start Guide - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/getting-started.html)*
+*See: [Quick Start Guide - Tabris.js Documentation](https://tabrisjs.com/documentation/2.9/getting-started.html)*
 
 ### `tabris serve [options] [path]`
 
-Starts a server the [Tabris.js developer app](https://tabrisjs.com/documentation/2.0/developer-app) can be pointed to. If a build script is present in package.json, it is executed beforehand.
+Starts a server the [Tabris.js developer app](https://tabrisjs.com/documentation/2.9/developer-app) can be pointed to. If a build script is present in package.json, it is executed beforehand.
 
 #### path
 
@@ -51,7 +51,7 @@ Builds a Tabris.js app for the given platform.
 
 To speed up the build, pre-compiled build artifacts are kept in a build cache and are reused in subsequent builds. To clean up the build cache, e.g. after updating Cordova plug-ins, run `tabris clean`.
 
-*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
+*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.9/build.html)*
 
 *See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
 
@@ -67,7 +67,7 @@ _Supported only for Windows builds._
 
 Builds a Tabris.js app and runs it on a connected device or emulator.
 
-*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.0/build.html)*
+*See: [Building a Tabris.js app - Tabris.js Documentation](https://tabrisjs.com/documentation/2.9/build.html)*
 
 *See: [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)*
 
