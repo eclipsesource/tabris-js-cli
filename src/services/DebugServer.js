@@ -94,6 +94,7 @@ module.exports = class DebugServer {
 
   _onDisconnect(connection) {
     this._printStateTimer = setTimeout(() => {
+      this._printStateTimer = -1;
       this._printClientState(connection.device, STATE_DISCONNECTED);
       if (this._onEvaluationCompleted) {
         this._onEvaluationCompleted();
