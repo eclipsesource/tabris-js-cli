@@ -15,7 +15,7 @@ describe('TabrisApp', function() {
 
   beforeEach(function() {
     stub(log, 'command');
-    stub(proc, 'execSync');
+    stub(proc, 'spawnSync');
     let dir = temp.mkdirSync('test');
     cwd = realpathSync(dir);
     writeFileSync(join(cwd, 'package.json'), '{"main": "foo.js"}');
@@ -86,8 +86,8 @@ describe('TabrisApp', function() {
     it('runs build scripts with platform', function() {
       project.runPackageJsonBuildScripts('foo');
 
-      expect(proc.execSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build:foo']);
-      expect(proc.execSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build']);
+      expect(proc.spawnSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build:foo']);
+      expect(proc.spawnSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build']);
     });
 
   });
@@ -98,7 +98,7 @@ describe('TabrisApp', function() {
 
     beforeEach(function() {
       project = new TabrisApp(cwd);
-      proc.execSync.callsFake(() => {
+      proc.spawnSync.callsFake(() => {
         let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
         mkdirsSync(tabrisModulePath);
         writeFileSync(join(tabrisModulePath, 'package.json'), '{"version": "2.0.0"}');
@@ -202,7 +202,7 @@ describe('TabrisApp', function() {
 
       project.createCordovaProject(destination);
 
-      expect(proc.execSync)
+      expect(proc.spawnSync)
         .to.have.been.calledWith('npm', ['install', '--production'], {cwd: path.join(destination, 'www', 'app')});
     });
 

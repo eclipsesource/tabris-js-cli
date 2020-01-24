@@ -6,9 +6,9 @@ const {expect, stub, restore, match} = require('./test');
 
 describe('proc', function() {
 
-  ['exec', 'execSync'].forEach(fn => {
+  ['spawn', 'spawnSync'].forEach(fn => {
 
-    let spawnFn = fn === 'exec' ? 'spawn' : 'spawnSync';
+    let spawnFn = fn === 'spawn' ? 'spawn' : 'spawnSync';
 
     describe(fn, function() {
 
@@ -64,7 +64,7 @@ describe('proc', function() {
         expect(childProcess[spawnFn]).to.have.been.calledWithMatch(match.any, ['bar', '"ba k"']);
       });
 
-      if (fn === 'execSync') {
+      if (fn === 'spawnSync') {
         it('throws an error when process exits with non 0 status', function() {
           status = 123;
 
@@ -74,7 +74,7 @@ describe('proc', function() {
         });
       }
 
-      if (fn === 'exec') {
+      if (fn === 'spawn') {
 
         it('exits with 1 when process exits with non 0 status', function() {
           status = 123;

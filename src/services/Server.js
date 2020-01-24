@@ -133,7 +133,7 @@ module.exports = class Server extends EventEmitter {
       if (process.stdin.isTTY && !this._interactive) {
         process.stdin.setRawMode(false);
       }
-      const ps = proc.exec(
+      const ps = proc.spawn(
         'npm',
         ['run', '--if-present', 'watch'],
         {cwd: this._appPath, stdio: 'pipe'}
@@ -141,7 +141,7 @@ module.exports = class Server extends EventEmitter {
       ps.stdout.on('data', data => this.terminal.log(data.toString().trim()));
       ps.stderr.on('data', data => this.terminal.error(data.toString().trim()));
     } else {
-      proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: this._appPath});
+      proc.spawnSync('npm', ['run', '--if-present', 'build'], {cwd: this._appPath});
     }
   }
 

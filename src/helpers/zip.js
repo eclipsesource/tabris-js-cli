@@ -1,7 +1,7 @@
 const yauzl = require('yauzl');
 const fs = require('fs-extra');
 const {join, dirname} = require('path');
-const {execSync} = require('./proc');
+const {spawnSync} = require('./proc');
 const os = require('os');
 
 const ERROR_UNZIPPING_FILE = new Error('Error unzipping file');
@@ -48,7 +48,7 @@ function yauzlUnzip(source, destination) {
 
 function nativeUnzip(source, destination) {
   try {
-    execSync('unzip', [source, '-d', destination]);
+    spawnSync('unzip', [source, '-d', destination]);
     return Promise.resolve();
   } catch (ex) {
     return Promise.reject(new Error('Error unzipping file'));

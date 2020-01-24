@@ -20,7 +20,7 @@ module.exports = class CordovaCliInstaller {
       name: `tabris-cli-cordova-${version}-cache`,
       version: packageJson.version
     });
-    let {status} = proc.execSync('npm', ['install', `cordova@${version}`], {cwd: cordovaDir});
+    let {status} = proc.spawnSync('npm', ['install', `cordova@${version}`], {cwd: cordovaDir});
     if (status !== 0) {
       throw new Error('Error installing Cordova CLI.');
     }

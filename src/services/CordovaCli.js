@@ -43,7 +43,8 @@ class CordovaCli {
   _execCordova(args, opts = [], platformOpts = []) {
     let nonOptionArgs = platformOpts.length ? ['--', ...platformOpts] : [];
     let options = opts.filter(truthy).map(opt => `--${opt}`);
-    proc.execSync(this._cordovaPath, [...args, ...options, '--no-update-notifier', ...nonOptionArgs], {cwd: this._cwd});
+    proc.spawnSync(this._cordovaPath,
+      [...args, ...options, '--no-update-notifier', ...nonOptionArgs], {cwd: this._cwd});
   }
 
 }

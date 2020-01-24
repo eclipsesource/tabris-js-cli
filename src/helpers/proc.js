@@ -3,15 +3,15 @@ const proc = require('child_process');
 const log = require('./log');
 const {fail} = require('./errorHandler');
 
-function exec(cmd, args, opts = {}) {
-  return execute({cmd, args, opts}, {sync: false});
+function spawn(cmd, args, opts = {}) {
+  return _spawn({cmd, args, opts}, {sync: false});
 }
 
-function execSync(cmd, args, opts = {}) {
-  return execute({cmd, args, opts}, {sync: true});
+function spawnSync(cmd, args, opts = {}) {
+  return _spawn({cmd, args, opts}, {sync: true});
 }
 
-function execute({cmd, args, opts = {}}, {sync}) {
+function _spawn({cmd, args, opts = {}}, {sync}) {
   let normalizedCmd = normalizeCommand(cmd);
   let normalizedArgs = normalizeArguments(args);
   log.command([normalizedCmd, ...normalizedArgs].join(' '), opts.cwd);
@@ -55,4 +55,4 @@ function isWindows() {
   return os.platform() === 'win32';
 }
 
-module.exports = {execSync, exec};
+module.exports = {spawnSync, spawn};

@@ -16,8 +16,8 @@ describe('Server', function() {
   beforeEach(function() {
     path = realpathSync(temp.mkdirSync('foo'));
     server = new Server({terminal: new TerminalMock()});
-    stub(proc, 'execSync');
-    stub(proc, 'exec').returns({stdout: {on: stub()}, stderr: {on: stub()}});
+    stub(proc, 'spawnSync');
+    stub(proc, 'spawn').returns({stdout: {on: stub()}, stderr: {on: stub()}});
   });
 
   afterEach(function() {
@@ -124,15 +124,15 @@ describe('Server', function() {
     it('runs build script', async function() {
       writeTabrisProject(path);
       await server.serve(path);
-      expect(proc.execSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
+      expect(proc.spawnSync).to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
     });
 
     it('runs watch script when watch option given', async function() {
       server = new Server({watch: true, terminal: new TerminalMock()});
       writeTabrisProject(path);
       await server.serve(path);
-      expect(proc.execSync).not.to.have.been.called;
-      expect(proc.exec).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {
+      expect(proc.spawnSync).not.to.have.been.called;
+      expect(proc.spawn).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {
         cwd: path,
         stdio: 'pipe'
       });

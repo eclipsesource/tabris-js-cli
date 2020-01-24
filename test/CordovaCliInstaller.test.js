@@ -25,7 +25,7 @@ describe('CordovaCliInstaller', function() {
     it('installs cordova if it does not exist', function() {
       let dir = realpathSync(temp.mkdirSync('foo'));
 
-      stub(proc, 'execSync')
+      stub(proc, 'spawnSync')
         .withArgs('npm', ['install', 'cordova@6.5.0'], {cwd: `${dir}${sep}cordova${sep}6.5.0`})
         .returns({status: 0});
 
@@ -38,7 +38,7 @@ describe('CordovaCliInstaller', function() {
     it('creates package.json', function() {
       let dir = realpathSync(temp.mkdirSync('foo'));
 
-      stub(proc, 'execSync')
+      stub(proc, 'spawnSync')
         .withArgs('npm', ['install', 'cordova@6.5.0'], {cwd: `${dir}${sep}cordova${sep}6.5.0`})
         .returns({status: 0});
 
@@ -53,7 +53,7 @@ describe('CordovaCliInstaller', function() {
     it('throws an error if npm process returns non-0 exit code', function() {
       let dir = realpathSync(temp.mkdirSync('foo'));
 
-      stub(proc, 'execSync')
+      stub(proc, 'spawnSync')
         .withArgs('npm', ['install', 'cordova@6.5.0'], {cwd: `${dir}${sep}cordova${sep}6.5.0`})
         .returns({status: 1});
 
