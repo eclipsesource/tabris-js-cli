@@ -23,6 +23,7 @@ function execute({cmd, args, opts = {}}, {sync}) {
     throw new Error(childProcessExitedMessage(cmd, ps.status));
   }
   if (!sync) {
+    process.on('exit', () => ps.kill());
     ps.on('exit', code => {
       if (code !== 0) {
         fail(childProcessExitedMessage(cmd, code));

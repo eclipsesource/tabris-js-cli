@@ -23,7 +23,7 @@ describe('proc', function() {
         stub(childProcess, 'spawnSync').callsFake(() => ({status}));
         const onStub = stub();
         onStub.withArgs('exit').callsFake((_event, cb) => cb(status));
-        stub(childProcess, 'spawn').returns({on: onStub});
+        stub(childProcess, 'spawn').returns({on: onStub, kill: stub()});
       });
 
       afterEach(restore);
@@ -75,6 +75,7 @@ describe('proc', function() {
       }
 
       if (fn === 'exec') {
+
         it('exits with 1 when process exits with non 0 status', function() {
           status = 123;
 
@@ -82,6 +83,15 @@ describe('proc', function() {
 
           expect(process.exit).to.have.been.calledWith(1);
         });
+
+        it('child process is killed when on exit', function() {
+          let ps = proc[fn]('foo', ['bar'], {option: 'value'});
+
+          process.emit('exit');
+
+          expect(ps.kill).to.have.been.called;
+        });
+
       }
 
     });
