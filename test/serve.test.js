@@ -73,6 +73,60 @@ describe('serve', function() {
     expect(stdout).to.contain(`NPM run --if-present watch [${path}]`);
   }).timeout(8000);
 
+  it('serve exits with 1 when build script exits with a non 0 status', async function() {
+    writeTabrisProject(path, JSON.stringify({main: 'foo.js', scripts: {build: 'exit 123'}}));
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-p', path]);
+
+    let code = await waitForExit(serve);
+    expect(code).to.equal(1);
+  }).timeout(8000);
+
+  it('serve prints build script stdout', async function() {
+    writeTabrisProject(path, JSON.stringify({main: 'foo.js', scripts: {build: 'echo 123'}}));
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-p', path]);
+
+    let stdout = await waitForStdout(serve);
+    expect(stdout).to.contain('123');
+  }).timeout(8000);
+
+  it('serve prints build script stderr', async function() {
+    writeTabrisProject(path, JSON.stringify({main: 'foo.js', scripts: {build: 'echo 123 >&2'}}));
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-p', path]);
+
+    let stderr = await waitForStderr(serve);
+    expect(stderr).to.contain('123');
+  }).timeout(8000);
+
+  it('serve exits with 1 when watch script exits with a non 0 status', async function() {
+    writeTabrisProject(path, JSON.stringify({main: 'foo.js', scripts: {watch: 'exit 123'}}));
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path]);
+
+    let code = await waitForExit(serve);
+    expect(code).to.equal(1);
+  }).timeout(8000);
+
+  it('serve prints watch script stdout', async function() {
+    writeTabrisProject(path, JSON.stringify({main: 'foo.js', scripts: {watch: 'echo 123'}}));
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path]);
+
+    let stdout = await waitForStdout(serve);
+    expect(stdout).to.contain('123');
+  }).timeout(8000);
+
+  it('serve prints watch script stderr', async function() {
+    writeTabrisProject(path, JSON.stringify({main: 'foo.js', scripts: {watch: 'echo 123 >&2'}}));
+
+    serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path]);
+
+    let stderr = await waitForStderr(serve);
+    expect(stderr).to.contain('123');
+  }).timeout(8000);
+
   it('starts a server on a directory given with -p', async function() {
     writeTabrisProject(path);
 
@@ -206,6 +260,12 @@ describe('serve', function() {
 
 });
 
+function waitForExit(process, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    process.on('exit', code => resolve(code));
+    setTimeout(() => reject(new Error('waitForExit timeout')), timeout);
+  });
+}
 function waitForStderr(process, timeout = 2000) {
   let stderr = '';
   return new Promise(resolve => {

@@ -136,14 +136,10 @@ module.exports = class Server extends EventEmitter {
       const ps = proc.exec(
         'npm',
         ['run', '--if-present', 'watch'],
-        {cwd: this._appPath, stdio: [null, 'pipe', null]}
+        {cwd: this._appPath, stdio: 'pipe'}
       );
-      ps.stdout.on('data', data => {
-        const line = data.toString().trim();
-        if (line !== '') {
-          this.terminal.info(line);
-        }
-      });
+      ps.stdout.on('data', data => this.terminal.log(data.toString().trim()));
+      ps.stderr.on('data', data => this.terminal.error(data.toString().trim()));
     } else {
       proc.execSync('npm', ['run', '--if-present', 'build'], {cwd: this._appPath});
     }

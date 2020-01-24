@@ -3,7 +3,7 @@ const {writeFileSync, realpathSync} = require('fs-extra');
 const temp = require('temp');
 const portscanner = require('portscanner');
 const fetch = require('node-fetch');
-const {expect, stub, restore, spy, writeTabrisProject} = require('./test');
+const {expect, stub, restore, writeTabrisProject} = require('./test');
 const Server = require('../src/services/Server');
 const proc = require('../src/helpers/proc');
 const TerminalMock = require('./TerminalMock.js');
@@ -11,19 +11,16 @@ const htmllint = require('htmllint');
 
 describe('Server', function() {
 
-  let server, path, oldCwd;
+  let server, path;
 
   beforeEach(function() {
     path = realpathSync(temp.mkdirSync('foo'));
-    oldCwd = process.cwd();
-    process.chdir(path);
     server = new Server({terminal: new TerminalMock()});
     stub(proc, 'execSync');
-    spy(proc, 'exec');
+    stub(proc, 'exec').returns({stdout: {on: stub()}, stderr: {on: stub()}});
   });
 
   afterEach(function() {
-    process.chdir(oldCwd);
     restore();
   });
 
@@ -131,13 +128,13 @@ describe('Server', function() {
     });
 
     it('runs watch script when watch option given', async function() {
-      server =  new Server({watch: true, terminal: new TerminalMock()});
+      server = new Server({watch: true, terminal: new TerminalMock()});
       writeTabrisProject(path);
       await server.serve(path);
-      expect(proc.execSync).not.to.have.been.calledWith('npm', ['run', '--if-present', 'build'], {cwd: path});
+      expect(proc.execSync).not.to.have.been.called;
       expect(proc.exec).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {
         cwd: path,
-        stdio: [null, 'pipe', null]
+        stdio: 'pipe'
       });
     });
 

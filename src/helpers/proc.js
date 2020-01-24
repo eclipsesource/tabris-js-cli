@@ -1,6 +1,7 @@
 const os = require('os');
 const proc = require('child_process');
 const log = require('./log');
+const {fail} = require('./errorHandler');
 
 function exec(cmd, args, opts = {}) {
   return execute({cmd, args, opts}, {sync: false});
@@ -19,9 +20,20 @@ function execute({cmd, args, opts = {}}, {sync}) {
     shell: isWindows()
   }, opts));
   if (sync && ps.status !== 0) {
-    throw new Error(`The command ${cmd} exited with ${ps.status}`);
+    throw new Error(childProcessExitedMessage(cmd, ps.status));
+  }
+  if (!sync) {
+    ps.on('exit', code => {
+      if (code !== 0) {
+        fail(childProcessExitedMessage(cmd, code));
+      }
+    });
   }
   return ps;
+}
+
+function childProcessExitedMessage(cmd, status) {
+  return `The command ${cmd} exited with ${status}`;
 }
 
 function normalizeArguments(args) {

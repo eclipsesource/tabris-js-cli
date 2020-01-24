@@ -17,10 +17,13 @@ describe('proc', function() {
       beforeEach(function() {
         status = 0;
         platform = 'linux';
+        stub(process, 'exit');
         stub(log, 'command');
         stub(os, 'platform').callsFake(() => platform);
         stub(childProcess, 'spawnSync').callsFake(() => ({status}));
-        stub(childProcess, 'spawn');
+        const onStub = stub();
+        onStub.withArgs('exit').callsFake((_event, cb) => cb(status));
+        stub(childProcess, 'spawn').returns({on: onStub});
       });
 
       afterEach(restore);
@@ -68,6 +71,16 @@ describe('proc', function() {
           expect(() => {
             proc[fn]('foo', ['bar'], {option: 'value'});
           }).to.throw('The command foo exited with 123');
+        });
+      }
+
+      if (fn === 'exec') {
+        it('exits with 1 when process exits with non 0 status', function() {
+          status = 123;
+
+          proc[fn]('foo', ['bar'], {option: 'value'});
+
+          expect(process.exit).to.have.been.calledWith(1);
         });
       }
 
