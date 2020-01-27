@@ -2,7 +2,7 @@ const os = require('os');
 const {join} = require('path');
 const EventEmitter = require('events');
 const {readJsonSync, existsSync, lstat} = require('fs-extra');
-const ecstatic = require('ecstatic');
+const serveStatic = require('serve-static');
 const connect = require('connect');
 const portscanner = require('portscanner');
 const {red, blue} = require('chalk');
@@ -183,7 +183,7 @@ module.exports = class Server extends EventEmitter {
       this._createPackageJsonMiddleware(main),
       this._createBootJsMiddleware(appPath),
       this._createDefaultRouteMiddleware(),
-      ecstatic({root: appPath, showDir: false}),
+      serveStatic(appPath),
       this._create404Handler()
     ];
   }
