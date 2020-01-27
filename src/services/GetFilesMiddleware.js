@@ -22,7 +22,8 @@ module.exports = class GetFilesMiddleware extends EventEmitter {
       if (param !== LOCAL_FILES) {
         throw new Error(`Invalid parameter ${GET_FILES}=${param}`);
       }
-      return res.json(this._generateChunk(this._getLocalPath(req.url)));
+      res.setHeader('content-type', 'application/json');
+      return res.end(JSON.stringify(this._generateChunk(this._getLocalPath(req.url))));
     }
     next();
   }

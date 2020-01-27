@@ -3,7 +3,7 @@ const {join} = require('path');
 const EventEmitter = require('events');
 const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const ecstatic = require('ecstatic');
-const union = require('union');
+const connect = require('connect');
 const portscanner = require('portscanner');
 const {red, blue} = require('chalk');
 const WebSocket = require('ws');
@@ -149,16 +149,11 @@ module.exports = class Server extends EventEmitter {
     if (!Server.externalAddresses.length) {
       throw new Error('No remotely accessible network interfaces');
     }
-    this._server = union.createServer({
-      before: this._createMiddlewares(appPath, main),
-      onError: (err, req, res) => {
-        this.emit('request', req, err);
-        res.end();
-      }
-    });
+    const app = connect();
+    this._createMiddlewares(appPath, main).forEach(middleware => app.use(middleware));
     let port = this._port || await this._findAvailablePort();
     return new Promise((resolve, reject) => {
-      this._server.listen(port, err => {
+      this._server = app.listen(port, err => {
         if (err) {
           reject(err);
         }
@@ -181,22 +176,34 @@ module.exports = class Server extends EventEmitter {
 
   _createMiddlewares(appPath, main) {
     return [
+      this._createErrorHandler(),
       this._createRequestEmitter(),
       this._createGetFilesMiddleware(appPath),
       this._createDeliverEmitter(),
       this._createPackageJsonMiddleware(main),
       this._createBootJsMiddleware(appPath),
       this._createDefaultRouteMiddleware(),
-      ecstatic({root: appPath, showDir: false})
+      ecstatic({root: appPath, showDir: false}),
+      this._create404Handler()
     ];
   }
 
   _logRequest(req, err) {
     if (err) {
-      this.terminal.error(red(`${req.method} ${req.url} ${err.status}: "${err.message || err}"`));
+      this.terminal.error(red(`${req.method} ${req.url}: "${err.message || err}"`));
     } else {
       this.terminal.info(blue(`${req.method} ${req.url}`));
     }
+  }
+
+  _createErrorHandler() {
+    // Error handling middlewares have four parameters.
+    // The fourth parameter needs to be given although it's currently not used.
+    // eslint-disable-next-line no-unused-vars
+    return (err, req, res, next) => {
+      this.emit('request', req, err);
+      res.end();
+    };
   }
 
   _createRequestEmitter() {
@@ -228,7 +235,8 @@ module.exports = class Server extends EventEmitter {
     }
     return (req, res, next) => {
       if (req.url === '/package.json') {
-        return res.json(this._packageJson);
+        res.setHeader('content-type', 'application/json');
+        return res.end(JSON.stringify(this._packageJson));
       }
       next();
     };
@@ -240,7 +248,8 @@ module.exports = class Server extends EventEmitter {
     }
     return (req, res, next) => {
       if (req.url === '/node_modules/tabris/boot.min.js') {
-        return res.text(getBootJs(
+        res.setHeader('content-type', 'text/plain');
+        return res.end(getBootJs(
           appPath,
           this.debugServer.getNewSessionId(),
           encodeURIComponent(this.serverId)
@@ -253,10 +262,19 @@ module.exports = class Server extends EventEmitter {
   _createDefaultRouteMiddleware() {
     return async (req, res, next) => {
       if (req.url === '/') {
-        res.html(await this._html.generate());
+        res.setHeader('content-type', 'text/html');
+        res.end(await this._html.generate());
       } else {
         next();
       }
+    };
+  }
+
+  _create404Handler() {
+    return (req, res) => {
+      res.writeHead(404, {'Content-Type': 'text/plain'});
+      res.end('Not found\n');
+      this.emit('request', req, '404: Not found');
     };
   }
 

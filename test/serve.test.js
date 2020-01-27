@@ -253,7 +253,7 @@ describe('serve', function() {
         fetch(`http://127.0.0.1:${port}/non-existent`)
       ]);
       let log = stdout2.toString();
-      expect(log).to.contain('GET /non-existent 404: "Not found"');
+      expect(log).to.contain('GET /non-existent: "404: Not found"');
     }).timeout(30000);
 
   });

@@ -41,20 +41,21 @@ describe('GetFilesMiddleware', () => {
             return eval(code);
           },
           load(url) {
-            const json = spy();
-            const next = spy();
+            const end = stub();
+            const setHeader = stub();
+            const next = stub();
             try {
-              middleware.handleRequest({url: url.slice(1)}, {json}, next);
-              if (json.notCalled && next.calledOnce) {
+              middleware.handleRequest({url: url.slice(1)}, {end, setHeader}, next);
+              if (end.notCalled && next.calledOnce) {
                 return null;
-              } else if (json.calledOnce) {
-                return JSON.stringify(json.firstCall.args[0]);
+              } else if (end.calledOnce) {
+                return end.firstCall.args[0];
               }
             } catch (ex) {
               console.error(ex.message);
               console.error(ex.stack);
             }
-            throw new Error(`Inconsistent handleRequest behavior ${json.callCount}/${next.callCount}`);
+            throw new Error(`Inconsistent handleRequest behavior ${end.callCount}/${next.callCount}`);
           },
           createLoader: stub().returns('orgCreateLoader'),
           readJSON: stub().returns('orgReadJSON'),
@@ -314,7 +315,7 @@ describe('GetFilesMiddleware', () => {
 
         expect(loader).to.be.null;
         expect(middleware.handleRequest).to.have.been.calledTwice;
-        expect(middleware.handleRequest.getCall(0).args[1].json).to.have.been.calledOnce; // 'req.json'
+        expect(middleware.handleRequest.getCall(0).args[1].end).to.have.been.calledOnce; // 'req.end'
         expect(middleware.handleRequest.getCall(1).args[2]).to.have.been.calledOnce; // 'next'
       });
 
@@ -323,7 +324,7 @@ describe('GetFilesMiddleware', () => {
 
         expect(loader).to.be.null;
         expect(middleware.handleRequest).to.have.been.calledTwice;
-        expect(middleware.handleRequest.getCall(0).args[1].json).to.have.been.calledOnce; // 'req.json'
+        expect(middleware.handleRequest.getCall(0).args[1].end).to.have.been.calledOnce; // 'req.end'
         expect(middleware.handleRequest.getCall(1).args[2]).to.have.been.calledOnce; // 'next'
       });
 
