@@ -1,3 +1,13 @@
+## 3.3.0
+
+* `tabris serve` updated for GitPod support:
+  * New option `--external <url>` controls external address (for QR code)
+  * New option `--port <port>` controls the HTTP port
+  * New option `--no-intro` does not print QR code to console
+  * QR code is now available on the default HTML site
+* Updated dependencies
+* Minor bug fixes
+
 ## 3.2.1
 
 * Fix filename of generated MVVM test
