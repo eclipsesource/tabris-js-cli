@@ -4,17 +4,6 @@
 
 A command line tool to create, build and serve Tabris.js apps.
 
-## Table of Contents
-* [Installation](#installation)
-* [Commands](#commands)
-  + [`tabris init`](#tabris-init)
-  + [`tabris serve [options] [path]`](#tabris-serve-options-path)
-  + [`tabris build [options] <platform> [cordova-platform-opts...]`](#tabris-build-options-platform-cordova-platform-opts)
-  + [`tabris run [options] <platform> [cordova-platform-opts...]`](#tabris-run-options-platform-cordova-platform-opts)
-  + [`tabris clean`](#tabris-clean)
-  + [Common `tabris run` and `tabris build` parameters](#common-tabris-run-and-tabris-build-parameters)
-* [License](#license)
-
 ## Installation
 
 `npm install -g tabris-cli`
