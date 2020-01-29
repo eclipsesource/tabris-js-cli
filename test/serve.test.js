@@ -267,10 +267,9 @@ function waitForExit(process, timeout = 5000) {
   });
 }
 function waitForStderr(process, timeout = 2000) {
-  let stderr = '';
-  return new Promise(resolve => {
-    process.stderr.on('data', data => stderr += data);
-    setTimeout(() => resolve(stderr), timeout);
+  return new Promise((resolve, reject) => {
+    process.stderr.once('data', data => resolve(data.toString()));
+    setTimeout(() => reject('waitForStderr timed out'), timeout);
   });
 }
 
@@ -280,10 +279,8 @@ function waitForStdout(process, timeout = 2000) {
     stdout += data;
   });
   return new Promise((resolve, reject) => {
-    process.stderr.on('data', data => {
-      if (data.indexOf('DeprecationWarning') === -1) {
-        reject(new Error('waitForStdout rejected with stderr ' + data.toString()));
-      }
+    process.stderr.once('data', data => {
+      reject(new Error('waitForStdout rejected with stderr ' + data.toString()));
     });
     setTimeout(() => resolve(stdout), timeout);
   });
