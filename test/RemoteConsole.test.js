@@ -134,16 +134,11 @@ describe('Remote Console', function() {
       expect(log).to.contain('format(Android)');
     });
 
-    it('can not create local variable', async function() {
-      const command = 'var a = "foo"; global.debugClient.remoteConsole.log(a + "bar");';
-      const command2 = 'global.debugClient.remoteConsole.log("a is " + typeof a)';
+    it('cannot modify scope of RemoteConsole methods', async function() {
       await createRemoteConsole(debugServer, webSocketFactory);
-      terminal.emit('line', command);
-      terminal.emit('line', command2);
-      const log = await waitForCalls(terminal.log, 5);
-      expect(log).to.contain('connected');
-      expect(log).to.contain('foobar');
-      expect(log).to.contain('a is undefined');
+      terminal.emit('line', 'let _log = this.log; this.log = function() { _log.call(this, "log_hijacked") }');
+      const log = await waitForCalls(terminal.log, 2);
+      expect(log).not.to.contain('\nlog_hijacked');
     });
 
     function createRemoteConsole(server, webSocketFactory) {

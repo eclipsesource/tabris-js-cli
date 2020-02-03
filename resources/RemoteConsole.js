@@ -93,7 +93,8 @@
      */
     _handleServerMessage(event) {
       try {
-        let result = eval((function() {return event.data;})());
+        let geval = eval;
+        let result = geval(event.data);
         // VT100 escape code for grey color
         this.log(`\x1b[;37m<- ${tabris.format(result)}\x1b[0m`);
       } catch (ex) {
