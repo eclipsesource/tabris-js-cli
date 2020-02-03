@@ -35,11 +35,11 @@ describe('AppReloader', function() {
       await server.serve(path);
       let response = await fetch(`http://127.0.0.1:${server.port}/foo.js`);
       let text = await response.text();
-      spy(server.debugServer, 'send');
+      spy(server.debugServer, 'evaluate');
       writeFileSync(join(path, 'bar.js'), `${text};`);
       return new Promise(resolve => {
         setTimeout(() => {
-          expect(server.debugServer.send).not.to.have.been.called;
+          expect(server.debugServer.evaluate).not.to.have.been.called;
           resolve();
         }, 1500);
       });
@@ -54,10 +54,9 @@ describe('AppReloader', function() {
       await server.serve(path);
       let response = await fetch(`http://127.0.0.1:${server.port}/foo.js`);
       let text = await response.text();
-      spy(server.debugServer, 'send');
+      spy(server.debugServer, 'reloadApp');
       writeFileSync(join(path, 'foo.js'), `${text};`);
-      let log = await waitForCalls(server.debugServer.send, 1);
-      expect(log).to.contain('tabris.app.reload()');
+      await waitForCalls(server.debugServer.reloadApp);
     }).timeout(6000);
 
   });
@@ -72,10 +71,9 @@ describe('AppReloader', function() {
       await server.serve(path);
       let response = await fetch(`http://127.0.0.1:${server.port}/bar?getfiles=${encodeURIComponent('*')}`);
       let text = await response.text();
-      spy(server.debugServer, 'send');
+      spy(server.debugServer, 'reloadApp');
       writeFileSync(join(path, 'bar', 'baz.js'), `${text};`);
-      let log = await waitForCalls(server.debugServer.send, 1);
-      expect(log).to.contain('tabris.app.reload()');
+      await waitForCalls(server.debugServer.reloadApp);
     }).timeout(6000);
 
   });
@@ -87,10 +85,9 @@ describe('AppReloader', function() {
       await server.serve(path);
       let response = await fetch(`http://127.0.0.1:${server.port}/package.json?getfiles=${encodeURIComponent('*')}`);
       let text = await response.text();
-      spy(server.debugServer, 'send');
+      spy(server.debugServer, 'reloadApp');
       writeFileSync(join(path, 'foo.js'), `${text};`);
-      let log = await waitForCalls(server.debugServer.send, 1);
-      expect(log).to.contain('tabris.app.reload()');
+      await waitForCalls(server.debugServer.reloadApp);
     }).timeout(6000);
 
   });
@@ -105,11 +102,11 @@ describe('AppReloader', function() {
       await server.serve(path);
       let response = await fetch(`http://127.0.0.1:${server.port}/bar?getfiles=${encodeURIComponent('*')}`);
       let text = await response.text();
-      spy(server.debugServer, 'send');
+      spy(server.debugServer, 'evaluate');
       writeFileSync(join(path, 'bar', 'baz'), `${text};`);
       return new Promise(resolve => {
         setTimeout(() => {
-          expect(server.debugServer.send).not.to.have.been.called;
+          expect(server.debugServer.evaluate).not.to.have.been.called;
           resolve();
         }, 1500);
       });
@@ -133,9 +130,12 @@ function waitForCalls(spyInstance, minCallCount = 1) {
             .join(''));
         }
         resolve(messages.join('\n'));
-      } else if (++attempts > maxAttempts || spyInstance.callCount > minCallCount) {
+      } else if (++attempts > maxAttempts) {
         clearInterval(interval);
-        reject();
+        reject(new Error('Timeout while waiting for calls'));
+      } else if (spyInstance.callCount > minCallCount) {
+        clearInterval(interval);
+        reject(new Error('Called more often than expected'));
       }
     }, 100);
   });

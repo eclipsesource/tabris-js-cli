@@ -4,6 +4,10 @@ const url = require('url');
 const OUTDATED_CONNECTION_CLOSURE = 4900;
 const STATE_CONNECTED = 'connected';
 const STATE_DISCONNECTED = 'disconnected';
+const messageTypes = Object.freeze({
+  evaluate: 'evaluate',
+  reloadApp: 'reload-app'
+});
 
 module.exports = class DebugServer {
 
@@ -59,9 +63,17 @@ module.exports = class DebugServer {
     this._webSocketServer = null;
   }
 
-  send(command) {
+  evaluate(command) {
     if (this._connection) {
-      this._connection.send(command);
+      this._connection.send(JSON.stringify({type: messageTypes.evaluate, value: command}));
+      return true;
+    }
+    return false;
+  }
+
+  reloadApp() {
+    if (this._connection) {
+      this._connection.send(JSON.stringify({type: messageTypes.reloadApp}));
       return true;
     }
     return false;

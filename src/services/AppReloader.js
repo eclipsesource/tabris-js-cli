@@ -15,7 +15,7 @@ module.exports = class AppReloader {
 
   start() {
     this._watcher.on('change', (filename, stat) => {
-      if (stat && this._server.debugServer.send('tabris.app.reload()')) {
+      if (stat && this._server.debugServer.reloadApp()) {
         this._server.terminal.info(`${filename}' changed, reloading app...`);
       }
     });

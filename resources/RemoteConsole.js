@@ -7,6 +7,10 @@
   const CODE_OUTDATED_CONNECTION_CLOSURE = 4900;
   const NORMAL_CLOSURE_MESSAGE = 'Connection to debug websocket was closed.';
   const CONNECTION_PROBLEM_MESSAGE = 'Connection to debug websocket could not be established.';
+  const messageTypes = Object.freeze({
+    evaluate: 'evaluate',
+    reloadApp: 'reload-app'
+  });
 
   debugClient.RemoteConsole = class RemoteConsole {
 
@@ -92,9 +96,25 @@
      * @param {MessageEvent} event
      */
     _handleServerMessage(event) {
+      let message;
+      try {
+        message = JSON.parse(event.data);
+      } catch(e) {
+        throw new Error('Error parsing server message: ' + e);
+      }
+      if (message.type === messageTypes.evaluate) {
+        this._evaluate(message.value);
+      } else if (message.type === messageTypes.reloadApp) {
+        tabris.app.reload();
+      } else {
+        throw new Error('Server message not supported.');
+      }
+    }
+
+    _evaluate(command) {
       try {
         let geval = eval;
-        let result = geval(event.data);
+        let result = geval(command);
         // VT100 escape code for grey color
         this.log(`\x1b[;37m<- ${tabris.format(result)}\x1b[0m`);
       } catch (ex) {
