@@ -5,6 +5,9 @@ const ServerInfo = require('../src/services/ServerInfo');
 const TerminalMock = require('./TerminalMock');
 const {URL} = require('url');
 
+const ansiiEscapeBlackSquare = '\u001b\\[40m {2}\u001b\\[0m';
+const ansiiEscapeWhiteSquare = '\u001b\\[47m {2}\u001b\\[0m';
+
 describe('ServerInfo', function() {
 
   afterEach(restore);
@@ -20,7 +23,9 @@ describe('ServerInfo', function() {
 
       await serverInfo.show();
 
-      expect(terminal.log).to.have.been.calledWithMatch(/[▄█]+/);
+      const qrCodeSize = 27;
+      let regexp = new RegExp(`((${ansiiEscapeBlackSquare}|${ansiiEscapeWhiteSquare})+\\n){${qrCodeSize}}$`, 'gm');
+      expect(terminal.log).to.have.been.called.calledWithMatch(regexp);
     });
 
     it('prints given external URL', async function() {
@@ -58,7 +63,7 @@ describe('ServerInfo', function() {
 
       await serverInfo.show();
 
-      expect(terminal.log).not.to.have.been.calledWithMatch(/[▄█]+/);
+      expect(terminal.log).not.to.have.been.calledWithMatch(new RegExp(ansiiEscapeBlackSquare));
     });
 
     it('prints actual port if noIntro is true', async function() {

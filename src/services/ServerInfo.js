@@ -82,7 +82,7 @@ module.exports = class ServerInfo {
 
   generateTextQRCode(str, outputCallBack) {
     const qrcode = require('qrcode');
-    qrcode.toString(str, {margin: 0}, (error, result) => {
+    qrcode.toString(str, {type: 'terminal'}, (error, result) => {
       if (error) {
         console.warn(error);
         outputCallBack('');
