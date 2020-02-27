@@ -68,12 +68,12 @@
     }
 
     createLoader(url) {
-      const src = this._load(url);
-      if (!src) {
+      const file = this._getFile(url);
+      if (!file || !file.content) {
         return null;
       }
       try {
-        return tabris.Module.execute(modulePrefix + src + modulePostfix, url);
+        return tabris.Module.execute(modulePrefix + file.content + modulePostfix, file.path);
       } catch (ex) {
         throw new Error('Could not parse ' + url + ':' + ex);
       }
@@ -125,6 +125,11 @@
     }
 
     _load(url) {
+      const file = this._getFile(url);
+      return file ? file.content : null;
+    }
+
+    _getFile(url) {
       const slash = url.lastIndexOf('/');
       const dir = url.slice(0, slash);
       const file = url.slice(slash + 1);
@@ -135,7 +140,7 @@
       if (!('content' in files[file])) {
         files[file].content = tabris.Module.load(url);
       }
-      return files[file].content;
+      return files[file];
     }
 
     _getFiles(dir) {

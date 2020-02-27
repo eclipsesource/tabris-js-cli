@@ -178,7 +178,18 @@ describe('GetFilesMiddleware', () => {
         expect(listener).to.have.been.calledWith(posix.join(APP_PATH, 'foo', 'baz.json'));
       });
 
-      it('createLoader names parameters', function() {
+      it('createLoader calls Module.execute with correct parameters', function() {
+        stub(global.tabris.Module, 'execute');
+
+        preLoader.createLoader('./foo/bar.js');
+
+        expect(global.tabris.Module.execute).to.have.been.calledWithMatch(
+          source,
+          normalize('/projectdir/foo/bar.js')
+        );
+      });
+
+      it('createLoader names wrapper function parameters correctly', function() {
         const barModule = {exports: {}, require: function() {}};
 
         const loader = preLoader.createLoader('./foo/bar.js');
