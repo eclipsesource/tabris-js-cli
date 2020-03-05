@@ -47,14 +47,20 @@ describe('DebugServer', () => {
 
     it('print device connected', async function() {
       createRemoteConsoleClient(debugServer, webSocketFactory);
-      const log = await waitForCalls(terminal.log);
+      const log = await waitForCalls(terminal.log, 2);
       expect(log).to.contain(' connected');
+    });
+
+    it('print keyboard shortcuts when connected for the first time', async function() {
+      createRemoteConsoleClient(debugServer, webSocketFactory);
+      const log = await waitForCalls(terminal.log, 2);
+      expect(log).to.contain('Ctrl+C');
     });
 
     it('print device disconnected on normal closure', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       rc._webSocket.close(1000);
-      const log = await waitForCalls(terminal.log, 2, 4000);
+      const log = await waitForCalls(terminal.log, 3, 4000);
       expect(log).to.contain(' connected');
       expect(log).to.contain(' disconnected');
     }).timeout(6000);
@@ -62,7 +68,7 @@ describe('DebugServer', () => {
     it('print device disconnected on outdated session close', async function() {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       rc._webSocket.close(4900);
-      const log = await waitForCalls(terminal.log, 2, 4000);
+      const log = await waitForCalls(terminal.log, 3, 4000);
       expect(log).to.contain('connected');
       expect(log).to.contain('disconnected');
     }).timeout(6000);
@@ -83,7 +89,7 @@ describe('DebugServer', () => {
       const rc = createRemoteConsoleClient(debugServer, webSocketFactory);
       const message = 'log message';
       rc.log(message);
-      const log = await waitForCalls(terminal.log, 2);
+      const log = await waitForCalls(terminal.log, 3);
       expect(log).to.contain('connected');
       expect(log).to.contain(message);
     });

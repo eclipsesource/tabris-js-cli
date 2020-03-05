@@ -16,6 +16,7 @@ const ServerInfo = require('./ServerInfo');
 const RemoteConsole = require('./RemoteConsole');
 const AppReloader = require('./AppReloader');
 const IndexHtml = require('./IndexHtml');
+const KeyboardShortcutHandler = require('./KeyboardShortcutHandler');
 const {URL} = require('url');
 
 const BASE_PORT = 8080;
@@ -131,9 +132,6 @@ module.exports = class Server extends EventEmitter {
 
   _runProjectScript() {
     if (this._watch) {
-      if (process.stdin.isTTY && !this._interactive) {
-        process.stdin.setRawMode(false);
-      }
       const ps = proc.spawn(
         'npm',
         ['run', '--if-present', 'watch'],
@@ -167,6 +165,7 @@ module.exports = class Server extends EventEmitter {
     const webSocketServer = new WebSocket.Server({server: this._server});
     this.debugServer = new DebugServer(webSocketServer, this.terminal, this.serverId);
     this.debugServer.start();
+    new KeyboardShortcutHandler(this, this._interactive).configureShortcuts();
     if (this._interactive) {
       RemoteConsole.create(this);
     }

@@ -25,6 +25,7 @@ module.exports = class DebugServer {
     this._terminal = terminal;
     this._printStateTimer = -1;
     this._printStateDelay = 3000;
+    this._firstConnect = true;
   }
 
   start() {
@@ -150,6 +151,18 @@ module.exports = class DebugServer {
 
   _printClientState(device, state) {
     this._terminal.log(`[${device.platform}][${device.model}]: ${state}`);
+    if (this._firstConnect) {
+      this._firstConnect = false;
+      this._printKeyboardShortcuts();
+    }
+  }
+
+  _printKeyboardShortcuts() {
+    const info = `
+Keyboard shortcuts:
+  Ctrl+C: exit, Ctrl+R: reload app
+`;
+    this._terminal.log(info);
   }
 
   _createConnection(webSocket, sessionId, address) {
