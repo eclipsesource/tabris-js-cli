@@ -28,6 +28,7 @@ module.exports = class DebugConnection {
       this._closeWebSocket();
     }
     this._webSocket = webSocket;
+    this._webSocket.addEventListener('close', () => this.close());
     this._sessionId = sessionId;
     this._startConnectionChecks();
     this._registerMessageHandler();
@@ -41,9 +42,11 @@ module.exports = class DebugConnection {
   }
 
   send(command) {
-    if (this._webSocket && command) {
+    if (command && this._verifyWebsocketOpen()) {
       this._webSocket.send(command);
+      return true;
     }
+    return false;
   }
 
   set onConnect(cb) {
@@ -94,11 +97,20 @@ module.exports = class DebugConnection {
     this._interval = setInterval(() => {
       if (waitingForPong) {
         this._closeWebSocket();
-        return;
+      } else if (this._verifyWebsocketOpen()) {
+        this._webSocket.ping(() => {});
+        waitingForPong = true;
       }
-      this._webSocket.ping(() => {});
-      waitingForPong = true;
     }, STATE_CHECK_INTERVAL);
+  }
+
+  _verifyWebsocketOpen() {
+    if (this._webSocket && this._webSocket.readyState === this._webSocket.OPEN) {
+      return true;
+    } else if (this._webSocket) {
+      this._closeWebSocket();
+    }
+    return false;
   }
 
   _closeWebSocket(code) {
@@ -106,13 +118,15 @@ module.exports = class DebugConnection {
     if (this._onDisconnect) {
       this._onDisconnect(this);
     }
-    // Mock used in tests does not implement "terminate"
-    if (!arguments.length && this._webSocket.terminate) {
-      this._webSocket.terminate();
-    } else {
-      this._webSocket.close(code);
-    }
+    // prevent the 'close' listener from calling this method, causing a stack overflow
+    const oldSocket = this._webSocket;
     this._webSocket = null;
+    // Mock used in tests does not implement "terminate"
+    if (!arguments.length && oldSocket.terminate) {
+      oldSocket.terminate();
+    } else {
+      oldSocket.close(code);
+    }
   }
 
   _stopConnectionChecks() {

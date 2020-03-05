@@ -73,8 +73,7 @@ module.exports = class DebugServer {
 
   reloadApp() {
     if (this._connection) {
-      this._connection.send(JSON.stringify({type: messageTypes.reloadApp}));
-      return true;
+      return this._connection.send(JSON.stringify({type: messageTypes.reloadApp}));
     }
     return false;
   }
