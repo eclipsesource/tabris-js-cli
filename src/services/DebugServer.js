@@ -44,7 +44,7 @@ module.exports = class DebugServer {
       }
       if (this._connection) {
         if (address === this._connection.address) {
-          return this._connection.open(webSocket, serverId);
+          return this._connection.open(webSocket, sessionId);
         }
         if (sessionId < this._connection.sessionId) {
           return webSocket.close(OUTDATED_CONNECTION_CLOSURE);
@@ -104,6 +104,9 @@ module.exports = class DebugServer {
   }
 
   _onDisconnect(connection) {
+    if (this._printStateTimer !== -1) {
+      clearTimeout(this._printStateTimer);
+    }
     this._printStateTimer = setTimeout(() => {
       this._printStateTimer = -1;
       this._printClientState(connection.device, STATE_DISCONNECTED);
