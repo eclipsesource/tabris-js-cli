@@ -36,6 +36,7 @@ module.exports = class Server extends EventEmitter {
     this._interactive = !!options.interactive;
     this._autoReload  = !!options.autoReload;
     this._noIntro = options.noIntro;
+    this._qrcodeRenderer = options.qrcodeRenderer;
 
     this._external = options.external;
     this._port = options.port;
@@ -72,7 +73,7 @@ module.exports = class Server extends EventEmitter {
       throw new Error('Project must be a directory.');
     }
     await this._startServices();
-    this._serverInfo = new ServerInfo(this, this._getPublicURLs(), this._noIntro);
+    this._serverInfo = new ServerInfo(this, this._getPublicURLs(), this._noIntro, this._qrcodeRenderer);
     this._html = new IndexHtml(this._serverInfo);
     await this._serverInfo.show();
   }

@@ -23,6 +23,18 @@ describe('ServerInfo', function() {
 
       await serverInfo.show();
 
+      expect(terminal.log).to.have.been.calledWithMatch(/[▄█]+/);
+    });
+
+    it('prints QR code with terminal renderer to console', async function() {
+      const terminal = new TerminalMock();
+      const serverInfo = new ServerInfo({
+        port: '8080',
+        terminal,
+      }, [new URL('http://127.0.0.1:8080')], false, 'terminal');
+
+      await serverInfo.show();
+
       const qrCodeSize = 27;
       let regexp = new RegExp(`((${ansiiEscapeBlackSquare}|${ansiiEscapeWhiteSquare})+\\n){${qrCodeSize}}$`, 'gm');
       expect(terminal.log).to.have.been.called.calledWithMatch(regexp);

@@ -9,10 +9,11 @@ module.exports = class ServerInfo {
    * @param {URL[]} externalURLs
    * @param {boolean} noIntro
    */
-  constructor(server, externalURLs, noIntro) {
+  constructor(server, externalURLs, noIntro, qrcodeRenderer) {
     this.server = server;
     this.externalURLs = externalURLs;
     this.noIntro = noIntro;
+    this.qrcodeRenderer = qrcodeRenderer || 'utf8';
   }
 
   async show() {
@@ -82,7 +83,7 @@ module.exports = class ServerInfo {
 
   generateTextQRCode(str, outputCallBack) {
     const qrcode = require('qrcode');
-    qrcode.toString(str, {type: 'terminal'}, (error, result) => {
+    qrcode.toString(str, {type: this.qrcodeRenderer}, (error, result) => {
       if (error) {
         console.warn(error);
         outputCallBack('');

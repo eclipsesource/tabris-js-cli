@@ -50,6 +50,15 @@ Executes the _watch_ instead of the _build_ script given in the package.json of 
 
 Does not print the available external URLs or QR code to the console, only the port. They can still be viewed by opening the given port in a browser.
 
+##### `--qrcode-renderer`
+
+Choose a renderer for the printed QR code.
+
+* `utf8` (default): based on UTF-8 characters.
+* `terminal`: based on background color customization of the cursor color.
+
+Use "terminal" if the QR code presentation breaks due to the font used in the terminal.
+
 ##### `--external [url]`
 
 Uses the given string as the advertised public URL, to the exclusion of all other. Must include protocol and port. Should be used with `--port` to ensure the actual port matches this one.
