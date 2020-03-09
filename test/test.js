@@ -39,4 +39,29 @@ function writeTabrisProject(path, projectPackage, tabrisPackage) {
   }
 }
 
-module.exports = {expect, spy, stub, match, restore, writeTabrisProject};
+function waitForCalls(spyInstance, minCallCount = 1, maxDelay = 1500) {
+  let attempts = 0;
+  const maxAttempts = Math.ceil(maxDelay / 100);
+  return new Promise((resolve, reject) => {
+    const interval = setInterval(() => {
+      if (spyInstance.callCount === minCallCount) {
+        clearInterval(interval);
+        let messages = [];
+        for (const call of spyInstance.getCalls()) {
+          messages.push(call.args
+            .map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg)
+            .join(''));
+        }
+        resolve(messages.join('\n'));
+      } else if (++attempts > maxAttempts) {
+        clearInterval(interval);
+        reject(new Error('Timeout while waiting for calls'));
+      } else if (spyInstance.callCount > minCallCount) {
+        clearInterval(interval);
+        reject(new Error('Called more often than expected'));
+      }
+    }, 100);
+  });
+}
+
+module.exports = {expect, spy, stub, match, restore, writeTabrisProject, waitForCalls};

@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const {join} = require('path');
 const Server = require('../src/services/Server');
 const AppReloader = require('../src/services/AppReloader');
-const {expect, restore, spy, writeTabrisProject} = require('./test');
+const {expect, restore, spy, waitForCalls, writeTabrisProject} = require('./test');
 const {writeFileSync, realpathSync, mkdirSync} = require('fs-extra');
 const TerminalMock = require('./TerminalMock.js');
 
@@ -91,31 +91,6 @@ describe('AppReloader', function() {
   });
 
 });
-
-function waitForCalls(spyInstance, minCallCount = 1) {
-  let attempts = 0;
-  const maxAttempts = 25;
-  return new Promise((resolve, reject) => {
-    const interval = setInterval(() => {
-      if (spyInstance.callCount === minCallCount) {
-        clearInterval(interval);
-        let messages = [];
-        for (const call of spyInstance.getCalls()) {
-          messages.push(call.args
-            .map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg)
-            .join(''));
-        }
-        resolve(messages.join('\n'));
-      } else if (++attempts > maxAttempts) {
-        clearInterval(interval);
-        reject(new Error('Timeout while waiting for calls'));
-      } else if (spyInstance.callCount > minCallCount) {
-        clearInterval(interval);
-        reject(new Error('Called more often than expected'));
-      }
-    }, 100);
-  });
-}
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

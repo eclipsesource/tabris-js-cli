@@ -1,5 +1,5 @@
 const DebugServer = require('../src/services/DebugServer');
-const {expect, restore} = require('./test');
+const {expect, restore, waitForCalls} = require('./test');
 const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
 const {getDebugClient} = require('../src/services/getBootJs');
@@ -126,24 +126,4 @@ describe('DebugServer', () => {
 
 function createRemoteConsoleClient(server, webSocketFactory) {
   return new global.debugClient.RemoteConsole(webSocketFactory, server.getNewSessionId());
-}
-
-function waitForCalls(spyInstance, minCallCount = 1, maxDelay = 1500) {
-  let attempts = 0;
-  const maxAttempts = Math.ceil(maxDelay / 100);
-  return new Promise((resolve, reject) => {
-    const interval = setInterval(() => {
-      let messages = [];
-      for (const call of spyInstance.getCalls()) {
-        messages.push(call.args.join(''));
-      }
-      if (spyInstance.callCount === minCallCount) {
-        clearInterval(interval);
-        resolve(messages.join('\n'));
-      } else if (++attempts > maxAttempts || spyInstance.callCount > minCallCount) {
-        clearInterval(interval);
-        reject(new Error(messages.join('\n')));
-      }
-    }, 100);
-  });
 }

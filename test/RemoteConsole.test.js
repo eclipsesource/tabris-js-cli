@@ -4,7 +4,7 @@ const DebugServer = require('../src/services/DebugServer');
 const RemoteConsole = require('../src/services/RemoteConsole');
 const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
-const {expect, restore, writeTabrisProject} = require('./test');
+const {expect, restore, writeTabrisProject, waitForCalls} = require('./test');
 const {getDebugClient} = require('../src/services/getBootJs');
 const TerminalMock = require('./TerminalMock');
 const {realpathSync} = require('fs-extra');
@@ -175,27 +175,5 @@ function waitForStdout(process, timeout = 800) {
   });
   return new Promise(resolve => {
     setTimeout(() => resolve(stdout), timeout);
-  });
-}
-
-function waitForCalls(spyInstance, minCallCount = 1) {
-  let attempts = 0;
-  const maxAttempts = 15;
-  return new Promise((resolve, reject) => {
-    const interval = setInterval(() => {
-      if (spyInstance.callCount === minCallCount) {
-        clearInterval(interval);
-        let messages = [];
-        for (const call of spyInstance.getCalls()) {
-          messages.push(call.args
-            .map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg)
-            .join(''));
-        }
-        resolve(messages.join('\n'));
-      } else if (++attempts > maxAttempts || spyInstance.callCount > minCallCount) {
-        clearInterval(interval);
-        reject();
-      }
-    }, 100);
   });
 }
