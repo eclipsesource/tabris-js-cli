@@ -64,12 +64,13 @@ describe('serve', function() {
     expect(stdout).to.contain(`NPM run --if-present build [${path}]`);
   }).timeout(8000);
 
-  it('runs watch script when -w option given', async function() {
+  it('runs build and watch scripts when -w option given', async function() {
     writeTabrisProject(path);
 
     serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path], {env});
 
     let stdout = await waitForStdout(serve);
+    expect(stdout).to.contain(`NPM run --if-present build [${path}]`);
     expect(stdout).to.contain(`NPM run --if-present watch [${path}]`);
   }).timeout(8000);
 
