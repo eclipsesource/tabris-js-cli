@@ -1,4 +1,5 @@
 const DebugConnection = require('../helpers/DebugConnection');
+const {EventEmitter} = require('events');
 const url = require('url');
 
 const OUTDATED_CONNECTION_CLOSURE = 4900;
@@ -9,7 +10,7 @@ const messageTypes = Object.freeze({
   reloadApp: 'reload-app'
 });
 
-module.exports = class DebugServer {
+module.exports = class DebugServer extends EventEmitter {
 
   /**
    * @param {import('ws').Server} webSocketServer
@@ -17,6 +18,7 @@ module.exports = class DebugServer {
    * @param {string} serverId
    */
   constructor(webSocketServer, terminal, serverId) {
+    super();
     this._webSocketServer = webSocketServer;
     this._sessionCounter = 0;
     this._serverId = serverId;
@@ -95,16 +97,17 @@ module.exports = class DebugServer {
     return this._webSocketServer.options.port;
   }
 
-  _onConnect(connection) {
+  _handleConnect(connection, sessionId) {
     if (this._printStateTimer !== -1) {
       clearTimeout(this._printStateTimer);
       this._printStateTimer = -1;
     } else {
       this._printClientState(connection.device, STATE_CONNECTED);
     }
+    this.emit('connect', sessionId);
   }
 
-  _onDisconnect(connection) {
+  _handleDisconnect(connection) {
     if (this._printStateTimer !== -1) {
       clearTimeout(this._printStateTimer);
     }
@@ -117,13 +120,13 @@ module.exports = class DebugServer {
     }, this._printStateDelay);
   }
 
-  _onLog(connection, {messages}) {
+  _handleLog(_connection, {messages}) {
     for (const message of messages) {
       this._printClientMessage(message);
     }
   }
 
-  _onActionResponse(connection, {enablePrompt}) {
+  _handleActionResponse(_connection, {enablePrompt}) {
     if (enablePrompt && this._onEvaluationCompleted) {
       this._onEvaluationCompleted();
     }
@@ -167,10 +170,10 @@ Keyboard shortcuts:
 
   _createConnection(webSocket, sessionId, address) {
     const connection = new DebugConnection(address);
-    connection.onConnect = this._onConnect.bind(this);
-    connection.onDisconnect = this._onDisconnect.bind(this);
-    connection.onLog = this._onLog.bind(this);
-    connection.onActionResponse = this._onActionResponse.bind(this);
+    connection.on('connect', () => this._handleConnect(connection, sessionId));
+    connection.on('disconnect', () => this._handleDisconnect(connection));
+    connection.on('log', args => this._handleLog(connection, args));
+    connection.on('actionResponse', args => this._handleActionResponse(connection, args));
     connection.open(webSocket, sessionId);
     return connection;
   }

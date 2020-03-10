@@ -61,15 +61,15 @@ module.exports = class Server extends EventEmitter {
     if (!appPath) {
       throw new Error('path missing');
     }
-    this._appPath = appPath;
+    this.appPath = appPath;
     this.serverId = join(appPath, (main || 'package.json')) + '#' + Date.now();
     let stats = await this._lstat(appPath);
     if (stats.isDirectory()) {
-      this._packageJson = this._readAppPackageJson(appPath, main);
-      this._tabrisVersion = parseInt(this._readTabrisPackageJson(appPath).version.split('.')[0], 10);
+      this._packageJson = this._readAppPackageJson(main);
+      this._tabrisVersion = parseInt(this._readTabrisPackageJson().version.split('.')[0], 10);
       this._checkTabrisVersion();
       this._runProjectScript();
-      await this._startServer(appPath, main);
+      await this._startServer(main);
     } else {
       throw new Error('Project must be a directory.');
     }
@@ -98,8 +98,8 @@ module.exports = class Server extends EventEmitter {
     }
   }
 
-  _readAppPackageJson(appPath, main) {
-    let packageJsonPath = join(appPath, 'package.json');
+  _readAppPackageJson(main) {
+    let packageJsonPath = join(this.appPath, 'package.json');
     if (!existsSync(packageJsonPath)) {
       throw new Error('Directory must contain package.json');
     }
@@ -113,8 +113,8 @@ module.exports = class Server extends EventEmitter {
     return content;
   }
 
-  _readTabrisPackageJson(appPath) {
-    let packageJsonPath = join(appPath, 'node_modules', 'tabris', 'package.json');
+  _readTabrisPackageJson() {
+    let packageJsonPath = join(this.appPath, 'node_modules', 'tabris', 'package.json');
     if (!existsSync(packageJsonPath)) {
       throw new Error('No tabris module installed; did you run npm install?');
     }
@@ -131,24 +131,24 @@ module.exports = class Server extends EventEmitter {
   }
 
   _runProjectScript() {
-    proc.spawnSync('npm', ['run', '--if-present', 'build'], {cwd: this._appPath});
+    proc.spawnSync('npm', ['run', '--if-present', 'build'], {cwd: this.appPath});
     if (this._watch) {
       const ps = proc.spawn(
         'npm',
         ['run', '--if-present', 'watch'],
-        {cwd: this._appPath, stdio: 'pipe'}
+        {cwd: this.appPath, stdio: 'pipe'}
       );
       ps.stdout.on('data', data => this.terminal.log(data.toString().trim()));
       ps.stderr.on('data', data => this.terminal.error(data.toString().trim()));
     }
   }
 
-  async _startServer(appPath, main) {
+  async _startServer(main) {
     if (!Server.externalAddresses.length) {
       throw new Error('No remotely accessible network interfaces');
     }
     const app = connect();
-    this._createMiddlewares(appPath, main).forEach(middleware => app.use(middleware));
+    this._createMiddlewares(this.appPath, main).forEach(middleware => app.use(middleware));
     let port = this._port || await this._findAvailablePort();
     return new Promise((resolve, reject) => {
       this._server = app.listen(port, err => {
@@ -173,16 +173,16 @@ module.exports = class Server extends EventEmitter {
     }
   }
 
-  _createMiddlewares(appPath, main) {
+  _createMiddlewares(main) {
     return [
       this._createErrorHandler(),
       this._createRequestEmitter(),
-      this._createGetFilesMiddleware(appPath),
+      this._createGetFilesMiddleware(),
       this._createDeliverEmitter(),
       this._createPackageJsonMiddleware(main),
-      this._createBootJsMiddleware(appPath),
+      this._createBootJsMiddleware(),
       this._createDefaultRouteMiddleware(),
-      serveStatic(appPath),
+      serveStatic(this.appPath),
       this._create404Handler()
     ];
   }
@@ -212,11 +212,11 @@ module.exports = class Server extends EventEmitter {
     };
   }
 
-  _createGetFilesMiddleware(appPath) {
+  _createGetFilesMiddleware() {
     const fileService = new FileService({
-      [join(appPath, 'package.json')]: JSON.stringify(this._packageJson)
+      [join(this.appPath, 'package.json')]: JSON.stringify(this._packageJson)
     });
-    const getFiles = new GetFilesMiddleware(appPath, fileService);
+    const getFiles = new GetFilesMiddleware(this.appPath, fileService);
     getFiles.on('deliver', url => this.emit('deliver', url));
     return getFiles.handleRequest.bind(getFiles);
   }
@@ -241,7 +241,7 @@ module.exports = class Server extends EventEmitter {
     };
   }
 
-  _createBootJsMiddleware(appPath) {
+  _createBootJsMiddleware() {
     if (this._tabrisVersion < 3) {
       return (req, res, next) => next();
     }
@@ -249,7 +249,7 @@ module.exports = class Server extends EventEmitter {
       if (req.url === '/node_modules/tabris/boot.min.js') {
         res.setHeader('content-type', 'text/plain');
         return res.end(getBootJs(
-          appPath,
+          this.appPath,
           this.debugServer.getNewSessionId(),
           encodeURIComponent(this.serverId)
         ));

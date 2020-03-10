@@ -1,10 +1,11 @@
 const {join, resolve} = require('path');
 const {writeFileSync, realpathSync} = require('fs-extra');
 const temp = require('temp');
-const {expect, restore, writeTabrisProject} = require('./test');
+const {stub, expect, restore, writeTabrisProject} = require('./test');
 const spawn = require('child_process').spawn;
 const fetch = require('node-fetch');
 const {platform} = require('os');
+const WebSocket = require('ws');
 
 // General note: On windows "spawn" can be unexpectedly slow.
 // Therefore waitForStdout gets very long timeout, and as consequence
@@ -12,7 +13,7 @@ const {platform} = require('os');
 
 describe('serve', function() {
 
-  let serve, path, env;
+  let serve, path, env, webSocketClient;
   const mockBinDir = join(__dirname, 'bin');
 
   beforeEach(function() {
@@ -25,6 +26,9 @@ describe('serve', function() {
   afterEach(() => {
     if (serve) {
       serve.kill();
+    }
+    if (webSocketClient) {
+      webSocketClient.close();
     }
     serve = null;
     restore();
@@ -139,6 +143,52 @@ describe('serve', function() {
     let data = await response.json();
     expect(data.main).to.equal('foo.js');
   }).timeout(8000);
+
+  it('does not reload client when a changed file was never loaded', async function() {
+    writeTabrisProject(path);
+    serve = spawn('node', ['./src/tabris', 'serve', '-wap', path], {env});
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout);
+    webSocketClient = await startFakeWebSocketClient(port);
+    webSocketClient.onmessage = stub();
+
+    writeFileSync(join(path, 'foo.js'), 'content');
+
+    await waitForStdout(serve);
+    expect(webSocketClient.onmessage).not.to.have.been.called;
+  }).timeout(16000);
+
+  it('reloads client on file change', async function() {
+    writeTabrisProject(path);
+    serve = spawn('node', ['./src/tabris', 'serve', '-wap', path], {env});
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout);
+    webSocketClient = await startFakeWebSocketClient(port);
+    webSocketClient.onmessage = stub();
+    await fetch(`http://127.0.0.1:${port}/foo.js`);
+
+    writeFileSync(join(path, 'foo.js'), 'content');
+
+    const res = await waitForStdout(serve);
+    const {data} = webSocketClient.onmessage.getCall(0).args[0];
+    expect(res).to.contain('foo.js\' changed, reloading app...');
+    expect(JSON.parse(data)).to.deep.equal({'type': 'reload-app'});
+  }).timeout(16000);
+
+  it('does not reload client when the changed file was not a source file', async function() {
+    writeTabrisProject(path);
+    writeFileSync(join(path, 'bar'));
+    serve = spawn('node', ['./src/tabris', 'serve', '-wap', path], {env});
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout);
+    webSocketClient = await startFakeWebSocketClient(port);
+    webSocketClient.onmessage = stub();
+    await fetch(`http://127.0.0.1:${port}/bar`);
+
+    writeFileSync(join(path, 'bar'), 'content');
+
+    expect(webSocketClient.onmessage).not.to.have.been.called;
+  }).timeout(16000);
 
   it('starts a server on a directory given with --project', async function() {
     writeTabrisProject(path);
@@ -291,4 +341,17 @@ function getPortFromStdout(stdout) {
   let ports = stdout.match(/.*http:.*:(\d+).*/);
   expect(ports).to.be.a('array', 'No ports found in stdout: ' + stdout);
   return ports[1];
+}
+
+async function startFakeWebSocketClient(port) {
+  const bootMinJs = await (await fetch(`http://127.0.0.1:${port}/node_modules/tabris/boot.min.js`)).text();
+  const sessionId = bootMinJs.match(/sessionId: '(.*)',/m)[1];
+  const serverId = bootMinJs.match(/serverId: '(.*)',/m)[1];
+  return new Promise(resolve => {
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/?session=${sessionId}&server=${serverId}`, '');
+    ws.onopen = () => {
+      ws.send(JSON.stringify({type: 'connect', parameter: {platform: 'foo', model: 'bar'}}));
+      resolve(ws);
+    };
+  });
 }

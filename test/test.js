@@ -13,6 +13,7 @@ let sandbox = sinon.sandbox.create();
 let spy = sandbox.spy.bind(sandbox);
 let stub = sandbox.stub.bind(sandbox);
 let match = sinon.match;
+let createStubInstance = sinon.createStubInstance;
 
 function restore() {
   sandbox.restore();
@@ -36,6 +37,7 @@ function writeTabrisProject(path, projectPackage, tabrisPackage) {
     mkdirSync(join(path, 'node_modules'), {recursive: true});
     mkdirSync(join(path, 'node_modules', 'tabris'), {recursive: true});
     writeFileSync(join(path, 'node_modules', 'tabris', 'package.json'), tabrisPackage || '{"version": "3.0.0"}');
+    writeFileSync(join(path, 'node_modules', 'tabris', 'boot.min.js'));
   }
 }
 
@@ -64,4 +66,4 @@ function waitForCalls(spyInstance, minCallCount = 1, maxDelay = 1500) {
   });
 }
 
-module.exports = {expect, spy, stub, match, restore, writeTabrisProject, waitForCalls};
+module.exports = {expect, spy, stub, createStubInstance, match, restore, writeTabrisProject, waitForCalls};
