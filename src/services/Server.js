@@ -131,7 +131,6 @@ module.exports = class Server extends EventEmitter {
   }
 
   _runProjectScript() {
-    proc.spawnSync('npm', ['run', '--if-present', 'build'], {cwd: this.appPath});
     if (this._watch) {
       const ps = proc.spawn(
         'npm',
@@ -140,6 +139,8 @@ module.exports = class Server extends EventEmitter {
       );
       ps.stdout.on('data', data => this.terminal.log(data.toString().trim()));
       ps.stderr.on('data', data => this.terminal.error(data.toString().trim()));
+    } else {
+      proc.spawnSync('npm', ['run', '--if-present', 'build'], {cwd: this.appPath});
     }
   }
 
