@@ -76,20 +76,13 @@ describe('proc', function() {
 
       if (fn === 'spawn') {
 
-        it('exits with 1 when process exits with non 0 status', function() {
+        it('exits with 1 when process exits with non 0 status', async function() {
           status = 123;
 
           proc[fn]('foo', ['bar'], {option: 'value'});
 
+          await immediate();
           expect(process.exit).to.have.been.calledWith(1);
-        });
-
-        it('child process is killed when on exit', function() {
-          let ps = proc[fn]('foo', ['bar'], {option: 'value'});
-
-          process.emit('exit');
-
-          expect(ps.kill).to.have.been.called;
         });
 
       }
@@ -100,3 +93,6 @@ describe('proc', function() {
 
 });
 
+function immediate() {
+  return new Promise(resolve => setImmediate(resolve));
+}

@@ -4,7 +4,8 @@ module.exports = {fail, handleErrors};
 
 function fail(error) {
   console.error(red(error instanceof Error ? error.message : error));
-  process.exit(1);
+  // require on demand due to a circular dependency issue
+  require('../helpers/proc').terminate(1);
 }
 
 function handleErrors(runnable) {

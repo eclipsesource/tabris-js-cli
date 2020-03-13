@@ -1,7 +1,13 @@
 const os = require('os');
+const {promisify} = require('util');
 const proc = require('child_process');
 const log = require('./log');
 const {fail} = require('./errorHandler');
+const treeKill = require('tree-kill');
+
+const TERMINATING_EVENT = 'terminating';
+
+let childProcesses = [];
 
 function spawn(cmd, args, opts = {}) {
   return _spawn({cmd, args, opts}, {sync: false});
@@ -15,22 +21,36 @@ function _spawn({cmd, args, opts = {}}, {sync}) {
   let normalizedCmd = normalizeCommand(cmd);
   let normalizedArgs = normalizeArguments(args);
   log.command([normalizedCmd, ...normalizedArgs].join(' '), opts.cwd);
-  const ps = proc[sync && 'spawnSync' || 'spawn'](normalizedCmd, normalizedArgs, Object.assign({
+  const child = proc[sync && 'spawnSync' || 'spawn'](normalizedCmd, normalizedArgs, Object.assign({
     stdio: 'inherit',
     shell: isWindows()
   }, opts));
-  if (sync && ps.status !== 0) {
-    throw new Error(childProcessExitedMessage(cmd, ps.status));
+  if (sync && child.status !== 0) {
+    throw new Error(childProcessExitedMessage(cmd, child.status));
   }
   if (!sync) {
-    process.on('exit', () => ps.kill());
-    ps.on('exit', code => {
-      if (code !== 0) {
-        fail(childProcessExitedMessage(cmd, code));
-      }
-    });
+    childProcesses.push(child);
+    handleTermination(cmd, child);
   }
-  return ps;
+  return child;
+}
+
+function handleTermination(cmd, child) {
+  let terminatingChildren = false;
+  process.on(TERMINATING_EVENT, () => terminatingChildren = true);
+  child.on('exit', code => {
+    if (code !== 0 && !terminatingChildren) {
+      fail(childProcessExitedMessage(cmd, code));
+    }
+  });
+}
+
+async function terminate(status = 0) {
+  process.emit(TERMINATING_EVENT);
+  await Promise.all(childProcesses.map(child => promisify(treeKill)(child.pid).catch(e => {
+    console.log('Could not terminate child process: ' + e);
+  })));
+  process.exit(status);
 }
 
 function childProcessExitedMessage(cmd, status) {
@@ -55,4 +75,4 @@ function isWindows() {
   return os.platform() === 'win32';
 }
 
-module.exports = {spawnSync, spawn};
+module.exports = {spawnSync, spawn, terminate};

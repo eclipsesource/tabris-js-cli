@@ -1,4 +1,5 @@
 const readline = require('../lib/readline/readline');
+const {terminate} = require('../helpers/proc');
 
 module.exports = class KeyboardShortcutHandler {
 
@@ -18,7 +19,7 @@ module.exports = class KeyboardShortcutHandler {
   _handleKeypress(_char, key) {
     if (!this._interactive) {
       if (key.ctrl && key.name === 'c') {
-        process.exit();
+        terminate();
       } else if (key.name === 'return') {
         console.log();
         return;

@@ -1,6 +1,7 @@
 const os = require('os');
 const {join} = require('path');
 const {CLIHistory, DIRECTION_NEXT, DIRECTION_PREV} = require('./CLIHistory');
+const {terminate} = require('../helpers/proc');
 
 module.exports = class RemoteConsole {
 
@@ -19,7 +20,7 @@ module.exports = class RemoteConsole {
     this._debugServer.onEvaluationCompleted = () => this._onEvaluationCompleted();
     this._cliHistory = new CLIHistory(join(os.homedir(), '.tabris-cli', 'cli_history.log'));
     this._terminal.on('line', line => this._submitCommand(line));
-    this._terminal.on('close', () => process.exit(0));
+    this._terminal.on('close', () => terminate());
     this._terminal.on('keypress', key => {
       if (key.name === 'up' || key.name === 'down') {
         this._updateInput(key.name === 'up' ? DIRECTION_PREV : DIRECTION_NEXT);
@@ -31,7 +32,7 @@ module.exports = class RemoteConsole {
     const command = line.replace(/;*$/, '');
     if (command !== '') {
       if (command === 'exit') {
-        process.exit(0);
+        terminate();
       }
       this._cliHistory.addToHistory(command);
       if (!this._debugServer.evaluate(command)) {
