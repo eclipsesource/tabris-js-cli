@@ -1,4 +1,4 @@
-const {green, yellow} = require('chalk');
+const {blue, yellow} = require('chalk');
 const os = require('os');
 const {URL} = require('url');
 
@@ -23,7 +23,7 @@ module.exports = class ServerInfo {
     } else {
       this.generateTextQRCode(this.formatUrl(mainUrl), out => this.server.terminal.log(out));
       this.server.terminal.log(yellow(
-        `Available URLs:\n${this.determineAvailableURLs(mainUrl)}`
+        `Available URLs:\n${this.determineAvailableURLs(mainUrl)}\n`
       ));
     }
   }
@@ -41,7 +41,7 @@ module.exports = class ServerInfo {
    */
   determineAvailableURLs(mainUrl) {
     return this.externalURLs.map(url => {
-      return '  ' + green(this.formatUrl(url) + (url.host === mainUrl.host ? ' <= QR code' : ''));
+      return '  ' + blue(this.formatUrl(url) + (url.host === mainUrl.host ? ' <= QR code' : ''));
     }).join('\n');
   }
 
