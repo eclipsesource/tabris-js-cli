@@ -116,7 +116,7 @@
         let geval = eval;
         let result = geval(command);
         // VT100 escape code for grey color
-        this.log(`\x1b[;37m<- ${tabris.format(result)}\x1b[0m`);
+        this.log(`\x1b[90m<-\x1b[0m ${tabris.format(result)}`);
       } catch (ex) {
         if (ex instanceof Error) {
           const stackStr = ex.toString();
