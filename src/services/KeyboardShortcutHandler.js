@@ -41,9 +41,9 @@ module.exports = class KeyboardShortcutHandler {
   _reloadApp() {
     let success = this._server.debugServer.reloadApp();
     if (success) {
-      this._server.terminal.info('Reloading app...');
+      this._server.terminal.info(yellow('Reloading app...'));
     } else {
-      this._server.terminal.info('Reload could not be sent: no Tabris.js 3 app connected!');
+      this._server.terminal.info(yellow('Reload could not be sent: no Tabris.js 3 app connected!'));
     }
   }
 

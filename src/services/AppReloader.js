@@ -1,5 +1,6 @@
 const filewatcher = require('filewatcher');
 const {join} = require('path');
+const {yellow} = require('colors');
 
 module.exports = class AppReloader {
 
@@ -25,7 +26,7 @@ module.exports = class AppReloader {
   start() {
     this._watcher.on('change', (filename, stat) => {
       if (stat && this._lastSessionId !== null) {
-        this._server.terminal.info(`'${filename}' changed, reloading app...`);
+        this._server.terminal.info(yellow(`'${filename}' changed, reloading app...`));
         this._reloadApp();
       }
     });
