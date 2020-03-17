@@ -17,9 +17,10 @@ module.exports = class DebugServer extends EventEmitter {
    * @param {import('./Terminal')} terminal
    * @param {string} serverId
    */
-  constructor(webSocketServer, terminal, serverId) {
+  constructor({webSocketServer, terminal, serverId, keyboardShortcutHandler}) {
     super();
     this._webSocketServer = webSocketServer;
+    this._keyboardShortcutHandler = keyboardShortcutHandler;
     this._sessionCounter = 0;
     this._serverId = serverId;
     /** @type {DebugConnection} */
@@ -156,16 +157,8 @@ module.exports = class DebugServer extends EventEmitter {
     this._terminal.log(`[${device.platform}][${device.model}]: ${state}`);
     if (this._firstConnect) {
       this._firstConnect = false;
-      this._printKeyboardShortcuts();
+      this._keyboardShortcutHandler.printHelp();
     }
-  }
-
-  _printKeyboardShortcuts() {
-    const info = `
-Keyboard shortcuts:
-  Ctrl+C: exit, Ctrl+R: reload app
-`;
-    this._terminal.log(info);
   }
 
   _createConnection(webSocket, sessionId, address) {

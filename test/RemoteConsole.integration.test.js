@@ -85,7 +85,7 @@ describe('Remote Console', function() {
       global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
       global.tabris.format = v => `format(${v})`;
       webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
-      debugServer = new DebugServer(webSocketServer, terminal, SERVER_ID);
+      debugServer = new DebugServer({webSocketServer, terminal, serverId: SERVER_ID});
       debugServer.start();
       new RemoteConsole(debugServer, terminal);
       eval(getDebugClient('').replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
@@ -111,7 +111,7 @@ describe('Remote Console', function() {
       const command = 'global.debugClient.remoteConsole.log(5 * 2)';
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', command);
-      const log = await waitForCalls(terminal.log, 4);
+      const log = await waitForCalls(terminal.log, 3);
       expect(log).to.contain('connected');
       expect(log).to.contain('10');
     });
@@ -120,7 +120,7 @@ describe('Remote Console', function() {
       const command = '5 * 2';
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', command);
-      const log = await waitForCalls(terminal.log, 3);
+      const log = await waitForCalls(terminal.log, 2);
       expect(log).to.contain('connected');
       expect(log).to.contain('10');
     });
@@ -129,7 +129,7 @@ describe('Remote Console', function() {
       const command = 'tabris.device.platform';
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', command);
-      const log = await waitForCalls(terminal.log, 3);
+      const log = await waitForCalls(terminal.log, 2);
       expect(log).to.contain('connected');
       expect(log).to.contain('format(Android)');
     });
@@ -137,7 +137,7 @@ describe('Remote Console', function() {
     it('cannot modify scope of RemoteConsole methods', async function() {
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', 'let _log = this.log; this.log = function() { _log.call(this, "log_hijacked") }');
-      const log = await waitForCalls(terminal.log, 3);
+      const log = await waitForCalls(terminal.log, 2);
       expect(log).not.to.contain('\nlog_hijacked');
     });
 

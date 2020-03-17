@@ -1,11 +1,18 @@
+const {blue, yellow} = require('colors');
 const readline = require('../lib/readline/readline');
 const {terminate} = require('../helpers/proc');
 
 module.exports = class KeyboardShortcutHandler {
 
-  constructor(server, interactive) {
+  constructor({server, interactive, terminal}) {
     this._server = server;
+    this._terminal = terminal;
     this._interactive = interactive;
+  }
+
+  printHelp() {
+    const info = yellow('\nKeyboard shortcuts:') + blue('\nCtrl+C: exit, Ctrl+R: reload app\n');
+    this._terminal.log(info);
   }
 
   configureShortcuts() {
@@ -14,6 +21,7 @@ module.exports = class KeyboardShortcutHandler {
       this._interceptKeys();
     }
     process.stdin.on('keypress', (_char, key) => this._handleKeypress(_char, key));
+    return this;
   }
 
   _handleKeypress(_char, key) {
@@ -26,12 +34,16 @@ module.exports = class KeyboardShortcutHandler {
       }
     }
     if (key.ctrl && key.name === 'r') {
-      let success = this._server.debugServer.reloadApp();
-      if (success) {
-        this._server.terminal.info('Reloading app...');
-      } else {
-        this._server.terminal.info('Reload could not be sent: no Tabris.js 3 app connected!');
-      }
+      this._reloadApp();
+    }
+  }
+
+  _reloadApp() {
+    let success = this._server.debugServer.reloadApp();
+    if (success) {
+      this._server.terminal.info('Reloading app...');
+    } else {
+      this._server.terminal.info('Reload could not be sent: no Tabris.js 3 app connected!');
     }
   }
 

@@ -4,6 +4,7 @@ const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
 const {getDebugClient} = require('../src/services/getBootJs');
 const TerminalMock = require('./TerminalMock');
+const KeyboardShortcutHandler = require('../src/services/KeyboardShortcutHandler');
 
 const PORT = 9000;
 const SERVER_ID = 'fooserver';
@@ -30,7 +31,8 @@ describe('DebugServer', () => {
     global.tabris = {};
     global.tabris.device = {platform: 'Android', model: 'Pixel 2'};
     webSocketServer = new MockWebSocketServer(WEBSOCKET_URL);
-    debugServer = new DebugServer(webSocketServer, terminal, SERVER_ID);
+    const keyboardShortcutHandler = new KeyboardShortcutHandler({terminal});
+    debugServer = new DebugServer({webSocketServer, terminal, keyboardShortcutHandler, serverId: SERVER_ID});
     debugServer.start();
     eval(getDebugClient('').replace('AUTO_RECONNECT_INTERVAL = 2000', 'AUTO_RECONNECT_INTERVAL = 500'));
   });

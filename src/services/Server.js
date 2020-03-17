@@ -163,10 +163,19 @@ module.exports = class Server extends EventEmitter {
   }
 
   _startServices() {
+    const keyboardShortcutHandler = new KeyboardShortcutHandler({
+      server: this,
+      interactive: this._interactive,
+      terminal: this.terminal
+    }).configureShortcuts();
     const webSocketServer = new WebSocket.Server({server: this._server});
-    this.debugServer = new DebugServer(webSocketServer, this.terminal, this.serverId);
+    this.debugServer = new DebugServer({
+      webSocketServer,
+      terminal: this.terminal,
+      serverId: this.serverId,
+      keyboardShortcutHandler
+    });
     this.debugServer.start();
-    new KeyboardShortcutHandler(this, this._interactive).configureShortcuts();
     if (this._interactive) {
       RemoteConsole.create(this);
     }
