@@ -132,6 +132,7 @@ module.exports = class Server extends EventEmitter {
 
   _runProjectScript() {
     if (this._watch) {
+      proc.spawnSync('npm', ['run', '--if-present', 'prewatch'], {cwd: this.appPath});
       const ps = proc.spawn(
         'npm',
         ['run', '--if-present', 'watch'],

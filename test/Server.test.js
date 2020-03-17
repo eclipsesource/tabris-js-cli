@@ -131,7 +131,7 @@ describe('Server', function() {
       server = new Server({watch: true, terminal: new TerminalMock()});
       writeTabrisProject(path);
       await server.serve(path);
-      expect(proc.spawnSync).not.to.have.been.called;
+      expect(proc.spawnSync).to.have.been.calledWith('npm', ['run', '--if-present', 'prewatch'], {cwd: path});
       expect(proc.spawn).to.have.been.calledWith('npm', ['run', '--if-present', 'watch'], {
         cwd: path,
         stdio: 'pipe'

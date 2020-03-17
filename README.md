@@ -44,7 +44,7 @@ Logs requests to the internal HTTP server of the CLI. Useful for debugging conne
 
 ##### `-w, --watch`
 
-Executes the _watch_ instead of the _build_ script given in the package.json of the app before serving. The _watch_ script can be a long-running task.
+Executes the _watch_ instead of the _build_ script given in the package.json of the app. The _watch_ script can be a long-running task. A _prewatch_ script will be executed before _watch_ and before the server is started.
 
 ##### `--no-intro`
 
