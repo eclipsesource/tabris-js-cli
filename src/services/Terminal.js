@@ -73,6 +73,17 @@ module.exports = class Terminal extends EventEmitter {
     return this._promptEnabled;
   }
 
+  infoBlock({title, body}) {
+    const indentedBody = body.split(/\n/).map(line => `  ${line}`).join('\n');
+    this.log(
+      yellow(title) + '\n' + blue(indentedBody)
+    );
+  }
+
+  message(text) {
+    this.log(yellow(text));
+  }
+
   log(text) {
     this._hidePrompt();
     this._console.log(text);

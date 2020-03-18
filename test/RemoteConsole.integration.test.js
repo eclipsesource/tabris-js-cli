@@ -60,7 +60,7 @@ describe('Remote Console', function() {
 
       await waitForStdout(serve, 2700);
       serve.stdin.write('test command\n');
-      const log = await waitForStderr(serve, 2700);
+      const log = await waitForStdout(serve, 2700);
       expect(log).to.contain('Command could not be sent: no device connected');
     });
 
@@ -160,13 +160,6 @@ describe('Remote Console', function() {
   });
 
 });
-
-function waitForStderr(process, timeout = 2000) {
-  return new Promise((resolve, reject) => {
-    process.stderr.once('data', data => resolve(data.toString()));
-    setTimeout(() => reject(new Error('waitForStderr timed out')), timeout);
-  });
-}
 
 function waitForStdout(process, timeout = 800) {
   let stdout = '';

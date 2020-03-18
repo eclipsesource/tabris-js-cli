@@ -53,7 +53,7 @@ describe('AppReloader', function() {
       it('prints info', () => {
         watcher.emit('change', 'filename', 'stat');
 
-        expect(server.terminal.info).to.have.been.calledWithMatch(/'filename' changed/);
+        expect(server.terminal.message).to.have.been.calledWithMatch(/'filename' changed/);
       });
 
       describe('when reload fails', () => {

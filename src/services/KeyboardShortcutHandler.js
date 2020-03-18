@@ -1,4 +1,3 @@
-const {blue, yellow} = require('colors');
 const readline = require('../lib/readline/readline');
 const {terminate} = require('../helpers/proc');
 
@@ -11,8 +10,7 @@ module.exports = class KeyboardShortcutHandler {
   }
 
   printHelp() {
-    const info = yellow('\nKeyboard shortcuts:') + blue('\nCtrl+C: exit, Ctrl+R: reload app\n');
-    this._terminal.log(info);
+    this._terminal.infoBlock({title: 'Keyboard shortcuts:', body: 'Ctrl+C: exit, Ctrl+R: reload app'});
   }
 
   configureShortcuts() {
@@ -41,9 +39,9 @@ module.exports = class KeyboardShortcutHandler {
   _reloadApp() {
     let success = this._server.debugServer.reloadApp();
     if (success) {
-      this._server.terminal.info(yellow('Reloading app...'));
+      this._server.terminal.message('Reloading app...');
     } else {
-      this._server.terminal.info(yellow('Reload could not be sent: no Tabris.js 3 app connected!'));
+      this._server.terminal.message('Reload could not be sent: no Tabris.js 3 app connected!');
     }
   }
 

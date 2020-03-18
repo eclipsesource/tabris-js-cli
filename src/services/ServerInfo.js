@@ -1,4 +1,4 @@
-const {blue, yellow} = require('chalk');
+const {blue} = require('chalk');
 const os = require('os');
 const {URL} = require('url');
 
@@ -19,12 +19,10 @@ module.exports = class ServerInfo {
   async show() {
     let mainUrl = await this.selectUrlForQRCode();
     if (this.noIntro) {
-      this.server.terminal.log(yellow('CLI running on port ' + this.server.port));
+      this.server.terminal.message('CLI running on port ' + this.server.port);
     } else {
       this.generateTextQRCode(this.formatUrl(mainUrl), out => this.server.terminal.log(out));
-      this.server.terminal.log(yellow(
-        `Available URLs:\n${this.determineAvailableURLs(mainUrl)}\n`
-      ));
+      this.server.terminal.infoBlock({title: 'Available URLs:', body: this.determineAvailableURLs(mainUrl)});
     }
   }
 
@@ -40,9 +38,9 @@ module.exports = class ServerInfo {
    * @param {URL} mainUrl
    */
   determineAvailableURLs(mainUrl) {
-    return this.externalURLs.map(url => {
-      return '  ' + blue(this.formatUrl(url) + (url.host === mainUrl.host ? ' <= QR code' : ''));
-    }).join('\n');
+    return this.externalURLs.map(url =>
+      blue(this.formatUrl(url) + (url.host === mainUrl.host ? ' <= QR code' : ''))
+    ).join('\n');
   }
 
   /**

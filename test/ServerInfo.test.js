@@ -1,6 +1,6 @@
 const nodeWifi = require('node-wifi');
 const os = require('os');
-const {expect, stub, restore} = require('./test');
+const {expect, stub, restore, match} = require('./test');
 const ServerInfo = require('../src/services/ServerInfo');
 const TerminalMock = require('./TerminalMock');
 const {URL} = require('url');
@@ -49,8 +49,10 @@ describe('ServerInfo', function() {
 
       await serverInfo.show();
 
-      expect(terminal.log).to.have.been.calledWithMatch(/Available URLs/);
-      expect(terminal.log).to.have.been.calledWithMatch(/http:\/\/127.0.0.1:8080/);
+      expect(terminal.infoBlock).to.have.been.calledWithMatch({
+        title: match(/Available URLs/),
+        body: match(/http:\/\/127.0.0.1:8080/)
+      });
     });
 
     it('prints given external URL with https default prot', async function() {
@@ -62,8 +64,10 @@ describe('ServerInfo', function() {
 
       await serverInfo.show();
 
-      expect(terminal.log).to.have.been.calledWithMatch(/Available URLs/);
-      expect(terminal.log).to.have.been.calledWithMatch(/https:\/\/127.0.0.1:443/);
+      expect(terminal.infoBlock).to.have.been.calledWithMatch({
+        title: match(/Available URLs/),
+        body: match(/https:\/\/127.0.0.1:443/)
+      });
     });
 
     it('does not print QR code to console if noIntro is true', async function() {
@@ -87,7 +91,7 @@ describe('ServerInfo', function() {
 
       await serverInfo.show();
 
-      expect(terminal.log).to.have.been.calledWithMatch(/CLI running on port 8081/);
+      expect(terminal.message).to.have.been.calledWithMatch(/CLI running on port 8081/);
     });
 
   });

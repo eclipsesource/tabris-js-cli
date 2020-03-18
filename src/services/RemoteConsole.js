@@ -36,7 +36,7 @@ module.exports = class RemoteConsole {
       }
       this._cliHistory.addToHistory(command);
       if (!this._debugServer.evaluate(command)) {
-        this._terminal.error('Command could not be sent: no device connected!');
+        this._terminal.message('Command could not be sent: no device connected!');
       } else {
         this._terminal.promptEnabled = false;
       }
