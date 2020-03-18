@@ -1,4 +1,5 @@
 const chai = require('chai');
+const stripAnsi = require('strip-ansi');
 const {expect} = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
@@ -66,4 +67,43 @@ function waitForCalls(spyInstance, minCallCount = 1, maxDelay = 1500) {
   });
 }
 
-module.exports = {expect, spy, stub, createStubInstance, match, restore, writeTabrisProject, waitForCalls};
+function waitForStdout(process, timeout = 2000) {
+  let stdout = '';
+  process.stdout.on('data', data => {
+    stdout += stripAnsi(data);
+  });
+  return new Promise((resolve, reject) => {
+    process.stderr.on('data', data => {
+      if (stripAnsi(data.toString()) === '') {
+        return;
+      }
+      reject(new Error('waitForStdout rejected with stderr ' + stripAnsi(data.toString())));
+    });
+    setTimeout(() => resolve(stdout), timeout);
+  });
+}
+
+function waitForStderr(process, timeout = 2000) {
+  return new Promise((resolve, reject) => {
+    process.stderr.on('data', data => {
+      if (stripAnsi(data.toString()) === '') {
+        return;
+      }
+      resolve(stripAnsi(data.toString()));
+    });
+    setTimeout(() => reject('waitForStderr timed out'), timeout);
+  });
+}
+
+module.exports = {
+  expect,
+  spy,
+  stub,
+  createStubInstance,
+  match,
+  restore,
+  writeTabrisProject,
+  waitForStdout,
+  waitForStderr,
+  waitForCalls
+};

@@ -1,11 +1,10 @@
 const spawn = require('child_process').spawn;
 const temp = require('temp');
-const stripAnsi = require('strip-ansi');
 const DebugServer = require('../src/services/DebugServer');
 const RemoteConsole = require('../src/services/RemoteConsole');
 const MockWebSocketServer = require('mock-socket').Server;
 const MockWebSocketClient = require('mock-socket').WebSocket;
-const {expect, restore, writeTabrisProject, waitForCalls} = require('./test');
+const {expect, restore, writeTabrisProject, waitForCalls, waitForStdout} = require('./test');
 const {getDebugClient} = require('../src/services/getBootJs');
 const TerminalMock = require('./TerminalMock');
 const {realpathSync} = require('fs-extra');
@@ -161,13 +160,3 @@ describe('Remote Console', function() {
   });
 
 });
-
-function waitForStdout(process, timeout = 800) {
-  let stdout = '';
-  process.stdout.on('data', data => {
-    stdout += stripAnsi(data);
-  });
-  return new Promise(resolve => {
-    setTimeout(() => resolve(stdout), timeout);
-  });
-}
