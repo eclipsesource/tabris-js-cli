@@ -1,6 +1,8 @@
 const readline = require('../lib/readline/readline');
 const {terminate} = require('../helpers/proc');
 
+const KEYBOARD_SHORTCUTS_HELP = 'Ctrl+H: print this help, Ctrl+C: exit\nCtrl+R: reload app';
+
 module.exports = class KeyboardShortcutHandler {
 
   constructor({server, interactive, terminal}) {
@@ -10,7 +12,7 @@ module.exports = class KeyboardShortcutHandler {
   }
 
   printHelp() {
-    this._terminal.infoBlock({title: 'Keyboard shortcuts:', body: 'Ctrl+C: exit, Ctrl+R: reload app'});
+    this._terminal.infoBlock({title: 'Keyboard shortcuts:', body: KEYBOARD_SHORTCUTS_HELP});
   }
 
   configureShortcuts() {
@@ -33,6 +35,8 @@ module.exports = class KeyboardShortcutHandler {
     }
     if (key.ctrl && key.name === 'r') {
       this._reloadApp();
+    } else if (key.ctrl && key.name === 'h') {
+      this.printHelp();
     }
   }
 

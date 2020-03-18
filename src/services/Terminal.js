@@ -75,9 +75,9 @@ module.exports = class Terminal extends EventEmitter {
   }
 
   infoBlock({title, body}) {
-    const indentedBody = body.split(/\n/).map(line => `  ${line}`).join('\n');
+    const indentedBody = body.split(/\n/).map(line => `  ${blue(line)}`).join('\n');
     this.log(boxen(
-      yellow(title) + '\n' + blue(indentedBody)
+      yellow(title) + '\n' + indentedBody
       , {padding: {left: 1, right: 1}, borderStyle: 'round'}));
   }
 
