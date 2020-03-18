@@ -2,6 +2,7 @@ const {yellow, blue} = require('chalk');
 const readline = require('../lib/readline/readline');
 const EventEmitter = require('events');
 const {Readable} = require('stream');
+const boxen = require('boxen');
 
 module.exports = class Terminal extends EventEmitter {
 
@@ -75,9 +76,9 @@ module.exports = class Terminal extends EventEmitter {
 
   infoBlock({title, body}) {
     const indentedBody = body.split(/\n/).map(line => `  ${line}`).join('\n');
-    this.log(
+    this.log(boxen(
       yellow(title) + '\n' + blue(indentedBody)
-    );
+      , {padding: {left: 1, right: 1}, borderStyle: 'round'}));
   }
 
   message(text) {

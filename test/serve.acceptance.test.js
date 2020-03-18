@@ -1,5 +1,6 @@
 const {join, resolve} = require('path');
 const {writeFileSync, realpathSync} = require('fs-extra');
+const stripAnsi = require('strip-ansi');
 const temp = require('temp');
 const {stub, expect, restore, writeTabrisProject} = require('./test');
 const spawn = require('child_process').spawn;
@@ -318,7 +319,12 @@ function waitForExit(process, timeout = 5000) {
 }
 function waitForStderr(process, timeout = 2000) {
   return new Promise((resolve, reject) => {
-    process.stderr.once('data', data => resolve(data.toString()));
+    process.stderr.on('data', data => {
+      if (stripAnsi(data.toString()) === '') {
+        return;
+      }
+      resolve(stripAnsi(data.toString()));
+    });
     setTimeout(() => reject('waitForStderr timed out'), timeout);
   });
 }
@@ -326,11 +332,14 @@ function waitForStderr(process, timeout = 2000) {
 function waitForStdout(process, timeout = 2000) {
   let stdout = '';
   process.stdout.on('data', data => {
-    stdout += data;
+    stdout += stripAnsi(data);
   });
   return new Promise((resolve, reject) => {
-    process.stderr.once('data', data => {
-      reject(new Error('waitForStdout rejected with stderr ' + data.toString()));
+    process.stderr.on('data', data => {
+      if (stripAnsi(data.toString()) === '') {
+        return;
+      }
+      reject(new Error('waitForStdout rejected with stderr ' + stripAnsi(data.toString())));
     });
     setTimeout(() => resolve(stdout), timeout);
   });
