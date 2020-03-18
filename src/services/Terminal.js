@@ -1,4 +1,4 @@
-const {yellow, blue} = require('chalk');
+const {yellow, red, blue} = require('chalk');
 const readline = require('../lib/readline/readline');
 const EventEmitter = require('events');
 const {Readable} = require('stream');
@@ -111,7 +111,7 @@ module.exports = class Terminal extends EventEmitter {
 
   error(text) {
     this._hidePrompt();
-    this._console.error(text);
+    this._console.error(red(text));
     this._restorePrompt();
   }
 
