@@ -20,7 +20,7 @@ describe('AppReloader', function() {
   it('tracks files on deliver', () => {
     server.emit('deliver', 'file-path');
 
-    expect(watcher.add).to.have.been.calledWith('app-path/file-path');
+    expect(watcher.add).to.have.been.calledWith('file-path');
   });
 
   describe('start', () => {

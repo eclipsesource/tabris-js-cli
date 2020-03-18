@@ -1,5 +1,4 @@
 const filewatcher = require('filewatcher');
-const {join} = require('path');
 
 module.exports = class AppReloader {
 
@@ -7,7 +6,7 @@ module.exports = class AppReloader {
     this._server = server;
     this._watcher = watcher;
     this._lastSessionId = null;
-    this._server.on('deliver', url => this._watcher.add(join(server.appPath, url)));
+    this._server.on('deliver', url => this._watcher.add(url));
     this._server.debugServer.once('connect', id => this._lastSessionId = id);
     this._reloadApp = (sessionId = this._lastSessionId) => {
       if (this._lastSessionId !== sessionId) {

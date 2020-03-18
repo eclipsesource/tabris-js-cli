@@ -1,5 +1,5 @@
 const os = require('os');
-const {join} = require('path');
+const {posix, join} = require('path');
 const EventEmitter = require('events');
 const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const serveStatic = require('serve-static');
@@ -234,7 +234,7 @@ module.exports = class Server extends EventEmitter {
 
   _createDeliverEmitter() {
     return (req, res, next) => {
-      this.emit('deliver', req.url.slice(1));
+      this.emit('deliver', posix.join(this.appPath, req.url));
       next();
     };
   }

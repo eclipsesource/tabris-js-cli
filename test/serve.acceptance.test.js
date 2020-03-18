@@ -157,7 +157,25 @@ describe('serve', function() {
     expect(webSocketClient.onmessage).not.to.have.been.called;
   }).timeout(16000);
 
-  it('reloads client on file change', async function() {
+  it('reloads client when a preloaded file changes', async function() {
+    writeTabrisProject(path);
+    serve = spawn('node', ['./src/tabris', 'serve', '-wap', path], {env});
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout);
+    webSocketClient = await startFakeWebSocketClient(port);
+    webSocketClient.onmessage = stub();
+    await fetch(`http://127.0.0.1:${port}/package.json?getfiles=${encodeURIComponent('*')}`);
+    await wait(500);
+
+    writeFileSync(join(path, 'foo.js'), 'content');
+
+    const res = await waitForStdout(serve);
+    const {data} = webSocketClient.onmessage.getCall(0).args[0];
+    expect(res).to.contain('foo.js\' changed, reloading app...');
+    expect(JSON.parse(data)).to.deep.equal({'type': 'reload-app'});
+  }).timeout(16000);
+
+  it('reloads client when a non-preloaded file changes', async function() {
     writeTabrisProject(path);
     serve = spawn('node', ['./src/tabris', 'serve', '-wap', path], {env});
     const stdout = await waitForStdout(serve);
@@ -334,4 +352,8 @@ async function startFakeWebSocketClient(port) {
       resolve(ws);
     };
   });
+}
+
+function wait(time) {
+  return new Promise(resolve => setTimeout(resolve), time);
 }
