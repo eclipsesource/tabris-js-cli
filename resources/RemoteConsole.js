@@ -9,7 +9,8 @@
   const CONNECTION_PROBLEM_MESSAGE = 'Connection to debug websocket could not be established.';
   const messageTypes = Object.freeze({
     evaluate: 'evaluate',
-    reloadApp: 'reload-app'
+    reloadApp: 'reload-app',
+    toggleDevToolbar: 'toggle-dev-toolbar'
   });
 
   debugClient.RemoteConsole = class RemoteConsole {
@@ -106,6 +107,8 @@
         this._evaluate(message.value);
       } else if (message.type === messageTypes.reloadApp) {
         tabris.app.reload();
+      } else if (message.type === messageTypes.toggleDevToolbar) {
+        tabris.devTools.isUiVisible() ? tabris.devTools.hideUi() : tabris.devTools.showUi();
       } else {
         throw new Error('Server message not supported.');
       }

@@ -7,7 +7,8 @@ const STATE_CONNECTED = 'connected';
 const STATE_DISCONNECTED = 'disconnected';
 const messageTypes = Object.freeze({
   evaluate: 'evaluate',
-  reloadApp: 'reload-app'
+  reloadApp: 'reload-app',
+  toggleDevToolbar: 'toggle-dev-toolbar'
 });
 
 module.exports = class DebugServer extends EventEmitter {
@@ -78,6 +79,13 @@ module.exports = class DebugServer extends EventEmitter {
   reloadApp() {
     if (this._connection) {
       return this._connection.send(JSON.stringify({type: messageTypes.reloadApp}));
+    }
+    return false;
+  }
+
+  toggleDevToolbar() {
+    if (this._connection) {
+      return this._connection.send(JSON.stringify({type: messageTypes.toggleDevToolbar}));
     }
     return false;
   }

@@ -1,7 +1,10 @@
 const readline = require('../lib/readline/readline');
 const {terminate} = require('../helpers/proc');
 
-const KEYBOARD_SHORTCUTS_HELP = 'Ctrl+H: print this help, Ctrl+C: exit\nCtrl+R: reload app';
+const KEYBOARD_SHORTCUTS_HELP =
+`Ctrl+H: print this help, Ctrl+C: exit
+Ctrl+R: reload app
+Ctrl+T: toggle developer toolbar`;
 
 module.exports = class KeyboardShortcutHandler {
 
@@ -37,6 +40,8 @@ module.exports = class KeyboardShortcutHandler {
       this._reloadApp();
     } else if (key.ctrl && key.name === 'h') {
       this.printHelp();
+    } else if (key.ctrl && key.name === 't') {
+      this._toggleDevToolbar();
     }
   }
 
@@ -45,8 +50,21 @@ module.exports = class KeyboardShortcutHandler {
     if (success) {
       this._server.terminal.message('Reloading app...');
     } else {
-      this._server.terminal.message('Reload could not be sent: no Tabris.js 3 app connected!');
+      this._messageNoAppConnected('Reload could not be sent');
     }
+  }
+
+  _toggleDevToolbar() {
+    let success = this._server.debugServer.toggleDevToolbar();
+    if (success) {
+      this._server.terminal.message('Toggling developer toolbar...');
+    } else {
+      this._messageNoAppConnected('Could not toggle developer toolbar');
+    }
+  }
+
+  _messageNoAppConnected(message) {
+    this._server.terminal.message(`${message}: no Tabris.js 3 app connected!`);
   }
 
   _interceptKeys() {
