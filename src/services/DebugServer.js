@@ -162,7 +162,7 @@ module.exports = class DebugServer extends EventEmitter {
   }
 
   _printClientState(device, state) {
-    this._terminal.log(`[${device.platform}][${device.model}]: ${state}`);
+    this._terminal.message(`[${device.platform}][${device.model}]: ${state}`);
     if (this._firstConnect) {
       this._firstConnect = false;
       this._keyboardShortcutHandler.printHelp();
