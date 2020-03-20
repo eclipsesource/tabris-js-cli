@@ -147,20 +147,46 @@ module.exports = class Terminal extends EventEmitter {
 
   /**
    *
-   * @param {string} prefix
+   * @param {string} question
    */
-  async promptBoolean(prefix) {
+  async promptBoolean(question) {
     this.emit('question');
-    this._readline.setPrompt(bold(`${prefix} (y/n) ${blue('>> ')}`));
-    this._readline.prompt();
+    this._prompt(bold(`${question} (${blue.bold('y')}/${blue.bold('n')}) ${blue('>> ')}`));
     const result = await new Promise(resolve => {
       this._readline.input.once('keypress', (_char, key) => resolve(key.name === 'y'));
     });
     this.emit('questionAnswered');
     this._readline.line = '';
-    this._readline.setPrompt(PROMPT);
-    this._readline.prompt();
+    this._prompt(PROMPT);
     return result;
+  }
+
+  /**
+   * @param {string} question
+   * @param {object} choices
+   */
+  async promptChoice(question, choices) {
+    this.emit('question');
+    const options = [];
+    for (const [mnemonic, name] of Object.entries(choices)) {
+      options.push(`${blue.bold(mnemonic)}: ${name}`);
+    }
+    this._prompt(bold(`${question} (${options.join(', ')}) ${blue('>> ')}`));
+    const result = await new Promise(resolve => {
+      this._readline.input.once('keypress', (_char, key) => resolve(key.name));
+    });
+    this.emit('questionAnswered');
+    this._readline.line = '';
+    this._prompt(PROMPT);
+    return result;
+  }
+
+  /**
+   * @param {string} prompt
+   */
+  _prompt(prompt) {
+    this._readline.setPrompt(prompt);
+    this._readline.prompt();
   }
 
   _handleReadlineInputEvents() {
