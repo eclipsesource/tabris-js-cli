@@ -4,7 +4,8 @@ const {terminate} = require('../helpers/proc');
 const KEYBOARD_SHORTCUTS_HELP =
 `Ctrl+H: print this help, Ctrl+C: exit
 Ctrl+R: reload app
-Ctrl+T: toggle developer toolbar`;
+Ctrl+T: toggle developer toolbar
+Ctrl+U: print UI tree`;
 
 module.exports = class KeyboardShortcutHandler {
 
@@ -42,6 +43,8 @@ module.exports = class KeyboardShortcutHandler {
       this.printHelp();
     } else if (key.ctrl && key.name === 't') {
       this._toggleDevToolbar();
+    } else if (key.ctrl && key.name === 'u') {
+      this._printUiTree();
     }
   }
 
@@ -60,6 +63,15 @@ module.exports = class KeyboardShortcutHandler {
       this._server.terminal.message('Toggling developer toolbar...');
     } else {
       this._messageNoAppConnected('Could not toggle developer toolbar');
+    }
+  }
+
+  _printUiTree() {
+    let success = this._server.debugServer.printUiTree();
+    if (success) {
+      this._server.terminal.message('Printing UI tree...');
+    } else {
+      this._messageNoAppConnected('Could not print UI tree');
     }
   }
 

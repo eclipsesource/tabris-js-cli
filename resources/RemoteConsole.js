@@ -10,7 +10,8 @@
   const messageTypes = Object.freeze({
     evaluate: 'evaluate',
     reloadApp: 'reload-app',
-    toggleDevToolbar: 'toggle-dev-toolbar'
+    toggleDevToolbar: 'toggle-dev-toolbar',
+    printUiTree: 'print-ui-tree'
   });
 
   debugClient.RemoteConsole = class RemoteConsole {
@@ -113,6 +114,9 @@
         tabris.app.reload();
       } else if (message.type === messageTypes.toggleDevToolbar) {
         tabris.devTools.isUiVisible() ? tabris.devTools.hideUi() : tabris.devTools.showUi();
+      } else if (message.type === messageTypes.printUiTree) {
+        console.dirxml(tabris.drawer);
+        console.dirxml(tabris.contentView);
       } else {
         throw new Error('Server message not supported.');
       }

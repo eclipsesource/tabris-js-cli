@@ -8,7 +8,8 @@ const STATE_DISCONNECTED = 'disconnected';
 const messageTypes = Object.freeze({
   evaluate: 'evaluate',
   reloadApp: 'reload-app',
-  toggleDevToolbar: 'toggle-dev-toolbar'
+  toggleDevToolbar: 'toggle-dev-toolbar',
+  printUiTree: 'print-ui-tree'
 });
 
 module.exports = class DebugServer extends EventEmitter {
@@ -69,25 +70,19 @@ module.exports = class DebugServer extends EventEmitter {
   }
 
   evaluate(command) {
-    if (this._connection) {
-      this._connection.send(JSON.stringify({type: messageTypes.evaluate, value: command}));
-      return true;
-    }
-    return false;
+    return this._sendMessage('evaluate', command);
   }
 
   reloadApp() {
-    if (this._connection) {
-      return this._connection.send(JSON.stringify({type: messageTypes.reloadApp}));
-    }
-    return false;
+    return this._sendMessage('reloadApp');
   }
 
   toggleDevToolbar() {
-    if (this._connection) {
-      return this._connection.send(JSON.stringify({type: messageTypes.toggleDevToolbar}));
-    }
-    return false;
+    return this._sendMessage('toggleDevToolbar');
+  }
+
+  printUiTree() {
+    return this._sendMessage('printUiTree');
   }
 
   getNewSessionId() {
@@ -104,6 +99,13 @@ module.exports = class DebugServer extends EventEmitter {
 
   get port() {
     return this._webSocketServer.options.port;
+  }
+
+  _sendMessage(type, value) {
+    if (this._connection) {
+      return this._connection.send(JSON.stringify({type: messageTypes[type], value}));
+    }
+    return false;
   }
 
   _handleConnect(connection, sessionId) {
