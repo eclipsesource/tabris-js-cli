@@ -81,42 +81,46 @@ module.exports = class Terminal extends EventEmitter {
 
   infoBlock({title, body}) {
     const indentedBody = body.split(/\n/).map(line => `  ${blue(line)}`).join('\n');
-    this.log(boxen(
+    this._hidePrompt();
+    this._console.log(boxen(
       yellow(title) + '\n' + indentedBody
       , {padding: {left: 1, right: 1}, borderStyle: 'round'}));
+    this._restorePrompt();
   }
 
   message(text) {
-    this.log(yellow(text));
-  }
-
-  log(text) {
-    this._hidePrompt();
-    this._console.log(text);
-    this._restorePrompt();
-  }
-
-  info(text) {
-    this._hidePrompt();
-    this._console.log(blue(text));
-    this._restorePrompt();
-  }
-
-  debug(text) {
-    this._hidePrompt();
-    this._console.log(text);
-    this._restorePrompt();
-  }
-
-  warn(text) {
     this._hidePrompt();
     this._console.log(yellow(text));
     this._restorePrompt();
   }
 
+  log(text) {
+    this._hidePrompt();
+    this._console.log(`️  ${text}`);
+    this._restorePrompt();
+  }
+
+  info(text) {
+    this._hidePrompt();
+    this._console.log(blue(`>  ${text}`));
+    this._restorePrompt();
+  }
+
+  debug(text) {
+    this._hidePrompt();
+    this._console.log(`   ${text}`);
+    this._restorePrompt();
+  }
+
+  warn(text) {
+    this._hidePrompt();
+    this._console.log(yellow(`>  ${text}`));
+    this._restorePrompt();
+  }
+
   error(text) {
     this._hidePrompt();
-    this._console.error(red(text));
+    this._console.error(red(`>  ${text}`));
     this._restorePrompt();
   }
 
