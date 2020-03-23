@@ -1,4 +1,4 @@
-const {yellow, red, blue} = require('chalk');
+const {gray, yellow, red, blue} = require('chalk');
 const readline = require('../lib/readline/readline');
 const EventEmitter = require('events');
 const {Readable} = require('stream');
@@ -42,6 +42,11 @@ module.exports = class Terminal extends EventEmitter {
         this.emit('line', line);
       } else {
         this.clearInput();
+      }
+    });
+    this._readline.input.prependListener('keypress', (_ev, key) => {
+      if (key.name === 'return') {
+        this._replacePromptInLineWith(gray('>> '));
       }
     });
     this._readline.input.on('keypress', (ev, key) => {
@@ -113,6 +118,11 @@ module.exports = class Terminal extends EventEmitter {
     this._hidePrompt();
     this._console.error(red(text));
     this._restorePrompt();
+  }
+
+  _replacePromptInLineWith(prefix) {
+    this._clearLine();
+    this._readline.output.write(prefix + this._readline.line);
   }
 
   _hidePrompt() {
