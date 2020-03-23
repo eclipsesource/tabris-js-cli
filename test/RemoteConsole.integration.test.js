@@ -112,9 +112,11 @@ describe('Remote Console', function() {
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', command);
       const message = await waitForCalls(terminal.message, 1);
-      const log = await waitForCalls(terminal.log, 2);
+      const log = await waitForCalls(terminal.log, 1);
+      const returnValue = await waitForCalls(terminal.returnValue, 1);
       expect(message).to.contain('connected');
       expect(log).to.contain('10');
+      expect(returnValue).to.contain('format(undefined)');
     });
 
     it('send plain JS command and print result', async function() {
@@ -122,9 +124,9 @@ describe('Remote Console', function() {
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', command);
       const message = await waitForCalls(terminal.message, 1);
-      const log = await waitForCalls(terminal.log, 1);
+      const returnValue = await waitForCalls(terminal.returnValue, 1);
       expect(message).to.contain('connected');
-      expect(log).to.contain('10');
+      expect(returnValue).to.contain('10');
     });
 
     it('print object value without console log method', async function() {
@@ -132,16 +134,16 @@ describe('Remote Console', function() {
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', command);
       const message = await waitForCalls(terminal.message, 1);
-      const log = await waitForCalls(terminal.log, 1);
+      const returnValue = await waitForCalls(terminal.returnValue, 1);
       expect(message).to.contain('connected');
-      expect(log).to.contain('format(Android)');
+      expect(returnValue).to.contain('format(Android)');
     });
 
     it('cannot modify scope of RemoteConsole methods', async function() {
       await createRemoteConsole(debugServer, webSocketFactory);
       terminal.emit('line', 'let _log = this.log; this.log = function() { _log.call(this, "log_hijacked") }');
-      const log = await waitForCalls(terminal.log, 1);
-      expect(log).not.to.contain('\nlog_hijacked');
+      const returnValue = await waitForCalls(terminal.returnValue, 1);
+      expect(returnValue).not.to.contain('\nlog_hijacked');
     });
 
     function createRemoteConsole(server, webSocketFactory) {

@@ -120,6 +120,12 @@ module.exports = class Terminal extends EventEmitter {
     this._restorePrompt();
   }
 
+  returnValue(text) {
+    this._hidePrompt();
+    this._console.log(`${gray('<-')} ${text}`);
+    this._restorePrompt();
+  }
+
   _replacePromptInLineWith(prefix) {
     this._clearLine();
     this._readline.output.write(prefix + this._readline.line);

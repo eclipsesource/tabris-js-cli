@@ -49,6 +49,10 @@
       this._sendMessageBuffered({level: 'debug', message: data});
     }
 
+    returnValue(data) {
+      this._sendMessageBuffered({level: 'returnValue', message: data});
+    }
+
     dispose() {
       this._disposeSocket();
       this._buffer = null;
@@ -119,7 +123,7 @@
         let geval = eval;
         let result = geval(command);
         // VT100 escape code for grey color
-        this.log(`\x1b[90m<-\x1b[0m ${tabris.format(result)}`);
+        this.returnValue(tabris.format(result));
       } catch (ex) {
         if (ex instanceof Error) {
           const stackStr = ex.toString();

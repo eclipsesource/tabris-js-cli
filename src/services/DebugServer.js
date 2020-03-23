@@ -158,6 +158,9 @@ module.exports = class DebugServer extends EventEmitter {
       case 'debug':
         this._terminal.debug(parameter.message);
         break;
+      case 'returnValue':
+        this._terminal.returnValue(parameter.message);
+        break;
     }
   }
 
