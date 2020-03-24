@@ -11,6 +11,7 @@
     evaluate: 'evaluate',
     reloadApp: 'reload-app',
     toggleDevToolbar: 'toggle-dev-toolbar',
+    clearStorage: 'clear-storage',
     printUiTree: 'print-ui-tree'
   });
 
@@ -117,6 +118,9 @@
       } else if (message.type === messageTypes.printUiTree) {
         console.dirxml(tabris.drawer);
         console.dirxml(tabris.contentView);
+      } else if (message.type === messageTypes.clearStorage) {
+        tabris.localStorage.clear();
+        tabris.secureStorage.clear();
       } else {
         throw new Error('Server message not supported.');
       }

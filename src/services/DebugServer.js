@@ -9,6 +9,7 @@ const messageTypes = Object.freeze({
   evaluate: 'evaluate',
   reloadApp: 'reload-app',
   toggleDevToolbar: 'toggle-dev-toolbar',
+  clearStorage: 'clear-storage',
   printUiTree: 'print-ui-tree'
 });
 
@@ -79,6 +80,10 @@ module.exports = class DebugServer extends EventEmitter {
 
   toggleDevToolbar() {
     return this._sendMessage('toggleDevToolbar');
+  }
+
+  clearStorage() {
+    return this._sendMessage('clearStorage');
   }
 
   printUiTree() {

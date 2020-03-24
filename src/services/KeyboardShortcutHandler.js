@@ -5,7 +5,8 @@ const KEYBOARD_SHORTCUTS_HELP =
 `Ctrl+H: print this help, Ctrl+C: exit
 Ctrl+R: reload app
 Ctrl+T: toggle developer toolbar
-Ctrl+U: print UI tree`;
+Ctrl+U: print UI tree
+Ctrl+X: clear localStorage and secureStorage`;
 
 module.exports = class KeyboardShortcutHandler {
 
@@ -45,6 +46,8 @@ module.exports = class KeyboardShortcutHandler {
       this._toggleDevToolbar();
     } else if (key.ctrl && key.name === 'u') {
       this._printUiTree();
+    } else if (key.ctrl && key.name === 'x') {
+      this._clearStorage();
     }
   }
 
@@ -72,6 +75,15 @@ module.exports = class KeyboardShortcutHandler {
       this._server.terminal.message('Printing UI tree...');
     } else {
       this._messageNoAppConnected('Could not print UI tree');
+    }
+  }
+
+  _clearStorage() {
+    let success = this._server.debugServer.clearStorage();
+    if (success) {
+      this._server.terminal.message('Clearing localStorage and secureStorage...');
+    } else {
+      this._messageNoAppConnected('Could not clear localStorage and secureStorage');
     }
   }
 
