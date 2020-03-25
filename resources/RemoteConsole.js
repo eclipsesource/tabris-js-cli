@@ -120,7 +120,9 @@
         console.dirxml(tabris.contentView);
       } else if (message.type === messageTypes.clearStorage) {
         tabris.localStorage.clear();
-        tabris.secureStorage.clear();
+        if (tabris.device.platform === 'iOS') {
+          tabris.secureStorage.clear();
+        }
       } else {
         throw new Error('Server message not supported.');
       }
