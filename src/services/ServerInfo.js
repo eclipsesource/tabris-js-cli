@@ -21,7 +21,7 @@ module.exports = class ServerInfo {
     if (this.noIntro) {
       this.server.terminal.message('CLI running on port ' + this.server.port);
     } else {
-      this.generateTextQRCode(this.formatUrl(mainUrl), out => this.server.terminal.log(out));
+      this.generateTextQRCode(this.formatUrl(mainUrl), out => this.server.terminal.output(out));
       this.server.terminal.infoBlock({title: 'Available URLs:', body: this.determineAvailableURLs(mainUrl)});
     }
   }

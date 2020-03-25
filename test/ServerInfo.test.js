@@ -23,7 +23,7 @@ describe('ServerInfo', function() {
 
       await serverInfo.show();
 
-      expect(terminal.log).to.have.been.calledWithMatch(/[▄█]+/);
+      expect(terminal.output).to.have.been.calledWithMatch(/[▄█]+/);
     });
 
     it('prints QR code with terminal renderer to console', async function() {
@@ -37,7 +37,7 @@ describe('ServerInfo', function() {
 
       const qrCodeSize = 27;
       let regexp = new RegExp(`((${ansiiEscapeBlackSquare}|${ansiiEscapeWhiteSquare})+\\n){${qrCodeSize}}$`, 'gm');
-      expect(terminal.log).to.have.been.called.calledWithMatch(regexp);
+      expect(terminal.output).to.have.been.called.calledWithMatch(regexp);
     });
 
     it('prints given external URL', async function() {
@@ -79,7 +79,7 @@ describe('ServerInfo', function() {
 
       await serverInfo.show();
 
-      expect(terminal.log).not.to.have.been.calledWithMatch(new RegExp(ansiiEscapeBlackSquare));
+      expect(terminal.output).not.to.have.been.calledWithMatch(new RegExp(ansiiEscapeBlackSquare));
     });
 
     it('prints actual port if noIntro is true', async function() {

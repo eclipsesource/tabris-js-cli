@@ -12,6 +12,7 @@ module.exports = class TerminalMock extends EventEmitter {
     this.infoBlock = stub();
     this.message = stub();
     this.error = stub();
+    this.output = stub();
     this.returnValue = stub();
     this._line = '';
     this._promptEnabled = false;

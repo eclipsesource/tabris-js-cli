@@ -138,7 +138,7 @@ module.exports = class Server extends EventEmitter {
         ['run', '--if-present', 'watch'],
         {cwd: this.appPath, stdio: 'pipe'}
       );
-      ps.stdout.on('data', data => this.terminal.log(data.toString().trim()));
+      ps.stdout.on('data', data => this.terminal.output(data.toString().trim()));
       ps.stderr.on('data', data => this.terminal.error(data.toString().trim()));
     } else {
       proc.spawnSync('npm', ['run', '--if-present', 'build'], {cwd: this.appPath});
