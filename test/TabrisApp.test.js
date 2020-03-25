@@ -52,26 +52,37 @@ describe('TabrisApp', function() {
 
     beforeEach(function() {
       tabrisApp = new TabrisApp(cwd);
-      mkdirsSync(join(cwd, 'www', 'app', 'node_modules', 'tabris'));
     });
 
     it('does not throw if installed tabris version >= 2', function() {
-      tabrisApp._installedTabrisVersion = '2.0.2';
+      writeTabrisPackageJsonWithVersion('2.0.2');
+      tabrisApp.createCordovaProject(join(cwd, 'destination'));
+
       expect(() => tabrisApp.validateInstalledTabrisVersion())
         .not.to.throw();
     });
 
     it('throws if tabris major version is lower than 2', function() {
-      tabrisApp._installedTabrisVersion = '1.5.0';
+      writeTabrisPackageJsonWithVersion('1.5.0');
+      tabrisApp.createCordovaProject(join(cwd, 'destination'));
+
       expect(() => tabrisApp.validateInstalledTabrisVersion())
         .to.throw(/App uses incompatible tabris version: 1.5.0, >= 2.0.0 required/);
     });
 
     it('throws if tabris version is invalid', function() {
-      tabrisApp._installedTabrisVersion = 'bogus.crap';
+      writeTabrisPackageJsonWithVersion('bogus.crap');
+      tabrisApp.createCordovaProject(join(cwd, 'destination'));
+
       expect(() => tabrisApp.validateInstalledTabrisVersion())
         .to.throw(/App uses invalid tabris version: bogus.crap/);
     });
+
+    function writeTabrisPackageJsonWithVersion(version) {
+      let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
+      mkdirsSync(tabrisModulePath);
+      writeFileSync(join(tabrisModulePath, 'package.json'), `{"version": "${version}"}`);
+    }
 
   });
 
