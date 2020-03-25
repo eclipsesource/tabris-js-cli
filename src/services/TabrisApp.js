@@ -1,4 +1,4 @@
-const {copySync, statSync, readFileSync, readJsonSync, existsSync} = require('fs-extra');
+const {copySync, statSync, readFileSync, readJsonSync, existsSync, removeSync} = require('fs-extra');
 const {relative, join, sep} = require('path');
 const ignore = require('ignore');
 const semver = require('semver');
@@ -67,6 +67,10 @@ class TabrisApp {
 
   _copyJsFiles(destination) {
     let appDir = join(destination, 'www', 'app');
+    if (existsSync(appDir)) {
+      log.command(`Removing old JavaScript files in ${appDir} ...`);
+      removeSync(appDir);
+    }
     log.command(`Copying JavaScript files to ${appDir} ...`);
     let tabrisignorePath = join(this._path, '.tabrisignore');
     let ig = ignore().add([relative(this._path, destination), ...DEFAULT_IGNORES]);
@@ -84,13 +88,17 @@ class TabrisApp {
   }
 
   _installProductionDependencies(destination) {
-    proc.spawnSync('npm', ['install', '--production'], {cwd: join(destination, 'www', 'app')});
+    if (existsSync(join(destination, 'www', 'app', 'package-lock.json'))) {
+      proc.spawnSync('npm', ['ci', '--production'], {cwd: join(destination, 'www', 'app')});
+    } else {
+      proc.spawnSync('npm', ['install', '--production'], {cwd: join(destination, 'www', 'app')});
+    }
   }
 
   _getTabrisVersion(cordovaProjectPath) {
     let tabrisPackageJsonPath = join(cordovaProjectPath, 'www', 'app', 'node_modules', 'tabris', 'package.json');
     let tabrisPackageJson = JSON.parse(readFileSync(tabrisPackageJsonPath, 'utf8'));
-    return tabrisPackageJson.version;
+    return tabrisPackageJson.version.replace(/\+.*$/, '');
   }
 
 }

@@ -49,13 +49,19 @@ describe('TabrisApp', function() {
   describe('validateInstalledTabrisVersion', function() {
 
     let tabrisApp;
+    let tabrisVersion;
 
     beforeEach(function() {
       tabrisApp = new TabrisApp(cwd);
+      proc.spawnSync.callsFake(() => {
+        let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
+        mkdirsSync(tabrisModulePath);
+        writeFileSync(join(tabrisModulePath, 'package.json'), `{"version": "${tabrisVersion}"}`);
+      });
     });
 
     it('does not throw if installed tabris version >= 2', function() {
-      writeTabrisPackageJsonWithVersion('2.0.2');
+      tabrisVersion = '2.0.2';
       tabrisApp.createCordovaProject(join(cwd, 'destination'));
 
       expect(() => tabrisApp.validateInstalledTabrisVersion())
@@ -63,7 +69,7 @@ describe('TabrisApp', function() {
     });
 
     it('throws if tabris major version is lower than 2', function() {
-      writeTabrisPackageJsonWithVersion('1.5.0');
+      tabrisVersion = '1.5.0';
       tabrisApp.createCordovaProject(join(cwd, 'destination'));
 
       expect(() => tabrisApp.validateInstalledTabrisVersion())
@@ -71,18 +77,12 @@ describe('TabrisApp', function() {
     });
 
     it('throws if tabris version is invalid', function() {
-      writeTabrisPackageJsonWithVersion('bogus.crap');
+      tabrisVersion = 'bogus.crap';
       tabrisApp.createCordovaProject(join(cwd, 'destination'));
 
       expect(() => tabrisApp.validateInstalledTabrisVersion())
         .to.throw(/App uses invalid tabris version: bogus.crap/);
     });
-
-    function writeTabrisPackageJsonWithVersion(version) {
-      let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
-      mkdirsSync(tabrisModulePath);
-      writeFileSync(join(tabrisModulePath, 'package.json'), `{"version": "${version}"}`);
-    }
 
   });
 
@@ -112,7 +112,7 @@ describe('TabrisApp', function() {
       proc.spawnSync.callsFake(() => {
         let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
         mkdirsSync(tabrisModulePath);
-        writeFileSync(join(tabrisModulePath, 'package.json'), '{"version": "2.0.0"}');
+        writeFileSync(join(tabrisModulePath, 'package.json'), '{"version": "2.0.0+buildMetadata"}');
       });
     });
 
@@ -126,6 +126,19 @@ describe('TabrisApp', function() {
 
       expect(existsSync(join(cwd, 'destination/www/app/src/foo'))).to.be.true;
       expect(existsSync(join(cwd, 'destination/www/app/test/foo'))).to.be.true;
+    });
+
+    it('deletes contents of www/app before copying project contents to destination/www/app', function() {
+      mkdirsSync(join(cwd, 'destination/www/app'));
+      writeFileSync(join(cwd, 'destination/www/app/obsoleted'));
+      mkdirSync(join(cwd, 'src'));
+      mkdirSync(join(cwd, 'test'));
+      writeFileSync(join(cwd, 'src/foo'), 'test');
+      writeFileSync(join(cwd, 'test/foo'), 'test');
+
+      project.createCordovaProject(join(cwd, 'destination'));
+
+      expect(existsSync(join(cwd, 'destination/www/app/obsoleted'))).to.be.false;
     });
 
     it('copies cordova/ contents to destination/cordova', function() {
@@ -215,6 +228,25 @@ describe('TabrisApp', function() {
 
       expect(proc.spawnSync)
         .to.have.been.calledWith('npm', ['install', '--production'], {cwd: path.join(destination, 'www', 'app')});
+    });
+
+    it('installs production dependencies using npm ci when package-lock.json exists', function() {
+      let destination = join(cwd, 'destination');
+      writeFileSync(join(cwd, 'package-lock.json'));
+
+      project.createCordovaProject(destination);
+
+      expect(proc.spawnSync)
+        .to.have.been.calledWith('npm', ['ci', '--production'], {cwd: path.join(destination, 'www', 'app')});
+    });
+
+    it('installedTabrisVersion returns version without build metadata', function() {
+      let destination = join(cwd, 'destination');
+      writeFileSync(join(cwd, 'package-lock.json'));
+
+      project.createCordovaProject(destination);
+
+      expect(project.installedTabrisVersion).to.equal('2.0.0');
     });
 
   });
