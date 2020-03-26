@@ -10,6 +10,8 @@ const messageTypes = Object.freeze({
   reloadApp: 'reload-app',
   toggleDevToolbar: 'toggle-dev-toolbar',
   clearStorage: 'clear-storage',
+  requestStorage: 'request-storage',
+  loadStorage: 'load-storage',
   printUiTree: 'print-ui-tree'
 });
 
@@ -86,12 +88,27 @@ module.exports = class DebugServer extends EventEmitter {
     return this._sendMessage('clearStorage');
   }
 
+  requestStorage() {
+    return this._sendMessage('requestStorage');
+  }
+
+  loadStorage(storage) {
+    return this._sendMessage('loadStorage', storage);
+  }
+
   printUiTree() {
     return this._sendMessage('printUiTree');
   }
 
   getNewSessionId() {
     return ++this._sessionCounter;
+  }
+
+  get connectedDevicePlatform() {
+    if (this._connection) {
+      return this._connection.device.platform;
+    }
+    return null;
   }
 
   get activeConnections() {
@@ -165,6 +182,9 @@ module.exports = class DebugServer extends EventEmitter {
       case 'debug':
         this._terminal.debug(parameter.message);
         break;
+      case 'message':
+        this._terminal.message(parameter.message);
+        break;
       case 'returnValue':
         this._terminal.returnValue(parameter.message);
         break;
@@ -184,6 +204,7 @@ module.exports = class DebugServer extends EventEmitter {
     connection.on('connect', () => this._handleConnect(connection, sessionId));
     connection.on('disconnect', () => this._handleDisconnect(connection));
     connection.on('log', args => this._handleLog(connection, args));
+    connection.on('storage', args => this.emit('storage', args));
     connection.on('actionResponse', args => this._handleActionResponse(connection, args));
     connection.open(webSocket, sessionId);
     return connection;

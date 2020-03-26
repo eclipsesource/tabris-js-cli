@@ -12,6 +12,8 @@
     reloadApp: 'reload-app',
     toggleDevToolbar: 'toggle-dev-toolbar',
     clearStorage: 'clear-storage',
+    loadStorage: 'load-storage',
+    requestStorage: 'request-storage',
     printUiTree: 'print-ui-tree'
   });
 
@@ -49,6 +51,10 @@
 
     debug(data) {
       this._sendMessageBuffered({level: 'debug', message: data});
+    }
+
+    message(data) {
+      this._sendMessageBuffered({level: 'message', message: data});
     }
 
     returnValue(data) {
@@ -123,9 +129,62 @@
         if (tabris.device.platform === 'iOS') {
           tabris.secureStorage.clear();
         }
+      } else if (message.type === messageTypes.requestStorage) {
+        this._sendStorage();
+      } else if (message.type === messageTypes.loadStorage) {
+        this._loadStorage(message.value);
       } else {
         throw new Error('Server message not supported.');
       }
+    }
+
+    _loadStorage({storage, path}) {
+      let hasValidPlatform = storage.platform && typeof storage.platform === 'string';
+      if (hasValidPlatform && storage.platform.toLowerCase() !== tabris.device.platform.toLowerCase()) {
+        this.message(`Cannot load storage from ${path} . The storage platform does not match the device platform.`);
+        return;
+      }
+      this._replaceStorage('localStorage', storage.localStorage, path);
+      this._replaceStorage('secureStorage', storage.secureStorage, path);
+    }
+
+    _replaceStorage(storageName, contents, path) {
+      const storage = tabris[storageName];
+      if (typeof storage !== 'object' || typeof storage.clear !== 'function') {
+        return;
+      }
+      storage.clear();
+      for (const [key, value] of Object.entries(contents)) {
+        storage.setItem(key, value);
+      }
+      this.message(`Loaded ${storageName} successfully from ${path} .`);
+    }
+
+    _sendStorage() {
+      const storage = {
+        platform: tabris.device.platform,
+        localStorage: this._serializeStorage(tabris.localStorage)
+      };
+      if (tabris.device.platform === 'iOS') {
+        storage.secureStorage = this._serializeStorage(tabris.secureStorage);
+      }
+      this._send('storage', storage);
+    }
+
+    _serializeStorage(storage) {
+      let result = {};
+      let storageLength;
+      try {
+        storageLength = storage.length;
+      } catch(e) {
+        // TODO: eclipsesource/tabris-js/issues/2017
+        return result;
+      }
+      for (let i = 0; i < storageLength; i++) {
+        const key = storage.key(i);
+        result[key] = storage.getItem(key);
+      }
+      return result;
     }
 
     _evaluate(command) {

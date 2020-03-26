@@ -1,12 +1,13 @@
+const {join} = require('path');
 const readline = require('../lib/readline/readline');
 const {terminate} = require('../helpers/proc');
+const Storage = require('./Storage');
 
 const KEYBOARD_SHORTCUTS_HELP =
-`Ctrl+H: print this help, Ctrl+C: exit
-Ctrl+R: reload app
-Ctrl+T: toggle developer toolbar
-Ctrl+U: print UI tree
-Ctrl+X: clear localStorage and secureStorage`;
+`Ctrl+H: print this help      Ctrl+C: exit
+Ctrl+R: reload app           Ctrl+U: print UI tree
+Ctrl+T: toggle dev toolbar   Ctrl+X: clear storage
+Ctrl+S: save storage         Ctrl+L: load storage`;
 
 module.exports = class KeyboardShortcutHandler {
 
@@ -14,6 +15,7 @@ module.exports = class KeyboardShortcutHandler {
     this._server = server;
     this._terminal = terminal;
     this._interactive = interactive;
+    this._storage = new Storage(this._server);
   }
 
   printHelp() {
@@ -48,6 +50,10 @@ module.exports = class KeyboardShortcutHandler {
       this._printUiTree();
     } else if (key.ctrl && key.name === 'x') {
       this._clearStorage();
+    } else if (key.ctrl && key.name === 's') {
+      this._storage.save(join(this._server.appPath, 'storage.json'));
+    } else if (key.ctrl && key.name === 'l') {
+      this._storage.load(join(this._server.appPath, 'storage.json'));
     }
   }
 
@@ -56,7 +62,7 @@ module.exports = class KeyboardShortcutHandler {
     if (success) {
       this._server.terminal.message('Reloading app...');
     } else {
-      this._messageNoAppConnected('Reload could not be sent');
+      this._server.terminal.messageNoAppConnected('Reload could not be sent');
     }
   }
 
@@ -65,7 +71,7 @@ module.exports = class KeyboardShortcutHandler {
     if (success) {
       this._server.terminal.message('Toggling developer toolbar...');
     } else {
-      this._messageNoAppConnected('Could not toggle developer toolbar');
+      this._server.terminal.messageNoAppConnected('Could not toggle developer toolbar');
     }
   }
 
@@ -74,7 +80,7 @@ module.exports = class KeyboardShortcutHandler {
     if (success) {
       this._server.terminal.message('Printing UI tree...');
     } else {
-      this._messageNoAppConnected('Could not print UI tree');
+      this._server.terminal.messageNoAppConnected('Could not print UI tree');
     }
   }
 
@@ -83,12 +89,8 @@ module.exports = class KeyboardShortcutHandler {
     if (success) {
       this._server.terminal.message('Clearing localStorage and secureStorage...');
     } else {
-      this._messageNoAppConnected('Could not clear localStorage and secureStorage');
+      this._server.terminal.messageNoAppConnected('Could not clear localStorage and secureStorage');
     }
-  }
-
-  _messageNoAppConnected(message) {
-    this._server.terminal.message(`${message}: no Tabris.js 3 app connected!`);
   }
 
   _interceptKeys() {

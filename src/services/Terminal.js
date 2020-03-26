@@ -136,6 +136,10 @@ module.exports = class Terminal extends EventEmitter {
     this._restorePrompt();
   }
 
+  messageNoAppConnected(message) {
+    this.message(`${message}: no Tabris.js 3 app connected!`);
+  }
+
   _replacePromptInLineWith(prefix) {
     this._clearLine();
     this._readline.output.write(prefix + this._readline.line);
