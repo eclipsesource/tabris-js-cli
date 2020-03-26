@@ -132,7 +132,7 @@ module.exports = class Terminal extends EventEmitter {
 
   returnValue(text) {
     this._hidePrompt();
-    this._console.log(`${gray('<-')} ${text}`);
+    this._console.log(`${gray('<')}  ${text}`);
     this._restorePrompt();
   }
 
