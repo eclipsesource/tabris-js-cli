@@ -20,6 +20,7 @@ module.exports = class DebugConnection extends EventEmitter {
     };
     this._interval = null;
     this._onEvaluationCompleted = null;
+    this._onClose = () => this.close();
   }
 
   /**
@@ -31,7 +32,7 @@ module.exports = class DebugConnection extends EventEmitter {
       this._closeWebSocket();
     }
     this._webSocket = webSocket;
-    this._webSocket.addEventListener('close', () => this.close());
+    this._webSocket.addEventListener('close', this._onClose);
     this._sessionId = sessionId;
     this._startConnectionChecks();
     this._registerMessageHandler();
@@ -97,15 +98,14 @@ module.exports = class DebugConnection extends EventEmitter {
   _closeWebSocket(code) {
     this._stopConnectionChecks();
     this.emit('disconnect');
-    // prevent the 'close' listener from calling this method, causing a stack overflow
-    const oldSocket = this._webSocket;
-    this._webSocket = null;
+    this._webSocket.removeEventListener('close', this._onClose);
     // Mock used in tests does not implement "terminate"
-    if (!arguments.length && oldSocket.terminate) {
-      oldSocket.terminate();
+    if (!arguments.length && this._webSocket.terminate) {
+      this._webSocket.terminate();
     } else {
-      oldSocket.close(code);
+      this._webSocket.close(code);
     }
+    this._webSocket = null;
   }
 
   _stopConnectionChecks() {
