@@ -102,31 +102,31 @@ module.exports = class Terminal extends EventEmitter {
 
   log(text) {
     this._hidePrompt();
-    this._console.log(`   ${text}`);
+    this._console.log(indentLog(text, ' '));
     this._restorePrompt();
   }
 
   info(text) {
     this._hidePrompt();
-    this._console.log(blue(`>  ${text}`));
+    this._console.log(blue(indentLog(text, '>')));
     this._restorePrompt();
   }
 
   debug(text) {
     this._hidePrompt();
-    this._console.log(`   ${text}`);
+    this._console.log(indentLog(text, ' '));
     this._restorePrompt();
   }
 
   warn(text) {
     this._hidePrompt();
-    this._console.log(yellow(`>  ${text}`));
+    this._console.log(yellow(indentLog(text, '>')));
     this._restorePrompt();
   }
 
   error(text) {
     this._hidePrompt();
-    this._console.error(red(`>  ${text}`));
+    this._console.error(red(indentLog(text, '>')));
     this._restorePrompt();
   }
 
@@ -167,3 +167,5 @@ module.exports = class Terminal extends EventEmitter {
   }
 
 };
+
+const indentLog = (log, prefix) => log.split('\n').map((line, i) => `${i === 0 ? prefix : ' '}  ${line}`).join('\n');
