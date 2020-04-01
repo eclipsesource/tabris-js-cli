@@ -165,9 +165,8 @@ module.exports = class Server extends EventEmitter {
   _startServices() {
     const keyboardShortcutHandler = new KeyboardShortcutHandler({
       server: this,
-      interactive: this._interactive,
       terminal: this.terminal
-    }).configureShortcuts();
+    });
     const webSocketServer = new WebSocket.Server({server: this._server});
     this.debugServer = new DebugServer({
       webSocketServer,

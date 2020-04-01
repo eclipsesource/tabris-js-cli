@@ -20,7 +20,6 @@ module.exports = class RemoteConsole {
     this._debugServer.onEvaluationCompleted = () => this._onEvaluationCompleted();
     this._cliHistory = new CLIHistory(join(os.homedir(), '.tabris-cli', 'cli_history.log'));
     this._terminal.on('line', line => this._submitCommand(line));
-    this._terminal.on('close', () => terminate());
     this._terminal.on('keypress', key => {
       if (key.name === 'up' || key.name === 'down') {
         this._updateInput(key.name === 'up' ? DIRECTION_PREV : DIRECTION_NEXT);

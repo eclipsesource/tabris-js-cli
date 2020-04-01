@@ -1,6 +1,4 @@
-const {join} = require('path');
-const readline = require('../lib/readline/readline');
-const {terminate} = require('../helpers/proc');
+const {existsSync, statSync} = require('fs-extra');
 const Storage = require('./Storage');
 
 const KEYBOARD_SHORTCUTS_HELP =
@@ -11,35 +9,29 @@ Ctrl+S: save storage         Ctrl+L: load storage`;
 
 module.exports = class KeyboardShortcutHandler {
 
-  constructor({server, interactive, terminal}) {
+  constructor({server, terminal}) {
     this._server = server;
     this._terminal = terminal;
-    this._interactive = interactive;
     this._storage = new Storage(this._server);
+    this._keypressHandler = (_char, key) => this._handleKeypress(_char, key);
+    this._terminal.on('question', () => this._enabled = false);
+    this._terminal.on('questionAnswered', () => this._enabled = true);
+    this._enabled = true;
   }
 
   printHelp() {
     this._terminal.infoBlock({title: 'Keyboard shortcuts:', body: KEYBOARD_SHORTCUTS_HELP});
   }
 
-  configureShortcuts() {
-    if (!this._interactive) {
-      // Note: The readline interface used in interactive mode already handles key press events.
-      this._interceptKeys();
+  set _enabled(enabled) {
+    if (enabled && !process.stdin.listeners('keypress').includes(this._keypressHandler)) {
+      process.stdin.on('keypress', this._keypressHandler);
+    } else {
+      process.stdin.off('keypress', this._keypressHandler);
     }
-    process.stdin.on('keypress', (_char, key) => this._handleKeypress(_char, key));
-    return this;
   }
 
   _handleKeypress(_char, key) {
-    if (!this._interactive) {
-      if (key.ctrl && key.name === 'c') {
-        terminate();
-      } else if (key.name === 'return') {
-        console.log();
-        return;
-      }
-    }
     if (key.ctrl && key.name === 'r') {
       this._reloadApp();
     } else if (key.ctrl && key.name === 'h') {
@@ -51,9 +43,9 @@ module.exports = class KeyboardShortcutHandler {
     } else if (key.ctrl && key.name === 'x') {
       this._clearStorage();
     } else if (key.ctrl && key.name === 's') {
-      this._storage.save(join(this._server.appPath, 'storage.json'));
+      this._saveStorage();
     } else if (key.ctrl && key.name === 'l') {
-      this._storage.load(join(this._server.appPath, 'storage.json'));
+      this._loadStorage();
     }
   }
 
@@ -93,11 +85,51 @@ module.exports = class KeyboardShortcutHandler {
     }
   }
 
-  _interceptKeys() {
-    if (process.stdin.isTTY) {
-      readline.emitKeypressEvents(process.stdin);
-      process.stdin.setRawMode(true);
+  async _saveStorage() {
+    if (this._server.debugServer.activeConnections <= 0) {
+      this._server.terminal.messageNoAppConnected('Could not save storage');
+      return;
     }
+    let path = await this._terminal.promptText('Save storage to:', 'storage.json');
+    if (!path) {
+      this._server.terminal.message('No path given, storage not saved.');
+      return;
+    }
+    if (existsSync(path)) {
+      if (!statSync(path).isFile()) {
+        this._server.terminal.message(
+          'Given path exists, but it is not a file, so it cannot be overwritten.'
+        );
+        return;
+      }
+      let overwrite = await this._terminal.promptBoolean('File exists, do you want to overwrite it?');
+      if (!overwrite) {
+        return;
+      }
+    }
+    this._storage.save(path);
+  }
+
+  async _loadStorage() {
+    if (this._server.debugServer.activeConnections <= 0) {
+      this._server.terminal.messageNoAppConnected('Could not load storage');
+      return;
+    }
+    let initialValue = existsSync('storage.json') ? 'storage.json' : '';
+    let path = await this._terminal.promptText('Load storage from:', initialValue);
+    if (!path) {
+      this._server.terminal.message('No path given, storage not loaded.');
+      return;
+    }
+    if (!existsSync(path)) {
+      this._server.terminal.message(`${path} does not exist.`);
+      return this._loadStorage();
+    }
+    if (!statSync(path).isFile()) {
+      this._server.terminal.message(`${path} is not a file.`);
+      return;
+    }
+    this._storage.load(path);
   }
 
 };

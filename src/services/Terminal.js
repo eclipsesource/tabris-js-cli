@@ -1,26 +1,28 @@
-const {gray, yellow, red, blue} = require('chalk');
+const {gray, yellow, red, blue, bold} = require('chalk');
 const readline = require('../lib/readline/readline');
+const {pathCompleter} = require('./pathCompleter');
 const EventEmitter = require('events');
-const {Readable} = require('stream');
 const boxen = require('boxen');
+const {terminate} = require('../helpers/proc');
 
 module.exports = class Terminal extends EventEmitter {
 
   static create(options) {
     const readlineInterface = readline.createInterface({
-      input: options.interactive ? process.stdin : new Readable({read: () => undefined}),
+      input: process.stdin,
       output: process.stdout,
-      prompt: options.interactive ? blue('>> ') : '',
+      prompt: options.interactive ? blue.bold('>> ') : '',
       historySize: 0
     });
-    return new Terminal(console, readlineInterface);
+    return new Terminal(console, readlineInterface, options.interactive);
   }
 
   /**
    * @param {Console} console
    * @param {readline.Interface} readlineInterface
+   * @param {boolean} interactive
    */
-  constructor(console, readlineInterface) {
+  constructor(console, readlineInterface, interactive) {
     super();
     if (!console) {
       throw new Error('console is missing');
@@ -33,27 +35,10 @@ module.exports = class Terminal extends EventEmitter {
     this._readline = readlineInterface;
     this._promptEnabled = false;
     this._ignoreInput = true;
-    this._readline.on('close', () => this.emit('close'));
-    this._readline.on('line', line => {
-      if (this._ignoreInput) {
-        return;
-      }
-      if (line) {
-        this.emit('line', line);
-      } else {
-        this.clearInput();
-      }
-    });
-    this._readline.input.prependListener('keypress', (_ev, key) => {
-      if (key.name === 'return') {
-        this._replacePromptInLineWith(gray('>> '));
-      }
-    });
-    this._readline.input.on('keypress', (ev, key) => {
-      if (!this._ignoreInput) {
-        this.emit('keypress', key);
-      }
-    });
+    this._readline.on('close', () => terminate());
+    if (interactive) {
+      this._handleReadlineInputEvents();
+    }
   }
 
   clearInput(line = '') {
@@ -138,6 +123,62 @@ module.exports = class Terminal extends EventEmitter {
 
   messageNoAppConnected(message) {
     this.message(`${message}: no Tabris.js 3 app connected!`);
+  }
+
+  /**
+   * @param {string} prefix
+   * @param {string} initialText
+   */
+  async promptText(prefix, initialText = '') {
+    this._readline.completer = pathCompleter;
+    this.emit('question');
+    let result = await new Promise(resolve => {
+      this._readline.line = initialText;
+      this._readline.question(bold(`${prefix} ${blue('>> ')}`), resolve);
+      this._readline._moveCursor(Infinity);
+    });
+    this.emit('questionAnswered');
+    this._readline.completer = null;
+    this._readline.prompt();
+    return result;
+  }
+
+  /**
+   *
+   * @param {string} prefix
+   */
+  async promptBoolean(prefix) {
+    this.emit('question');
+    let result = await new Promise(resolve => {
+      const question = bold(`${prefix} (y/n) ${blue('>> ')}`);
+      this._readline.question(question, resolve);
+    });
+    this.emit('questionAnswered');
+    this._readline.prompt();
+    return result.toLowerCase() === 'y';
+  }
+
+  _handleReadlineInputEvents() {
+    this._readline.on('line', line => {
+      if (this._ignoreInput) {
+        return;
+      }
+      if (line) {
+        this.emit('line', line);
+      } else {
+        this.clearInput();
+      }
+    });
+    this._readline.input.prependListener('keypress', (_ev, key) => {
+      if (key.name === 'return') {
+        this._replacePromptInLineWith(gray('>> '));
+      }
+    });
+    this._readline.input.on('keypress', (ev, key) => {
+      if (!this._ignoreInput) {
+        this.emit('keypress', key);
+      }
+    });
   }
 
   _replacePromptInLineWith(prefix) {

@@ -28,7 +28,7 @@ describe('Terminal', function() {
       log: stub(),
       error: stub()
     };
-    terminal = new Terminal(consoleMock, rlInterface);
+    terminal = new Terminal(consoleMock, rlInterface, true);
   });
 
   describe('on user keypress', function() {
@@ -74,22 +74,6 @@ describe('Terminal', function() {
       rlInterface.emit('line', 'foo');
       expect(listener).not.to.have.been.called;
     });
-  });
-
-  describe('on user cancel', function() {
-
-    let listener;
-
-    beforeEach(function() {
-      listener = spy();
-      terminal.on('close', listener);
-    });
-
-    it('fires keypress event', function() {
-      rlInterface.emit('close');
-      expect(listener).to.have.been.calledOnce;
-    });
-
   });
 
   describe('clearInput', function() {
