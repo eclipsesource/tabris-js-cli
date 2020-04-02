@@ -120,6 +120,12 @@
       } else if (message.type === messageTypes.reloadApp) {
         tabris.app.reload();
       } else if (message.type === messageTypes.toggleDevToolbar) {
+        if (typeof tabris.devTools !== 'object') {
+          this.message(
+            `Toggling UI toolbar is supported from Tabris.js 3.4.0. You are using version ${tabris.version}.`
+          );
+          return;
+        }
         tabris.devTools.isUiVisible() ? tabris.devTools.hideUi() : tabris.devTools.showUi();
       } else if (message.type === messageTypes.printUiTree) {
         console.dirxml(tabris.drawer);
