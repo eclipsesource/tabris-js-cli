@@ -2,10 +2,10 @@ const {existsSync, statSync} = require('fs-extra');
 const Storage = require('./Storage');
 
 const KEYBOARD_SHORTCUTS_HELP =
-`Ctrl+H: print this help      Ctrl+C: exit
-Ctrl+R: reload app           Ctrl+U: print UI tree
-Ctrl+T: toggle dev toolbar   Ctrl+X: clear storage
-Ctrl+S: save storage         Ctrl+L: load storage`;
+`Ctrl+K: print keyboard shortcuts   Ctrl+C: exit
+Ctrl+R: reload app                 Ctrl+U: print UI tree
+Ctrl+T: toggle dev toolbar         Ctrl+X: clear storage
+Ctrl+S: save storage               Ctrl+L: load storage`;
 
 module.exports = class KeyboardShortcutHandler {
 
@@ -19,7 +19,7 @@ module.exports = class KeyboardShortcutHandler {
     this._enabled = true;
   }
 
-  printHelp() {
+  printKeyboardShortcuts() {
     this._terminal.infoBlock({title: 'Keyboard shortcuts:', body: KEYBOARD_SHORTCUTS_HELP});
   }
 
@@ -34,8 +34,8 @@ module.exports = class KeyboardShortcutHandler {
   _handleKeypress(_char, key) {
     if (key.ctrl && key.name === 'r') {
       this._reloadApp();
-    } else if (key.ctrl && key.name === 'h') {
-      this.printHelp();
+    } else if (key.ctrl && key.name === 'k') {
+      this.printKeyboardShortcuts();
     } else if (key.ctrl && key.name === 't') {
       this._toggleDevToolbar();
     } else if (key.ctrl && key.name === 'u') {
