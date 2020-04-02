@@ -1,3 +1,10 @@
+## 3.4.0
+* `tabris serve` updates:
+  * New option `--qrcode-renderer` which can be used to select the alternative `terminal` renderer producing a terminal font-independent, but larger QR-Code.
+  * Tweak colors and formatting of the printed output for readability.
+  * Improve the stability of the debug-connection (handling logging and auto-reload).
+  * Introduce various shortcuts to interact with the running app. Press `Ctrl+K` to see all shortcuts.
+
 ## 3.3.0
 
 * `tabris serve` updated for GitPod support:
