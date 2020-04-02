@@ -18,7 +18,7 @@ Creates a new Tabris.js app in the current directory.
 
 ### `tabris serve [options]`
 
-Starts a server the [Tabris.js developer app](https://docs.tabris.com/latest/developer-app) can be pointed to. If a build script is present in package.json, it is executed beforehand.
+Starts a server the [Tabris.js developer app](https://docs.tabris.com/latest/developer-app) can be pointed to. If a build script is present in package.json, it is executed beforehand. When serving a Tabris.js 3.x app the log output of the app will be displayed in the terminal.
 
 #### options
 
@@ -40,7 +40,7 @@ Enable interactive console for JavaScript input.
 
 ##### `-l, --logging`
 
-Logs requests to the internal HTTP server of the CLI. Useful for debugging connection issues during app sideloading.
+Logs requests to the internal HTTP server of the CLI. Useful for debugging connection issues during app sideloading. This is in *addition* to the potential log output created by the app and the watch script. These are enabled regardless.
 
 ##### `-w, --watch`
 
@@ -66,6 +66,44 @@ Uses the given string as the advertised public URL, to the exclusion of all othe
 ##### `--port [port]`
 
 Changes the port the HTTP server listens to. Causes an error if the port is not available.
+
+#### Keyboard Shortcuts
+
+While serving a Tabris.js 3.x App there a various shortcuts available that to help with the development process.
+
+##### CTRL + K
+
+Prints an overview of available keys combinations. This message is also printed the first time an app connects to the CLI.
+
+##### CTRL + C
+
+Terminates the server and exits the CLI.
+
+##### CTRL + R
+
+Reloads the currently served app.
+
+##### CTRL + U
+
+Prints an XML summary of the current UI state using `console.dirxml()`.
+
+##### CTRL + T
+
+Toggles the visibility of the developer toolbar. Tabris.js 3.4 and later only.
+
+##### CTRL + X
+
+Removes all content from the app's `localStorage` and (on iOS) `secureStorage`.
+
+##### CTRL + S
+
+Saves a `.json` file containing all current content of the app's `localStorage` and (on iOS) `secureStorage` on the developer machine. You will be prompted for the file name/path of the target file. The path is relative to the current working directory and autocompletion via the tab key is supported.
+
+##### CTRL + L
+
+Loads a `.json` file (as created by CTRL + S) and writes its content in to the app's `localStorage`/`secureStorage`. All previous content will be removed. You will be prompted for the file name/path of the source file. The path is relative to the current working directory and autocompletion via the tab key is supported.
+
+Note that you can not load storage data created on an Android device to an iOS device, or vice versa. This is because `secureStorage` only exists on iOS.
 
 ### `tabris build [options] <platform> [cordova-platform-opts]`
 
