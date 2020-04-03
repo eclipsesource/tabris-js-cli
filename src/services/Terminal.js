@@ -5,13 +5,15 @@ const EventEmitter = require('events');
 const boxen = require('boxen');
 const {terminate} = require('../helpers/proc');
 
+const PROMPT = blue.bold('>> ');
+
 module.exports = class Terminal extends EventEmitter {
 
   static create(options) {
     const readlineInterface = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      prompt: options.interactive ? blue.bold('>> ') : '',
+      prompt: options.interactive ? PROMPT : '',
       historySize: 0
     });
     return new Terminal(console, readlineInterface, options.interactive);
@@ -149,13 +151,16 @@ module.exports = class Terminal extends EventEmitter {
    */
   async promptBoolean(prefix) {
     this.emit('question');
+    this._readline.setPrompt(bold(`${prefix} (y/n) ${blue('>> ')}`));
+    this._readline.prompt();
     let result = await new Promise(resolve => {
-      const question = bold(`${prefix} (y/n) ${blue('>> ')}`);
-      this._readline.question(question, resolve);
+      this._readline.input.once('keypress', (_char, key) => resolve(key.name === 'y'));
     });
     this.emit('questionAnswered');
+    this._readline.line = '';
+    this._readline.setPrompt(PROMPT);
     this._readline.prompt();
-    return result.toLowerCase() === 'y';
+    return result;
   }
 
   _handleReadlineInputEvents() {
