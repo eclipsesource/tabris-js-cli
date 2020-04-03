@@ -12,6 +12,7 @@ const messageTypes = Object.freeze({
   clearStorage: 'clear-storage',
   requestStorage: 'request-storage',
   loadStorage: 'load-storage',
+  printStorage: 'print-storage',
   printUiTree: 'print-ui-tree'
 });
 
@@ -94,6 +95,10 @@ module.exports = class DebugServer extends EventEmitter {
 
   loadStorage(storage) {
     return this._sendMessage('loadStorage', storage);
+  }
+
+  printStorage() {
+    return this._sendMessage('printStorage');
   }
 
   printUiTree() {

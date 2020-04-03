@@ -83,9 +83,11 @@ Terminates the server and exits the CLI.
 
 Reloads the currently served app.
 
-##### CTRL + U
+##### CTRL + P
 
-Prints an XML summary of the current UI state using `console.dirxml()`.
+Choose to print:
+  * **u**: an XML summary of the current UI state using `console.dirxml()`.
+  * **s**: the contents of `localStorage`/`secureStorage`.
 
 ##### CTRL + T
 

@@ -14,6 +14,7 @@
     clearStorage: 'clear-storage',
     loadStorage: 'load-storage',
     requestStorage: 'request-storage',
+    printStorage: 'print-storage',
     printUiTree: 'print-ui-tree'
   });
 
@@ -139,6 +140,17 @@
         this._sendStorage();
       } else if (message.type === messageTypes.loadStorage) {
         this._loadStorage(message.value);
+      } else if (message.type === messageTypes.printStorage) {
+        if (tabris.device.platform === 'iOS') {
+          try {
+            tabris.secureStorage.key(0); // will crash in Tabris.js <3.4, see eclipsesource/tabris-js/issues/2017
+            console.info('SecureStorage:');
+            console.dirxml(tabris.secureStorage);
+            console.log();
+            console.info('LocalStorage:');
+          } catch(e) {}
+        }
+        console.dirxml(tabris.localStorage);
       } else {
         throw new Error('Server message not supported.');
       }

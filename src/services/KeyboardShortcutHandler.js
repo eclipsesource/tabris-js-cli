@@ -3,9 +3,9 @@ const Storage = require('./Storage');
 
 const KEYBOARD_SHORTCUTS_HELP =
 `Ctrl+K: print keyboard shortcuts   Ctrl+C: exit
-Ctrl+R: reload app                 Ctrl+U: print UI tree
-Ctrl+T: toggle dev toolbar         Ctrl+X: clear storage
-Ctrl+S: save storage               Ctrl+L: load storage`;
+Ctrl+R: reload app                 Ctrl+P: print... (local storage/UI)
+Ctrl+T: toggle dev toolbar         Ctrl+X: clear local storage
+Ctrl+S: save local storage         Ctrl+L: load local storage`;
 
 module.exports = class KeyboardShortcutHandler {
 
@@ -38,8 +38,8 @@ module.exports = class KeyboardShortcutHandler {
       this.printKeyboardShortcuts();
     } else if (key.ctrl && key.name === 't') {
       this._toggleDevToolbar();
-    } else if (key.ctrl && key.name === 'u') {
-      this._printUiTree();
+    } else if (key.ctrl && key.name === 'p') {
+      this._print();
     } else if (key.ctrl && key.name === 'x') {
       this._clearStorage();
     } else if (key.ctrl && key.name === 's') {
@@ -64,6 +64,30 @@ module.exports = class KeyboardShortcutHandler {
       this._server.terminal.message('Toggling developer toolbar...');
     } else {
       this._server.terminal.messageNoAppConnected('Could not toggle developer toolbar');
+    }
+  }
+
+  async _print() {
+    if (this._server.debugServer.activeConnections <= 0) {
+      this._server.terminal.messageNoAppConnected('Could not print');
+      return;
+    }
+    const result = await this._server.terminal.promptChoice('Print', {
+      s: 'storage',
+      u: 'UI tree'
+    });
+    switch(result) {
+      case 's': return this._printStorage();
+      case 'u': return this._printUiTree();
+    }
+  }
+
+  _printStorage() {
+    const success = this._server.debugServer.printStorage();
+    if (success) {
+      this._server.terminal.message('Printing storage contents...');
+    } else {
+      this._server.terminal.messageNoAppConnected('Could not print storage contents');
     }
   }
 
