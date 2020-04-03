@@ -115,6 +115,9 @@ module.exports = class KeyboardShortcutHandler {
       return;
     }
     const path = await this._terminal.promptText('Save storage to:', 'storage.json');
+    if (path === null) {
+      return;
+    }
     if (!path) {
       this._server.terminal.message('No path given, storage not saved.');
       return;
@@ -141,6 +144,9 @@ module.exports = class KeyboardShortcutHandler {
     }
     const initialValue = existsSync('storage.json') ? 'storage.json' : '';
     const path = await this._terminal.promptText('Load storage from:', initialValue);
+    if (path === null) {
+      return;
+    }
     if (!path) {
       this._server.terminal.message('No path given, storage not loaded.');
       return;

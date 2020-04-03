@@ -134,14 +134,19 @@ module.exports = class Terminal extends EventEmitter {
   async promptText(prefix, initialText = '') {
     this._readline.completer = pathCompleter;
     this.emit('question');
+    let cancel;
     const result = await new Promise(resolve => {
+      this._readline.input.on('keypress', cancel = (_char, key) => key.name === 'escape' && resolve(null));
       this._readline.line = initialText;
       this._readline.question(bold(`${prefix} ${blue('>> ')}`), resolve);
       this._readline._moveCursor(Infinity);
     });
+    this._readline.input.off('keypress', cancel);
     this.emit('questionAnswered');
+    this._readline._questionCallback = null;
     this._readline.completer = null;
-    this._readline.prompt();
+    this._readline.line = '';
+    this._prompt(PROMPT);
     return result;
   }
 
@@ -152,9 +157,12 @@ module.exports = class Terminal extends EventEmitter {
   async promptBoolean(question) {
     this.emit('question');
     this._prompt(bold(`${question} (${blue.bold('y')}/${blue.bold('n')}) ${blue('>> ')}`));
+    let cancel;
     const result = await new Promise(resolve => {
+      this._readline.input.on('keypress', cancel = (_char, key) => key.name === 'escape' && resolve(null));
       this._readline.input.once('keypress', (_char, key) => resolve(key.name === 'y'));
     });
+    this._readline.input.off('keypress', cancel);
     this.emit('questionAnswered');
     this._readline.line = '';
     this._prompt(PROMPT);
@@ -172,9 +180,12 @@ module.exports = class Terminal extends EventEmitter {
       options.push(`${blue.bold(mnemonic)}: ${name}`);
     }
     this._prompt(bold(`${question} (${options.join(', ')}) ${blue('>> ')}`));
+    let cancel;
     const result = await new Promise(resolve => {
+      this._readline.input.on('keypress', cancel = (_char, key) => key.name === 'escape' && resolve(null));
       this._readline.input.once('keypress', (_char, key) => resolve(key.name));
     });
+    this._readline.input.off('keypress', cancel);
     this.emit('questionAnswered');
     this._readline.line = '';
     this._prompt(PROMPT);
