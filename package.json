@@ -48,8 +48,8 @@
   "homepage": "https://github.com/eclipsesource/tabris-js-cli#readme",
   "devDependencies": {
     "chai": "^3.5.0",
-    "eslint": "^5.16.0",
-    "eslint-plugin-promise": "^4.0.1",
+    "eslint": "^6.8.0",
+    "eslint-plugin-promise": "^4.2.1",
     "htmllint": "^0.8.0",
     "mocha": "^6.2.2",
     "mock-socket": "7.1.0",
