@@ -7,7 +7,7 @@ const treeKill = require('tree-kill');
 
 const TERMINATING_EVENT = 'terminating';
 
-let childProcesses = [];
+const childProcesses = [];
 
 function spawn(cmd, args, opts = {}) {
   return _spawn({cmd, args, opts}, {sync: false});
@@ -18,8 +18,8 @@ function spawnSync(cmd, args, opts = {}) {
 }
 
 function _spawn({cmd, args, opts = {}}, {sync}) {
-  let normalizedCmd = normalizeCommand(cmd);
-  let normalizedArgs = normalizeArguments(args);
+  const normalizedCmd = normalizeCommand(cmd);
+  const normalizedArgs = normalizeArguments(args);
   log.command([normalizedCmd, ...normalizedArgs].join(' '), opts.cwd);
   const child = proc[sync && 'spawnSync' || 'spawn'](normalizedCmd, normalizedArgs, Object.assign({
     stdio: 'inherit',

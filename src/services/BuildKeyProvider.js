@@ -28,16 +28,16 @@ class BuildKeyProvider {
       return process.env[BUILD_KEY_ENV_VAR];
     }
     if (fs.existsSync(this._buildKeyFilePath)) {
-      let buildKey = fs.readFileSync(this._buildKeyFilePath, 'utf8').trim();
+      const buildKey = fs.readFileSync(this._buildKeyFilePath, 'utf8').trim();
       this._validateBuildKey(buildKey);
       return buildKey;
     }
-    let buildKey = await this.promptBuildKey();
+    const buildKey = await this.promptBuildKey();
     return buildKey;
   }
 
   async promptBuildKey() {
-    let key = await promptly.prompt(BUILD_KEY_PROMPT, {
+    const key = await promptly.prompt(BUILD_KEY_PROMPT, {
       silent: true,
       replace: INPUT_REPLACE_CHAR,
       validator: this._validateBuildKey

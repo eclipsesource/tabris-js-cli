@@ -15,7 +15,7 @@ describe('clean', function() {
   let cwd, env, opts;
 
   beforeEach(function() {
-    let dir = temp.mkdirSync('test');
+    const dir = temp.mkdirSync('test');
     cwd = realpathSync(dir);
     env = {PATH: mockBinDir + ':' + process.env.PATH};
     opts = {cwd, env, encoding: 'utf8'};
@@ -26,7 +26,7 @@ describe('clean', function() {
   it('removes build folder', function() {
     mkdirsSync(join(cwd, 'build/cordova'));
 
-    let result = spawnSync('node', [tabris, 'clean'], opts);
+    const result = spawnSync('node', [tabris, 'clean'], opts);
 
     expect(result.stderr).to.equal('');
     expect(result.stdout).to.contain('Removing build/ folder') ;
@@ -36,7 +36,7 @@ describe('clean', function() {
   });
 
   it('does not fail when folder does not exist', function() {
-    let result = spawnSync('node', [tabris, 'clean'], opts);
+    const result = spawnSync('node', [tabris, 'clean'], opts);
 
     expect(result.stderr).to.equal('');
     expect(result.stdout).to.contain('Removing build/ folder') ;

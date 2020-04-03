@@ -6,19 +6,19 @@ describe('argumentsParser', function() {
   describe('parseVariables', function() {
 
     it('does not fail with empty input', function() {
-      let result = parseVariables();
+      const result = parseVariables();
 
       expect(result).to.eql({});
     });
 
     it('parses variables string to a map', function() {
-      let result = parseVariables('foo=bar,baz=bak');
+      const result = parseVariables('foo=bar,baz=bak');
 
       expect(result).to.eql({foo: 'bar', baz: 'bak'});
     });
 
     it('does not fail with space after ","', function() {
-      let result = parseVariables('foo=bar, baz=bak');
+      const result = parseVariables('foo=bar, baz=bak');
 
       expect(result).to.eql({foo: 'bar', baz: 'bak'});
     });
@@ -28,7 +28,7 @@ describe('argumentsParser', function() {
     });
 
     it('assigns empty string when right-hand missing', function() {
-      let result = parseVariables('baz=');
+      const result = parseVariables('baz=');
 
       expect(result).to.eql({baz: ''});
     });

@@ -17,7 +17,7 @@ module.exports = class ServerInfo {
   }
 
   async show() {
-    let mainUrl = await this.selectUrlForQRCode();
+    const mainUrl = await this.selectUrlForQRCode();
     if (this.noIntro) {
       this.server.terminal.message('CLI running on port ' + this.server.port);
     } else {
@@ -67,12 +67,12 @@ module.exports = class ServerInfo {
     try {
       const wifi = require('node-wifi');
       wifi.init();
-      let connections = await wifi.getCurrentConnections();
+      const connections = await wifi.getCurrentConnections();
       if(!connections.length) {
         throw new Error('No connected WiFi interface');
       }
-      let firstWifiConnection = connections[0];
-      let firstWifiInterface = os.networkInterfaces()[firstWifiConnection.iface];
+      const firstWifiConnection = connections[0];
+      const firstWifiInterface = os.networkInterfaces()[firstWifiConnection.iface];
       return firstWifiInterface.filter((address) => address.family === 'IPv4')[0].address;
     } catch(e) {
       return Promise.reject(e.message);

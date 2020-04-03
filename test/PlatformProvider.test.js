@@ -42,7 +42,7 @@ describe('PlatformProvider', function() {
       });
 
       it('resolves with custom platform spec', async function() {
-        let platform = await provider.getPlatform({name, version});
+        const platform = await provider.getPlatform({name, version});
         expect(platform).to.equal('customSpec');
       });
 
@@ -55,7 +55,7 @@ describe('PlatformProvider', function() {
       });
 
       it('resolves with platform path', async function() {
-        let platform = await provider.getPlatform({name, version});
+        const platform = await provider.getPlatform({name, version});
         expect(platform).to.equal(platformPath);
       });
 
@@ -73,13 +73,13 @@ describe('PlatformProvider', function() {
       });
 
       it('resolves with platform spec', async function() {
-        let platform = await provider.getPlatform({name, version});
+        const platform = await provider.getPlatform({name, version});
         expect(platform).to.equal(platformPath);
       });
 
       it('removes temporary files', async function() {
         await provider.getPlatform({name, version});
-        let children = readdirSync(join(cliDataDir, 'platforms'));
+        const children = readdirSync(join(cliDataDir, 'platforms'));
         expect(children).to.deep.equal([name]);
       });
 
@@ -105,7 +105,7 @@ describe('PlatformProvider', function() {
           await provider.getPlatform({name, version});
           expectFail();
         } catch(e) {
-          let children = readdirSync(join(cliDataDir, 'platforms'));
+          const children = readdirSync(join(cliDataDir, 'platforms'));
           expect(children).to.be.empty;
         }
       });
@@ -156,7 +156,7 @@ function fakeResponse(statusCode) {
 }
 
 function createPlatformResponseStream(statusCode) {
-  let zipFile = new yazl.ZipFile();
+  const zipFile = new yazl.ZipFile();
   zipFile.addBuffer(Buffer.from('hello'), 'tabris-bar/foo.file');
   zipFile.end();
   zipFile.outputStream.statusCode = statusCode;

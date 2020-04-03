@@ -50,7 +50,7 @@ module.exports = class KeyboardShortcutHandler {
   }
 
   _reloadApp() {
-    let success = this._server.debugServer.reloadApp();
+    const success = this._server.debugServer.reloadApp();
     if (success) {
       this._server.terminal.message('Reloading app...');
     } else {
@@ -59,7 +59,7 @@ module.exports = class KeyboardShortcutHandler {
   }
 
   _toggleDevToolbar() {
-    let success = this._server.debugServer.toggleDevToolbar();
+    const success = this._server.debugServer.toggleDevToolbar();
     if (success) {
       this._server.terminal.message('Toggling developer toolbar...');
     } else {
@@ -68,7 +68,7 @@ module.exports = class KeyboardShortcutHandler {
   }
 
   _printUiTree() {
-    let success = this._server.debugServer.printUiTree();
+    const success = this._server.debugServer.printUiTree();
     if (success) {
       this._server.terminal.message('Printing UI tree...');
     } else {
@@ -77,7 +77,7 @@ module.exports = class KeyboardShortcutHandler {
   }
 
   _clearStorage() {
-    let success = this._server.debugServer.clearStorage();
+    const success = this._server.debugServer.clearStorage();
     if (success) {
       this._server.terminal.message('Clearing localStorage and secureStorage...');
     } else {
@@ -90,7 +90,7 @@ module.exports = class KeyboardShortcutHandler {
       this._server.terminal.messageNoAppConnected('Could not save storage');
       return;
     }
-    let path = await this._terminal.promptText('Save storage to:', 'storage.json');
+    const path = await this._terminal.promptText('Save storage to:', 'storage.json');
     if (!path) {
       this._server.terminal.message('No path given, storage not saved.');
       return;
@@ -102,7 +102,7 @@ module.exports = class KeyboardShortcutHandler {
         );
         return;
       }
-      let overwrite = await this._terminal.promptBoolean('File exists, do you want to overwrite it?');
+      const overwrite = await this._terminal.promptBoolean('File exists, do you want to overwrite it?');
       if (!overwrite) {
         return;
       }
@@ -115,8 +115,8 @@ module.exports = class KeyboardShortcutHandler {
       this._server.terminal.messageNoAppConnected('Could not load storage');
       return;
     }
-    let initialValue = existsSync('storage.json') ? 'storage.json' : '';
-    let path = await this._terminal.promptText('Load storage from:', initialValue);
+    const initialValue = existsSync('storage.json') ? 'storage.json' : '';
+    const path = await this._terminal.promptText('Load storage from:', initialValue);
     if (!path) {
       this._server.terminal.message('No path given, storage not loaded.');
       return;

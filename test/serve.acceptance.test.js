@@ -35,10 +35,10 @@ describe('serve', function() {
   });
 
   it('fails when current working directory does not contain package.json', async function() {
-    let srcFile = resolve('./src/tabris');
+    const srcFile = resolve('./src/tabris');
     serve = spawn('node', [srcFile, 'serve'], {cwd: path, env});
 
-    let data = await waitForStderr(serve);
+    const data = await waitForStderr(serve);
     expect(data.toString()).to.match(/must contain package.json/);
 
   }).timeout(8000);
@@ -46,7 +46,7 @@ describe('serve', function() {
   it('fails when given project directory does not contain package.json', async function() {
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
-    let data = await waitForStderr(serve);
+    const data = await waitForStderr(serve);
     expect(data.toString()).to.match(/must contain package.json/);
   }).timeout(8000);
 
@@ -55,7 +55,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', join(path, 'package.json')], {env});
 
-    let data = await waitForStderr(serve);
+    const data = await waitForStderr(serve);
     expect(data.toString()).to.match(/Project must be a directory/);
   }).timeout(8000);
 
@@ -64,7 +64,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
-    let stdout = await waitForStdout(serve);
+    const stdout = await waitForStdout(serve);
     expect(stdout).to.contain(`NPM run --if-present build [${path}]`);
   }).timeout(8000);
 
@@ -73,7 +73,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path], {env});
 
-    let stdout = await waitForStdout(serve);
+    const stdout = await waitForStdout(serve);
     expect(stdout).to.contain(`NPM run --if-present watch [${path}]`);
   }).timeout(8000);
 
@@ -82,7 +82,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path]);
 
-    let code = await waitForExit(serve);
+    const code = await waitForExit(serve);
     expect(code).to.equal(1);
   }).timeout(8000);
 
@@ -91,7 +91,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path]);
 
-    let stdout = await waitForStdout(serve);
+    const stdout = await waitForStdout(serve);
     expect(stdout).to.contain('123');
   }).timeout(8000);
 
@@ -100,7 +100,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path]);
 
-    let stderr = await waitForStderr(serve);
+    const stderr = await waitForStderr(serve);
     expect(stderr).to.contain('123');
   }).timeout(8000);
 
@@ -109,7 +109,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path]);
 
-    let code = await waitForExit(serve);
+    const code = await waitForExit(serve);
     expect(code).to.equal(1);
   }).timeout(8000);
 
@@ -118,7 +118,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path]);
 
-    let stdout = await waitForStdout(serve);
+    const stdout = await waitForStdout(serve);
     expect(stdout).to.contain('123');
   }).timeout(8000);
 
@@ -127,7 +127,7 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-w', '-p', path]);
 
-    let stderr = await waitForStderr(serve);
+    const stderr = await waitForStderr(serve);
     expect(stderr).to.contain('123');
   }).timeout(8000);
 
@@ -136,10 +136,10 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
-    let stdout = await waitForStdout(serve);
-    let port = getPortFromStdout(stdout);
-    let response = await fetch(`http://127.0.0.1:${port}/package.json`);
-    let data = await response.json();
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout);
+    const response = await fetch(`http://127.0.0.1:${port}/package.json`);
+    const data = await response.json();
     expect(data.main).to.equal('foo.js');
   }).timeout(8000);
 
@@ -212,84 +212,84 @@ describe('serve', function() {
 
     serve = spawn('node', ['./src/tabris', 'serve', '--project', path], {env});
 
-    let stdout = await waitForStdout(serve);
-    let port = getPortFromStdout(stdout);
-    let response = await fetch(`http://127.0.0.1:${port}/package.json`);
-    let data = await response.json();
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout);
+    const response = await fetch(`http://127.0.0.1:${port}/package.json`);
+    const data = await response.json();
     expect(data.main).to.equal('foo.js');
   }).timeout(8000);
 
   it('starts a server on cwd if project argument is missing', async function() {
-    let srcFile = resolve('./src/tabris');
+    const srcFile = resolve('./src/tabris');
     writeTabrisProject(path);
 
     serve = spawn('node', [srcFile, 'serve'], {cwd: path, env});
 
-    let stdout = await waitForStdout(serve);
-    let port = getPortFromStdout(stdout, 20);
-    let response = await fetch(`http://127.0.0.1:${port}/package.json`);
-    let data = await response.json();
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout, 20);
+    const response = await fetch(`http://127.0.0.1:${port}/package.json`);
+    const data = await response.json();
     expect(data.main).to.equal('foo.js');
   }).timeout(8000);
 
   it('delivers a synthetic package.json when -m switch is used', async function() {
     // NOTE: currently does not check the module actually exists, this is done by the client
-    let srcFile = resolve('./src/tabris');
-    let file = join(path, 'foo.js');
+    const srcFile = resolve('./src/tabris');
+    const file = join(path, 'foo.js');
     writeFileSync(file, 'content');
     writeTabrisProject(path, '{}');
 
     serve = spawn('node', [srcFile, 'serve', '-m', 'foo.js'], {cwd: path, env});
 
-    let stdout = await waitForStdout(serve);
-    let port = getPortFromStdout(stdout, 20);
-    let response = await fetch(`http://127.0.0.1:${port}/package.json`);
-    let data = await response.json();
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout, 20);
+    const response = await fetch(`http://127.0.0.1:${port}/package.json`);
+    const data = await response.json();
     expect(data.main).to.equal('foo.js');
   }).timeout(8000);
 
   it('delivers a synthetic package.json when --main switch is used', async function() {
-    let srcFile = resolve('./src/tabris');
-    let file = join(path, 'foo.js');
+    const srcFile = resolve('./src/tabris');
+    const file = join(path, 'foo.js');
     writeFileSync(file, 'content');
     writeTabrisProject(path, '{}');
 
     serve = spawn('node', [srcFile, 'serve', '--main', 'foo.js'], {cwd: path, env});
 
-    let stdout = await waitForStdout(serve);
-    let port = getPortFromStdout(stdout, 20);
-    let response = await fetch(`http://127.0.0.1:${port}/package.json`);
-    let data = await response.json();
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout, 20);
+    const response = await fetch(`http://127.0.0.1:${port}/package.json`);
+    const data = await response.json();
     expect(data.main).to.equal('foo.js');
   }).timeout(8000);
 
   it('delivers a synthetic package.json when -m and -p switches are used', async function() {
-    let file = join(path, 'bar.js');
+    const file = join(path, 'bar.js');
     writeFileSync(file, 'content');
     writeTabrisProject(path);
 
     serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-m', 'bar.js'], {env});
 
-    let stdout = await waitForStdout(serve);
-    let port = getPortFromStdout(stdout, 20);
-    let response = await fetch(`http://127.0.0.1:${port}/package.json`);
-    let data = await response.json();
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout, 20);
+    const response = await fetch(`http://127.0.0.1:${port}/package.json`);
+    const data = await response.json();
     expect(data.main).to.equal('bar.js');
   }).timeout(8000);
 
   it('delivers a synthetic package.json via getFiles', async function() {
     // NOTE: currently does not check the module actually exists, this is done by the client
-    let srcFile = resolve('./src/tabris');
-    let file = join(path, 'foo.js');
+    const srcFile = resolve('./src/tabris');
+    const file = join(path, 'foo.js');
     writeFileSync(file, 'content');
     writeTabrisProject(path, '{}');
 
     serve = spawn('node', [srcFile, 'serve', '-m', 'foo.js'], {cwd: path, env});
 
-    let stdout = await waitForStdout(serve);
-    let port = getPortFromStdout(stdout, 20);
-    let response = await fetch(`http://127.0.0.1:${port}/package.json?getfiles=${encodeURIComponent('*')}`);
-    let data = await response.json();
+    const stdout = await waitForStdout(serve);
+    const port = getPortFromStdout(stdout, 20);
+    const response = await fetch(`http://127.0.0.1:${port}/package.json?getfiles=${encodeURIComponent('*')}`);
+    const data = await response.json();
     expect(JSON.parse(data['.']['package.json'].content).main).to.equal('foo.js');
   }).timeout(8000);
 
@@ -300,13 +300,13 @@ describe('serve', function() {
 
       serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-l'], {env});
 
-      let stdout1 = await waitForStdout(serve, 10000);
-      let port = getPortFromStdout(stdout1);
-      let [stdout2] = await Promise.all([
+      const stdout1 = await waitForStdout(serve, 10000);
+      const port = getPortFromStdout(stdout1);
+      const [stdout2] = await Promise.all([
         waitForStdout(serve, 10000),
         fetch(`http://127.0.0.1:${port}/package.json`)
       ]);
-      let log = stdout2.toString();
+      const log = stdout2.toString();
       expect(log).to.contain('GET /package.json');
     }).timeout(30000);
 
@@ -314,13 +314,13 @@ describe('serve', function() {
       writeTabrisProject(path);
       serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-l'], {env});
 
-      let stdout1 = await waitForStdout(serve, 10000);
-      let port = getPortFromStdout(stdout1);
-      let [stdout2] = await Promise.all([
+      const stdout1 = await waitForStdout(serve, 10000);
+      const port = getPortFromStdout(stdout1);
+      const [stdout2] = await Promise.all([
         waitForStderr(serve, 10000),
         fetch(`http://127.0.0.1:${port}/non-existent`)
       ]);
-      let log = stdout2.toString();
+      const log = stdout2.toString();
       expect(log).to.contain('GET /non-existent: "404: Not found"');
     }).timeout(30000);
 
@@ -336,7 +336,7 @@ function waitForExit(process, timeout = 5000) {
 }
 
 function getPortFromStdout(stdout) {
-  let ports = stdout.match(/.*http:.*:(\d+).*/);
+  const ports = stdout.match(/.*http:.*:(\d+).*/);
   expect(ports).to.be.a('array', 'No ports found in stdout: ' + stdout);
   return ports[1];
 }

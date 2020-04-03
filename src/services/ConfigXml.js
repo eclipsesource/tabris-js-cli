@@ -51,7 +51,7 @@ module.exports = class ConfigXml {
 
   adjustContentPath() {
     if (this._parsedXml.widget.content) {
-      let src = this._parsedXml.widget.content[0].$.src;
+      const src = this._parsedXml.widget.content[0].$.src;
       this._parsedXml.widget.content[0].$.src = this._join('app', src);
     } else {
       this._parsedXml.widget.content = [{$: {src: this._join('app', 'package.json')}}];

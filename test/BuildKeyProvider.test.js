@@ -31,7 +31,7 @@ describe('BuildKeyProvider', function() {
       it('returns TABRIS_BUILD_KEY value', async function() {
         process.env.TABRIS_BUILD_KEY = 'foo';
 
-        let result = await provider.getBuildKey();
+        const result = await provider.getBuildKey();
 
         expect(result).to.equal('foo');
       });
@@ -40,7 +40,7 @@ describe('BuildKeyProvider', function() {
         process.env.TABRIS_BUILD_KEY = 'foo';
         fs.writeFileSync(buildKeyPath, 'invalidKey', 'utf8');
 
-        let result = await provider.getBuildKey();
+        const result = await provider.getBuildKey();
 
         expect(result).to.equal('foo');
       });
@@ -71,7 +71,7 @@ describe('BuildKeyProvider', function() {
         it('returns build.key file contents', async function() {
           fs.writeFileSync(buildKeyPath, VALID_KEY, 'utf8');
 
-          let result = await provider.getBuildKey();
+          const result = await provider.getBuildKey();
 
           expect(result).to.equal(VALID_KEY);
         });
@@ -79,7 +79,7 @@ describe('BuildKeyProvider', function() {
         it('returns build.key file contents when build key ends with new line', async function() {
           fs.writeFileSync(buildKeyPath, VALID_KEY + '\n', 'utf8');
 
-          let result = await provider.getBuildKey();
+          const result = await provider.getBuildKey();
 
           expect(result).to.equal(VALID_KEY);
         });
@@ -99,8 +99,8 @@ describe('BuildKeyProvider', function() {
       describe('when build.key file does not exist', function() {
 
         it('resolves with given string when valid build key given', async function() {
-          let promise = (async () => {
-            let key = await provider.getBuildKey();
+          const promise = (async () => {
+            const key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).not.to.have.been.calledWith('Invalid build key.\n');
           })();
@@ -109,7 +109,7 @@ describe('BuildKeyProvider', function() {
         });
 
         it('prints input label', async function() {
-          let promise = (async () => {
+          const promise = (async () => {
             await provider.getBuildKey();
             expect(process.stdout.write).to.have.been.calledWithMatch(/build key:/);
           })();
@@ -118,8 +118,8 @@ describe('BuildKeyProvider', function() {
         });
 
         it('creates build.key file with given key', async function() {
-          let promise = (async () => {
-            let key = await provider.getBuildKey();
+          const promise = (async () => {
+            const key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(fs.readFileSync(buildKeyPath, 'utf8')).to.equal(VALID_KEY);
           })();
@@ -143,8 +143,8 @@ describe('BuildKeyProvider', function() {
         // });
 
         it('prompts again for key when given key was wrong and resolves with key', async function() {
-          let promise = (async () => {
-            let key = await provider.getBuildKey();
+          const promise = (async () => {
+            const key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
           })();
@@ -154,7 +154,7 @@ describe('BuildKeyProvider', function() {
         });
 
         it('keys shorter than 36 characters are invalid', async function() {
-          let promise = (async () => {
+          const promise = (async () => {
             await provider.getBuildKey();
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
           })();
@@ -164,8 +164,8 @@ describe('BuildKeyProvider', function() {
         });
 
         it('keys longer than 36 characters are invalid', async function() {
-          let promise = (async () => {
-            let key = await provider.getBuildKey();
+          const promise = (async () => {
+            const key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
           })();
@@ -175,8 +175,8 @@ describe('BuildKeyProvider', function() {
         });
 
         it('keys containing disallowed characters are invalid', async function() {
-          let promise = (async () => {
-            let key = await provider.getBuildKey();
+          const promise = (async () => {
+            const key = await provider.getBuildKey();
             expect(key).to.equal(VALID_KEY);
             expect(process.stdout.write).to.have.been.calledWith('Invalid build key.\n');
           })();

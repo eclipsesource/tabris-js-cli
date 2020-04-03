@@ -145,7 +145,7 @@
     }
 
     _loadStorage({storage, path}) {
-      let hasValidPlatform = storage.platform && typeof storage.platform === 'string';
+      const hasValidPlatform = storage.platform && typeof storage.platform === 'string';
       if (hasValidPlatform && storage.platform.toLowerCase() !== tabris.device.platform.toLowerCase()) {
         this.message(`Cannot load storage from ${path} . The storage platform does not match the device platform.`);
         return;
@@ -178,7 +178,7 @@
     }
 
     _serializeStorage(storage) {
-      let result = {};
+      const result = {};
       let storageLength;
       try {
         storageLength = storage.length;
@@ -195,8 +195,8 @@
 
     _evaluate(command) {
       try {
-        let geval = eval;
-        let result = geval(command);
+        const geval = eval;
+        const result = geval(command);
         // VT100 escape code for grey color
         this.returnValue(tabris.format(result));
       } catch (ex) {

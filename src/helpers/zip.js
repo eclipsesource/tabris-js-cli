@@ -24,7 +24,7 @@ function yauzlUnzip(source, destination) {
       zipfile.on('error', () => reject(ERROR_UNZIPPING_FILE));
       zipfile.on('close', () => setTimeout(resolve, 100)); // on windows close may take a few ms after returning
       zipfile.on('entry', (entry) => {
-        let entryDestination = join(destination, entry.fileName);
+        const entryDestination = join(destination, entry.fileName);
         if (/\/$/.test(entry.fileName)) { // directory
           fs.mkdirsSync(entryDestination);
           zipfile.readEntry();
@@ -34,7 +34,7 @@ function yauzlUnzip(source, destination) {
             if (err) {
               return reject(ERROR_UNZIPPING_FILE);
             }
-            let writeStream = fs.createWriteStream(entryDestination);
+            const writeStream = fs.createWriteStream(entryDestination);
             writeStream.on('error', () => reject(ERROR_UNZIPPING_FILE));
             readStream.on('error', () => reject(ERROR_UNZIPPING_FILE));
             readStream.on('end', () => zipfile.readEntry());

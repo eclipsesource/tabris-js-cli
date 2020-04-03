@@ -10,7 +10,7 @@ module.exports = class FileService {
   /** @param {string} path */
   getDir(path) {
     if (this._isDir(path)) {
-      let list = readdirSync(path, {withFileTypes: true});
+      const list = readdirSync(path, {withFileTypes: true});
       return list.map(this._toFileEntry(path));
     }
     return [];

@@ -10,8 +10,8 @@ module.exports = class CordovaCliInstaller {
   }
 
   install(version) {
-    let cordovaDir = `${this._cliDataDir}${sep}cordova${sep}${version}`;
-    let installedCordovaPath = `${cordovaDir}${sep}node_modules${sep}.bin${sep}cordova`;
+    const cordovaDir = `${this._cliDataDir}${sep}cordova${sep}${version}`;
+    const installedCordovaPath = `${cordovaDir}${sep}node_modules${sep}.bin${sep}cordova`;
     if (existsSync(installedCordovaPath)) {
       return installedCordovaPath;
     }
@@ -20,7 +20,7 @@ module.exports = class CordovaCliInstaller {
       name: `tabris-cli-cordova-${version}-cache`,
       version: packageJson.version
     });
-    let {status} = proc.spawnSync('npm', ['install', `cordova@${version}`], {cwd: cordovaDir});
+    const {status} = proc.spawnSync('npm', ['install', `cordova@${version}`], {cwd: cordovaDir});
     if (status !== 0) {
       throw new Error('Error installing Cordova CLI.');
     }

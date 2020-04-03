@@ -19,23 +19,23 @@ module.exports = class PlatformProvider {
   }
 
   async getPlatform(platform) {
-    let envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
+    const envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
     if (envVarPlatformSpec) {
       return envVarPlatformSpec;
     } else if (this._platformsCache.has(platform)) {
       return this._platformsCache.get(platform);
     } else {
-      let path = await this._downloadPlatform(platform);
+      const path = await this._downloadPlatform(platform);
       return path;
     }
   }
 
   async _downloadPlatform(platform) {
-    let zipPath = join(this._platformsDir, `.download-${platform.name}-${platform.version}.zip`);
-    let extractedZipPath = join(this._platformsDir, `.extracted-${platform.name}-${platform.version}`);
-    let platformDir = join(extractedZipPath, `tabris-${platform.name}`);
+    const zipPath = join(this._platformsDir, `.download-${platform.name}-${platform.version}.zip`);
+    const extractedZipPath = join(this._platformsDir, `.extracted-${platform.name}-${platform.version}`);
+    const platformDir = join(extractedZipPath, `tabris-${platform.name}`);
     await fs.mkdirs(this._platformsDir);
-    let buildKey = await this._buildKeyProvider.getBuildKey();
+    const buildKey = await this._buildKeyProvider.getBuildKey();
     await this._downloadPlatformZip(zipPath, buildKey, platform);
     await this._unzipPlatform(zipPath, extractedZipPath);
     this._platformsCache.set(platform, platformDir);
@@ -46,12 +46,12 @@ module.exports = class PlatformProvider {
 
   async _downloadPlatformZip(platformZipPath, buildKey, platform) {
     log.command(`Downloading ${platform.name} platform version ${platform.version}...`);
-    let options = {
+    const options = {
       host: HOST,
       path: `${PATH}/${platform.version}/${platform.name}`,
       headers: {'X-Tabris-Build-Key': buildKey}
     };
-    let progressBar = new progress.Bar({
+    const progressBar = new progress.Bar({
       clearOnComplete: true,
       stopOnComplete: true,
       format: ' {bar} {percentage}% | ETA: {eta}s | {value}/{total} MB'
@@ -62,7 +62,7 @@ module.exports = class PlatformProvider {
           try {
             if (e.statusCode === 401) {
               console.error('\nBuild key rejected. Please enter your key again.');
-              let buildKey = await this._buildKeyProvider.promptBuildKey();
+              const buildKey = await this._buildKeyProvider.promptBuildKey();
               await this._downloadPlatformZip(platformZipPath, buildKey, platform);
               resolve();
             } else {
@@ -73,8 +73,8 @@ module.exports = class PlatformProvider {
         .on('done', resolve)
         .on('progress', ({current, total}) => {
           const MEGABYTE = 1000 * 1000;
-          let currentMb = (current / MEGABYTE).toFixed(2);
-          let totalMb = (total / MEGABYTE).toFixed(2);
+          const currentMb = (current / MEGABYTE).toFixed(2);
+          const totalMb = (total / MEGABYTE).toFixed(2);
           if (!progressBar.started) {
             progressBar.start(totalMb, currentMb);
             return progressBar.started = true;

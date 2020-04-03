@@ -27,22 +27,22 @@ class CordovaCli {
   }
 
   _platformDirectoryExists(platform) {
-    let platformDirectory = join(this._cwd, 'platforms', platform);
+    const platformDirectory = join(this._cwd, 'platforms', platform);
     return existsSync(platformDirectory);
   }
 
   _platformDeclared(name) {
-    let platformsJsonPath = join(this._cwd, 'platforms', 'platforms.json');
+    const platformsJsonPath = join(this._cwd, 'platforms', 'platforms.json');
     if (!existsSync(platformsJsonPath)) {
       return false;
     }
-    let platforms = JSON.parse(readFileSync(platformsJsonPath, 'utf8'));
+    const platforms = JSON.parse(readFileSync(platformsJsonPath, 'utf8'));
     return !!platforms[name];
   }
 
   _execCordova(args, opts = [], platformOpts = []) {
-    let nonOptionArgs = platformOpts.length ? ['--', ...platformOpts] : [];
-    let options = opts.filter(truthy).map(opt => `--${opt}`);
+    const nonOptionArgs = platformOpts.length ? ['--', ...platformOpts] : [];
+    const options = opts.filter(truthy).map(opt => `--${opt}`);
     proc.spawnSync(this._cordovaPath,
       [...args, ...options, '--no-update-notifier', ...nonOptionArgs], {cwd: this._cwd});
   }

@@ -68,7 +68,7 @@ describe('Remote Console', function() {
 
   describe('when device is connected', function() {
 
-    let webSocketFactory = {
+    const webSocketFactory = {
       createWebSocket() {
         const client = new MockWebSocketClient(WEBSOCKET_URL);
         // Mock is missing this in 'connect' event:

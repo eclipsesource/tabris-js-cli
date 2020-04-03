@@ -16,7 +16,7 @@ describe('TabrisApp', function() {
   beforeEach(function() {
     stub(log, 'command');
     stub(proc, 'spawnSync');
-    let dir = temp.mkdirSync('test');
+    const dir = temp.mkdirSync('test');
     cwd = realpathSync(dir);
     writeFileSync(join(cwd, 'package.json'), '{"main": "foo.js"}');
     mkdirSync(join(cwd, 'cordova'));
@@ -54,7 +54,7 @@ describe('TabrisApp', function() {
     beforeEach(function() {
       tabrisApp = new TabrisApp(cwd);
       proc.spawnSync.callsFake(() => {
-        let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
+        const tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
         mkdirsSync(tabrisModulePath);
         writeFileSync(join(tabrisModulePath, 'package.json'), `{"version": "${tabrisVersion}"}`);
       });
@@ -110,7 +110,7 @@ describe('TabrisApp', function() {
     beforeEach(function() {
       project = new TabrisApp(cwd);
       proc.spawnSync.callsFake(() => {
-        let tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
+        const tabrisModulePath = join(cwd, 'destination', 'www', 'app', 'node_modules', 'tabris');
         mkdirsSync(tabrisModulePath);
         writeFileSync(join(tabrisModulePath, 'package.json'), '{"version": "2.0.0+buildMetadata"}');
       });
@@ -222,7 +222,7 @@ describe('TabrisApp', function() {
     });
 
     it('installs production dependencies in destination/www/app', function() {
-      let destination = join(cwd, 'destination');
+      const destination = join(cwd, 'destination');
 
       project.createCordovaProject(destination);
 
@@ -231,7 +231,7 @@ describe('TabrisApp', function() {
     });
 
     it('installs production dependencies using npm ci when package-lock.json exists', function() {
-      let destination = join(cwd, 'destination');
+      const destination = join(cwd, 'destination');
       writeFileSync(join(cwd, 'package-lock.json'));
 
       project.createCordovaProject(destination);
@@ -241,7 +241,7 @@ describe('TabrisApp', function() {
     });
 
     it('installedTabrisVersion returns version without build metadata', function() {
-      let destination = join(cwd, 'destination');
+      const destination = join(cwd, 'destination');
       writeFileSync(join(cwd, 'package-lock.json'));
 
       project.createCordovaProject(destination);

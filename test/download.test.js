@@ -25,7 +25,7 @@ describe('download', function() {
 
     it('passes options to https.get', function() {
       https.get.callsArgWith(1, fakeResponse);
-      let options = stub();
+      const options = stub();
       fileDownloader.downloadFile(options, destination);
       expect(https.get).to.have.been.calledWith(options);
     });
@@ -33,7 +33,7 @@ describe('download', function() {
     it('emits "error" on request error', function() {
       https.get.callsArgWith(1, fakeResponse);
       httpsStub.on.withArgs('error').callsArgWith(1, 'error');
-      let errorHandler = stub();
+      const errorHandler = stub();
       fileDownloader.on('error', errorHandler).downloadFile({}, destination);
       expect(errorHandler).to.have.been.calledWith('error');
     });
@@ -41,7 +41,7 @@ describe('download', function() {
     it('emits "error" on response error', function() {
       fakeResponse.on.withArgs('error').callsArgWith(1, 'error');
       https.get.callsArgWith(1, fakeResponse);
-      let errorHandler = stub();
+      const errorHandler = stub();
       fileDownloader.on('error', errorHandler).downloadFile({}, destination);
       expect(errorHandler).to.have.been.calledWith('error');
     });
@@ -50,7 +50,7 @@ describe('download', function() {
       fakeResponse.statusCode = 1234;
       fakeResponse.on.withArgs('error').callsArgWith(1, 'error');
       https.get.callsArgWith(1, fakeResponse);
-      let errorHandler = stub();
+      const errorHandler = stub();
       fileDownloader.on('error', errorHandler).downloadFile({}, destination);
       expect(errorHandler).to.have.been.calledWithMatch({message: 'Unexpected status code 1234', statusCode: 1234});
     });
@@ -92,7 +92,7 @@ describe('download', function() {
       fakeResponse.statusCode = 200;
       fakeResponse.headers = {'content-length': 6};
       https.get.callsArgWith(1, fakeResponse);
-      let progressHandler = stub();
+      const progressHandler = stub();
       fileDownloader
         .on('done', () => {
           expect(progressHandler).to.have.been.calledTwice;

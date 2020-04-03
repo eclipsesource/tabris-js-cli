@@ -7,14 +7,14 @@ class FileDownloader extends EventEmitter {
   downloadFile(options, destination) {
     https
       .get(options, response => {
-        let contentLength = parseInt(response.headers['content-length']);
+        const contentLength = parseInt(response.headers['content-length']);
         let downloadedBytes = 0;
         if (response.statusCode !== 200) {
-          let error = new Error('Unexpected status code ' + response.statusCode);
+          const error = new Error('Unexpected status code ' + response.statusCode);
           error.statusCode = response.statusCode;
           return this._handleError(error, destination);
         }
-        let writeStream = createWriteStream(destination);
+        const writeStream = createWriteStream(destination);
         writeStream.on('error', error => this._handleError(error, destination));
         writeStream.on('finish', () => writeStream.close(() => this._handleSuccess()));
         response.on('error', error => this._handleError(error, destination));

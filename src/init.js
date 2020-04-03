@@ -8,7 +8,7 @@ program.command('init')
 function init() {
   const yeoman = require('yeoman-environment');
 
-  let env = yeoman.createEnv();
+  const env = yeoman.createEnv();
   env.register(require.resolve('generator-tabris-js'));
   env.run('tabris-js');
 }

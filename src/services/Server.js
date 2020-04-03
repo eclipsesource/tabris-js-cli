@@ -46,7 +46,7 @@ module.exports = class Server extends EventEmitter {
   }
 
   static get externalAddresses() {
-    let interfaces = os.networkInterfaces();
+    const interfaces = os.networkInterfaces();
     return Object.keys(interfaces)
       .map(key => interfaces[key].find(details => details.family === 'IPv4' && details.internal === false))
       .filter(val => !!val)
@@ -63,7 +63,7 @@ module.exports = class Server extends EventEmitter {
     }
     this.appPath = appPath;
     this.serverId = join(appPath, (main || 'package.json')) + '#' + Date.now();
-    let stats = await this._lstat(appPath);
+    const stats = await this._lstat(appPath);
     if (stats.isDirectory()) {
       this._packageJson = this._readAppPackageJson(main);
       this._tabrisVersion = parseInt(this._readTabrisPackageJson().version.split('.')[0], 10);
@@ -99,7 +99,7 @@ module.exports = class Server extends EventEmitter {
   }
 
   _readAppPackageJson(main) {
-    let packageJsonPath = join(this.appPath, 'package.json');
+    const packageJsonPath = join(this.appPath, 'package.json');
     if (!existsSync(packageJsonPath)) {
       throw new Error('Directory must contain package.json');
     }
@@ -114,7 +114,7 @@ module.exports = class Server extends EventEmitter {
   }
 
   _readTabrisPackageJson() {
-    let packageJsonPath = join(this.appPath, 'node_modules', 'tabris', 'package.json');
+    const packageJsonPath = join(this.appPath, 'node_modules', 'tabris', 'package.json');
     if (!existsSync(packageJsonPath)) {
       throw new Error('No tabris module installed; did you run npm install?');
     }
@@ -151,7 +151,7 @@ module.exports = class Server extends EventEmitter {
     }
     const app = connect();
     this._createMiddlewares(this.appPath, main).forEach(middleware => app.use(middleware));
-    let port = this._port || await this._findAvailablePort();
+    const port = this._port || await this._findAvailablePort();
     return new Promise((resolve, reject) => {
       this._server = app.listen(port, err => {
         if (err) {

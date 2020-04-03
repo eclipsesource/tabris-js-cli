@@ -26,7 +26,7 @@ program
 
 function serve(options) {
   const terminal = Terminal.create(options);
-  let server = new Server({
+  const server = new Server({
     terminal,
     watch: options.watch,
     requestLogging: options.logging,

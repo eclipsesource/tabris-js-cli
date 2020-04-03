@@ -12,14 +12,14 @@ describe('zip', function() {
     let cwd;
 
     beforeEach(function() {
-      let dir = temp.mkdirSync('test');
+      const dir = temp.mkdirSync('test');
       cwd = realpathSync(dir);
     });
 
     afterEach(restore);
 
     it('rejects when zip is an invalid file', async function() {
-      let path = join(cwd, 'invalidZip.zip');
+      const path = join(cwd, 'invalidZip.zip');
       writeFileSync(path, 'foo');
       try {
         await unzip(path);
@@ -30,8 +30,8 @@ describe('zip', function() {
     });
 
     it('unzips archive', async function() {
-      let extractedPath = join(cwd, 'destination');
-      let zipPath = join(cwd, 'fakeZip.zip');
+      const extractedPath = join(cwd, 'destination');
+      const zipPath = join(cwd, 'fakeZip.zip');
       outputFileSync(join(cwd, 'foo.file'), 'foo');
       outputFileSync(join(cwd, 'bar.file'), 'bar');
       await createZipWithFiles(zipPath, [
@@ -49,7 +49,7 @@ describe('zip', function() {
 
 function createZipWithFiles(destination, files) {
   return new Promise((resolve, reject) => {
-    let zipFile = new yazl.ZipFile();
+    const zipFile = new yazl.ZipFile();
     files.forEach(({path, zipPath}) => {
       zipFile.addFile(path, zipPath);
     });

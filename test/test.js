@@ -10,11 +10,11 @@ const {join} = require('path');
 
 chai.use(sinonChai);
 
-let sandbox = sinon.sandbox.create();
-let spy = sandbox.spy.bind(sandbox);
-let stub = sandbox.stub.bind(sandbox);
-let match = sinon.match;
-let createStubInstance = sinon.createStubInstance;
+const sandbox = sinon.sandbox.create();
+const spy = sandbox.spy.bind(sandbox);
+const stub = sandbox.stub.bind(sandbox);
+const match = sinon.match;
+const createStubInstance = sinon.createStubInstance;
 
 function restore() {
   sandbox.restore();
@@ -49,7 +49,7 @@ function waitForCalls(spyInstance, minCallCount = 1, maxDelay = 1500) {
     const interval = setInterval(() => {
       if (spyInstance.callCount === minCallCount) {
         clearInterval(interval);
-        let messages = [];
+        const messages = [];
         for (const call of spyInstance.getCalls()) {
           messages.push(call.args
             .map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg)

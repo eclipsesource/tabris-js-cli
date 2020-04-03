@@ -141,13 +141,13 @@ describe('Server', function() {
     it('starts a server', async function() {
       writeTabrisProject(path);
       await server.serve(path);
-      let status = await getPortStatus(server.port);
+      const status = await getPortStatus(server.port);
       expect(status).to.equal('open');
     });
 
     it('uses next unused port', async function() {
       writeTabrisProject(path);
-      let server2 = new Server({terminal: new TerminalMock()});
+      const server2 = new Server({terminal: new TerminalMock()});
       await server.serve(path);
       await server2.serve(path);
       expect(server.port).to.be.ok;
@@ -159,8 +159,8 @@ describe('Server', function() {
       writeTabrisProject(path);
       writeFileSync(join(path, 'foo.js'), 'content');
       await server.serve(path);
-      let response = await fetch(`http://127.0.0.1:${server.port}/foo.js`);
-      let text = await response.text();
+      const response = await fetch(`http://127.0.0.1:${server.port}/foo.js`);
+      const text = await response.text();
       expect(text).to.equal('content');
     });
 
@@ -169,8 +169,8 @@ describe('Server', function() {
       writeFileSync(join(path, 'package.json'), '{"main": "unused.js"}');
       await server.serve(path);
 
-      let response = await fetch(`http://127.0.0.1:${server.port}/`);
-      let text = await response.text();
+      const response = await fetch(`http://127.0.0.1:${server.port}/`);
+      const text = await response.text();
 
       expect(text).to.match(/Tabris\.js CLI is running/);
       expect(text).to.match(/src="data:image\/png;base64/);

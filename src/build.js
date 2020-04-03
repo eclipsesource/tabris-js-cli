@@ -28,8 +28,8 @@ registerBuildCommand('build', BUILD_DESCRIPTION);
 registerBuildCommand('run', RUN_DESCRIPTION);
 
 function registerBuildCommand(name, description) {
-  let buildFn = (...args) => build(name, ...args);
-  let program = commander
+  const buildFn = (...args) => build(name, ...args);
+  const program = commander
     .command(`${name} <platform> [cordova-platform-opts...]`)
     .option('--variables <replacements>', VARIABLES_DESCRIPTION, parseVariables)
     .option('--cordova-build-config <path>', CORDOVA_BUILD_CONFIG_DESCRIPTION)
@@ -53,28 +53,28 @@ async function build(name, platform, cordovaPlatformOpts, options) {
   const ConfigXml = require('./services/ConfigXml');
   const {join} = require('path');
   try {
-    let {
+    const {
       debug = !('debug' in options) && !('release' in options) ? true : false,
       release,
       replaceEnvVars,
       variables
     } = options;
     validateArguments({platform, debug, release});
-    let variableReplacements = Object.assign({
+    const variableReplacements = Object.assign({
       IS_DEBUG: !!debug,
       IS_RELEASE: !!release
     }, replaceEnvVars && process.env, variables);
-    let {installedTabrisVersion} = new TabrisApp(APP_DIR)
+    const {installedTabrisVersion} = new TabrisApp(APP_DIR)
       .runPackageJsonBuildScripts(platform)
       .createCordovaProject(CORDOVA_PROJECT_DIR)
       .validateInstalledTabrisVersion();
-    let configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
+    const configXmlPath = join(CORDOVA_PROJECT_DIR, 'config.xml');
     ConfigXml.readFrom(configXmlPath)
       .adjustContentPath()
       .replaceVariables(variableReplacements)
       .writeTo(configXmlPath);
-    let platformProvider = new PlatformProvider(CLI_DATA_DIR);
-    let platformSpec = await platformProvider.getPlatform({name: platform, version: installedTabrisVersion});
+    const platformProvider = new PlatformProvider(CLI_DATA_DIR);
+    const platformSpec = await platformProvider.getPlatform({name: platform, version: installedTabrisVersion});
     await copyBuildKeyHash();
     await executeCordovaCommands({name, platform, platformSpec, cordovaPlatformOpts, options, installedTabrisVersion});
   } catch(e) { fail(e); }
@@ -90,8 +90,8 @@ function executeCordovaCommands({
 }) {
   const CordovaCli = require('./services/CordovaCli');
 
-  let platformAddOptions = [options.verbose && 'verbose'];
-  let platformCommandOptions = [
+  const platformAddOptions = [options.verbose && 'verbose'];
+  const platformCommandOptions = [
     options.release && 'release' || options.debug && 'debug',
     options.device && 'device',
     options.emulator && 'emulator',
@@ -101,8 +101,8 @@ function executeCordovaCommands({
     options.target && `target=${options.target}`,
     options.listTargets && 'list'
   ];
-  let cordovaVersion = semver(installedTabrisVersion).major === 3 ? '9.0.0' : '6.5.0';
-  let cliPath = new CordovaCliInstaller(CLI_DATA_DIR).install(cordovaVersion);
+  const cordovaVersion = semver(installedTabrisVersion).major === 3 ? '9.0.0' : '6.5.0';
+  const cliPath = new CordovaCliInstaller(CLI_DATA_DIR).install(cordovaVersion);
   new CordovaCli(CORDOVA_PROJECT_DIR, cliPath)
     .platformAddSafe(platform, platformSpec, {options: platformAddOptions})
     .platformCommand(name, platform, {options: platformCommandOptions, cordovaPlatformOpts});
@@ -111,7 +111,7 @@ function executeCordovaCommands({
 function validateArguments({debug, release, platform}) {
   const {fail} = require('./helpers/errorHandler');
 
-  let configXmlPath = join(APP_DIR, 'cordova', 'config.xml');
+  const configXmlPath = join(APP_DIR, 'cordova', 'config.xml');
   if (debug && release) {
     fail('Cannot specify both --release and --debug');
   }
@@ -124,16 +124,16 @@ function validateArguments({debug, release, platform}) {
 }
 
 async function copyBuildKeyHash() {
-  let buildKeyPath = join(CLI_DATA_DIR, 'build.key');
-  let buildKeyHashPath = join(CORDOVA_PROJECT_DIR, 'www', 'build-key.sha256');
+  const buildKeyPath = join(CLI_DATA_DIR, 'build.key');
+  const buildKeyHashPath = join(CORDOVA_PROJECT_DIR, 'www', 'build-key.sha256');
   if (!existsSync(buildKeyPath)) {
     return;
   }
-  let hash = crypto.createHash('sha256');
+  const hash = crypto.createHash('sha256');
   await new Promise((resolve, reject) => {
     hash.on('readable', async () => {
       try {
-        let data = hash.read();
+        const data = hash.read();
         if (data) {
           await writeFile(buildKeyHashPath, data.toString('hex'));
           resolve();

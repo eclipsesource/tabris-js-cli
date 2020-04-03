@@ -33,6 +33,7 @@
     "require-await": "error",
     "require-atomic-updates": "error",
     "no-return-await": "error",
+    "prefer-const": "error",
     "promise/no-return-wrap": "error",
     "promise/param-names": "error",
     "promise/catch-or-return": "error",

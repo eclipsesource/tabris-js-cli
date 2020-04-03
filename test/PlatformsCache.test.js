@@ -19,7 +19,7 @@ describe('PlatformsCache', function() {
   describe('get', function() {
 
     it('returns platform path when platform in cache', function() {
-      let platformPath = join(cliDataDir, 'platforms', 'foo', 'bar');
+      const platformPath = join(cliDataDir, 'platforms', 'foo', 'bar');
       mkdirsSync(platformPath);
 
       expect(cache.get({name: 'foo', version: 'bar'})).to.equal(platformPath);
@@ -48,7 +48,7 @@ describe('PlatformsCache', function() {
   describe('set', function() {
 
     it('copies given path to cache', function() {
-      let file = temp.openSync().path;
+      const file = temp.openSync().path;
 
       cache.set({name: 'foo', version: 'bar'}, file);
 
@@ -56,9 +56,9 @@ describe('PlatformsCache', function() {
     });
 
     it('overwrites platform if existing', function() {
-      let newPlatformPath = temp.openSync().path;
+      const newPlatformPath = temp.openSync().path;
       mkdirsSync(join(cliDataDir, 'platforms', 'foo'));
-      let existingPlatformPath = join(cliDataDir, 'platforms', 'foo', 'bar');
+      const existingPlatformPath = join(cliDataDir, 'platforms', 'foo', 'bar');
       writeJsonSync(existingPlatformPath, 'existingPlatform');
       writeJsonSync(newPlatformPath, 'newPlatform');
 
@@ -68,11 +68,11 @@ describe('PlatformsCache', function() {
     });
 
     it('prunes other nightlies', function() {
-      let newPlatformPath = temp.openSync().path;
+      const newPlatformPath = temp.openSync().path;
       writeJsonSync(newPlatformPath, 'newPlatform');
-      let nightly1 = join(cliDataDir, 'platforms', 'foo', '0.0.0-dev.20000119');
-      let nightly2 = join(cliDataDir, 'platforms', 'foo', '0.0.0-dev.20000120');
-      let nightly3 = join(cliDataDir, 'platforms', 'foo', '0.0.0-dev.20000000');
+      const nightly1 = join(cliDataDir, 'platforms', 'foo', '0.0.0-dev.20000119');
+      const nightly2 = join(cliDataDir, 'platforms', 'foo', '0.0.0-dev.20000120');
+      const nightly3 = join(cliDataDir, 'platforms', 'foo', '0.0.0-dev.20000000');
       mkdirsSync(nightly1);
       mkdirsSync(nightly2);
 
@@ -84,11 +84,11 @@ describe('PlatformsCache', function() {
     });
 
     it('does not prune other non-nightlies', function() {
-      let newPlatformPath = temp.openSync().path;
+      const newPlatformPath = temp.openSync().path;
       writeJsonSync(newPlatformPath, 'newPlatform');
-      let nightly1 = join(cliDataDir, 'platforms', 'foo', '1');
-      let nightly2 = join(cliDataDir, 'platforms', 'foo', '2');
-      let nightly3 = join(cliDataDir, 'platforms', 'foo', '3');
+      const nightly1 = join(cliDataDir, 'platforms', 'foo', '1');
+      const nightly2 = join(cliDataDir, 'platforms', 'foo', '2');
+      const nightly3 = join(cliDataDir, 'platforms', 'foo', '3');
       mkdirsSync(nightly1);
       mkdirsSync(nightly2);
 

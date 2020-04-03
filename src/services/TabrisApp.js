@@ -58,7 +58,7 @@ class TabrisApp {
 
   _copyCordovaFiles(destination) {
     log.command(`Copying Cordova files to ${destination} ...`);
-    let excludedPaths = ['www', 'platform', 'plugins']
+    const excludedPaths = ['www', 'platform', 'plugins']
       .map(subdir => join(this._path, 'cordova', subdir));
     copySync(join(this._path, 'cordova'), destination, {
       filter: path => !excludedPaths.includes(path)
@@ -66,20 +66,20 @@ class TabrisApp {
   }
 
   _copyJsFiles(destination) {
-    let appDir = join(destination, 'www', 'app');
+    const appDir = join(destination, 'www', 'app');
     if (existsSync(appDir)) {
       log.command(`Removing old JavaScript files in ${appDir} ...`);
       removeSync(appDir);
     }
     log.command(`Copying JavaScript files to ${appDir} ...`);
-    let tabrisignorePath = join(this._path, '.tabrisignore');
-    let ig = ignore().add([relative(this._path, destination), ...DEFAULT_IGNORES]);
+    const tabrisignorePath = join(this._path, '.tabrisignore');
+    const ig = ignore().add([relative(this._path, destination), ...DEFAULT_IGNORES]);
     if (existsSync(tabrisignorePath)) {
       ig.add(readFileSync(tabrisignorePath).toString());
     }
     copySync(this._path, appDir, {
       filter: (filePath) => {
-        let stats = statSafe(filePath);
+        const stats = statSafe(filePath);
         let appRelativeFilePath = relative(this._path, filePath);
         appRelativeFilePath += stats && stats.isDirectory() && !appRelativeFilePath.endsWith(sep) ? sep : '';
         return !ig.ignores(appRelativeFilePath);
@@ -96,8 +96,8 @@ class TabrisApp {
   }
 
   _getTabrisVersion(cordovaProjectPath) {
-    let tabrisPackageJsonPath = join(cordovaProjectPath, 'www', 'app', 'node_modules', 'tabris', 'package.json');
-    let tabrisPackageJson = JSON.parse(readFileSync(tabrisPackageJsonPath, 'utf8'));
+    const tabrisPackageJsonPath = join(cordovaProjectPath, 'www', 'app', 'node_modules', 'tabris', 'package.json');
+    const tabrisPackageJson = JSON.parse(readFileSync(tabrisPackageJsonPath, 'utf8'));
     return tabrisPackageJson.version.replace(/\+.*$/, '');
   }
 

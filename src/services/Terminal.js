@@ -134,7 +134,7 @@ module.exports = class Terminal extends EventEmitter {
   async promptText(prefix, initialText = '') {
     this._readline.completer = pathCompleter;
     this.emit('question');
-    let result = await new Promise(resolve => {
+    const result = await new Promise(resolve => {
       this._readline.line = initialText;
       this._readline.question(bold(`${prefix} ${blue('>> ')}`), resolve);
       this._readline._moveCursor(Infinity);
@@ -153,7 +153,7 @@ module.exports = class Terminal extends EventEmitter {
     this.emit('question');
     this._readline.setPrompt(bold(`${prefix} (y/n) ${blue('>> ')}`));
     this._readline.prompt();
-    let result = await new Promise(resolve => {
+    const result = await new Promise(resolve => {
       this._readline.input.once('keypress', (_char, key) => resolve(key.name === 'y'));
     });
     this.emit('questionAnswered');

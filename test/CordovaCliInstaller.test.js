@@ -13,51 +13,51 @@ describe('CordovaCliInstaller', function() {
   describe('installCordovaCli', function() {
 
     it('returns cordova path if it exists', function() {
-      let dir = realpathSync(temp.mkdirSync('foo'));
+      const dir = realpathSync(temp.mkdirSync('foo'));
       mkdirsSync(`${dir}${sep}cordova${sep}6.5.0${sep}node_modules${sep}.bin${sep}cordova`);
 
-      let installer = new CordovaCliInstaller(dir);
+      const installer = new CordovaCliInstaller(dir);
 
-      let path = installer.install('6.5.0');
+      const path = installer.install('6.5.0');
       expect(path).to.equal(`${dir}${sep}cordova${sep}6.5.0${sep}node_modules${sep}.bin${sep}cordova`);
     });
 
     it('installs cordova if it does not exist', function() {
-      let dir = realpathSync(temp.mkdirSync('foo'));
+      const dir = realpathSync(temp.mkdirSync('foo'));
 
       stub(proc, 'spawnSync')
         .withArgs('npm', ['install', 'cordova@6.5.0'], {cwd: `${dir}${sep}cordova${sep}6.5.0`})
         .returns({status: 0});
 
-      let installer = new CordovaCliInstaller(dir);
+      const installer = new CordovaCliInstaller(dir);
 
-      let path = installer.install('6.5.0');
+      const path = installer.install('6.5.0');
       expect(path).to.equal(`${dir}${sep}cordova${sep}6.5.0${sep}node_modules${sep}.bin${sep}cordova`);
     });
 
     it('creates package.json', function() {
-      let dir = realpathSync(temp.mkdirSync('foo'));
+      const dir = realpathSync(temp.mkdirSync('foo'));
 
       stub(proc, 'spawnSync')
         .withArgs('npm', ['install', 'cordova@6.5.0'], {cwd: `${dir}${sep}cordova${sep}6.5.0`})
         .returns({status: 0});
 
-      let installer = new CordovaCliInstaller(dir);
+      const installer = new CordovaCliInstaller(dir);
 
-      let path = installer.install('6.5.0');
-      let packageJson = readJsonSync(`${dir}${sep}cordova${sep}6.5.0${sep}package.json`);
+      const path = installer.install('6.5.0');
+      const packageJson = readJsonSync(`${dir}${sep}cordova${sep}6.5.0${sep}package.json`);
       expect(path).to.equal(`${dir}${sep}cordova${sep}6.5.0${sep}node_modules${sep}.bin${sep}cordova`);
       expect(packageJson).to.deep.equal({name: 'tabris-cli-cordova-6.5.0-cache', version});
     });
 
     it('throws an error if npm process returns non-0 exit code', function() {
-      let dir = realpathSync(temp.mkdirSync('foo'));
+      const dir = realpathSync(temp.mkdirSync('foo'));
 
       stub(proc, 'spawnSync')
         .withArgs('npm', ['install', 'cordova@6.5.0'], {cwd: `${dir}${sep}cordova${sep}6.5.0`})
         .returns({status: 1});
 
-      let installer = new CordovaCliInstaller(dir);
+      const installer = new CordovaCliInstaller(dir);
 
       expect(() => installer.install('6.5.0')).to.throw('Error installing Cordova CLI.');
     });

@@ -2,14 +2,14 @@ function parseVariables(string) {
   if (!string) {
     return {};
   }
-  let result = {};
+  const result = {};
   string
     .split(',')
     .forEach(assignment => {
       if (!assignment.includes('=')) {
         handleInvalidAssignment(assignment);
       }
-      let parts = assignment.trim().split('=');
+      const parts = assignment.trim().split('=');
       if (parts[0] === '') {
         handleInvalidAssignment(assignment);
       }

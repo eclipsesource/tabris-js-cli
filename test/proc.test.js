@@ -8,7 +8,7 @@ describe('proc', function() {
 
   ['spawn', 'spawnSync'].forEach(fn => {
 
-    let spawnFn = fn === 'spawn' ? 'spawn' : 'spawnSync';
+    const spawnFn = fn === 'spawn' ? 'spawn' : 'spawnSync';
 
     describe(fn, function() {
 

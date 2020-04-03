@@ -8,7 +8,7 @@ module.exports = class PlatformsCache {
   }
 
   set(platform, path) {
-    let cachePath = join(this._cachePath, platform.name, platform.version);
+    const cachePath = join(this._cachePath, platform.name, platform.version);
     try {
       copySync(path, cachePath);
       if (isNightly(platform.version)) {
@@ -20,7 +20,7 @@ module.exports = class PlatformsCache {
   }
 
   get(platform) {
-    let platformPath = join(this._cachePath, platform.name, platform.version);
+    const platformPath = join(this._cachePath, platform.name, platform.version);
     if (existsSync(platformPath)) {
       return platformPath;
     }
