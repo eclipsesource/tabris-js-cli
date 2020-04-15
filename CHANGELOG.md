@@ -4,6 +4,8 @@
   * Tweak colors and formatting of the printed output for readability.
   * Improve the stability of the debug-connection (handling logging and auto-reload).
   * Introduce various shortcuts to interact with the running app. Press `Ctrl+K` to see all shortcuts.
+* `tabris build` updates:
+  * Improve reproducibility of builds by using `npm ci --production` instead of `npm install --production` to install the runtime dependencies of the app. `npm ci` works similarly to `npm install`, but will throw an error when package-lock.json and package.json are out-of-sync to prevent unexpected results.
 
 ## 3.3.0
 
