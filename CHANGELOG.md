@@ -1,3 +1,6 @@
+## 3.4.1
+Update outdated generator-tabris-js dependency.
+
 ## 3.4.0
 * `tabris serve` updates:
   * New option `--qrcode-renderer` which can be used to select the alternative `terminal` renderer producing a terminal font-independent, but larger QR-Code.
