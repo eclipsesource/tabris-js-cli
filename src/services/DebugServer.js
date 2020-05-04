@@ -158,10 +158,8 @@ module.exports = class DebugServer extends EventEmitter {
     }, this._printStateDelay);
   }
 
-  _handleLog(_connection, {messages}) {
-    for (const message of messages) {
-      this._printClientMessage(message);
-    }
+  _handleLog(_connection, message) {
+    this._printClientMessage(message);
   }
 
   _handleActionResponse(_connection, {enablePrompt}) {
@@ -170,28 +168,28 @@ module.exports = class DebugServer extends EventEmitter {
     }
   }
 
-  _printClientMessage(parameter) {
-    switch (parameter.level) {
+  _printClientMessage({level, message}) {
+    switch (level) {
       case 'log':
-        this._terminal.log(parameter.message);
+        this._terminal.log(message);
         break;
       case 'info':
-        this._terminal.info(parameter.message);
+        this._terminal.info(message);
         break;
       case 'error':
-        this._terminal.error(parameter.message);
+        this._terminal.error(message);
         break;
       case 'warn':
-        this._terminal.warn(parameter.message);
+        this._terminal.warn(message);
         break;
       case 'debug':
-        this._terminal.debug(parameter.message);
+        this._terminal.debug(message);
         break;
       case 'message':
-        this._terminal.message(parameter.message);
+        this._terminal.message(message);
         break;
       case 'returnValue':
-        this._terminal.returnValue(parameter.message);
+        this._terminal.returnValue(message);
         break;
     }
   }

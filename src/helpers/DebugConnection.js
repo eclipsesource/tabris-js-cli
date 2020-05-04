@@ -59,19 +59,20 @@ module.exports = class DebugConnection extends EventEmitter {
   }
 
   _registerMessageHandler() {
-    this._webSocket.on('message', (message) => {
+    this._webSocket.on('message', (messages) => {
       try {
-        const clientMessage = JSON.parse(message);
-        if (clientMessage.type === TYPE_CONNECTION) {
-          this.device = clientMessage.parameter;
-          this.emit('connect');
-        } else if (clientMessage.type === TYPE_LOG) {
-          this.emit('log', clientMessage.parameter);
-        } else if(clientMessage.type === TYPE_ACTION_RESPONSE) {
-          this.emit('actionResponse', clientMessage.parameter);
-        } else if(clientMessage.type === TYPE_STORAGE) {
-          this.emit('storage', clientMessage.parameter);
-        }
+        JSON.parse(messages).forEach(({type, parameter}) => {
+          if (type === TYPE_CONNECTION) {
+            this.device = parameter;
+            this.emit('connect');
+          } else if (type === TYPE_LOG) {
+            this.emit('log', parameter);
+          } else if(type === TYPE_ACTION_RESPONSE) {
+            this.emit('actionResponse', parameter);
+          } else if(type === TYPE_STORAGE) {
+            this.emit('storage', parameter);
+          }
+        });
       } catch (ex) {}
     });
   }

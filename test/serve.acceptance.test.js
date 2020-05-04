@@ -348,7 +348,7 @@ async function startFakeWebSocketClient(port) {
   return new Promise(resolve => {
     const ws = new WebSocket(`ws://127.0.0.1:${port}/?session=${sessionId}&server=${serverId}`, '');
     ws.onopen = () => {
-      ws.send(JSON.stringify({type: 'connect', parameter: {platform: 'foo', model: 'bar'}}));
+      ws.send(JSON.stringify([{type: 'connect', parameter: {platform: 'foo', model: 'bar'}}]));
       resolve(ws);
     };
   });

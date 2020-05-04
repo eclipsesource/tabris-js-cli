@@ -1,6 +1,7 @@
 /* global tabris:false debugClient:false WebSocket: false */
 (function() {
 
+  const FLUSH_THROTTLE_INTERVAL = 100;
   const AUTO_RECONNECT_INTERVAL = 2000;
   const MAX_RECONNECT_ATTEMPTS = 5;
   const CODE_NORMAL_CLOSURE = 1000;
@@ -32,34 +33,35 @@
       this._buffer = [];
       this._isDisposed = false;
       this._connect();
+      this._throttledFlush = throttle(this._flush, FLUSH_THROTTLE_INTERVAL, {leading: false, trailing: true});
     }
 
     log(data) {
-      this._sendMessageBuffered({level: 'log', message: data});
+      this._sendBuffered('log', {level: 'log', message: data});
     }
 
     info(data) {
-      this._sendMessageBuffered({level: 'info', message: data});
+      this._sendBuffered('log', {level: 'info', message: data});
     }
 
     error(data) {
-      this._sendMessageBuffered({level: 'error', message: data});
+      this._sendBuffered('log', {level: 'error', message: data});
     }
 
     warn(data) {
-      this._sendMessageBuffered({level: 'warn', message: data});
+      this._sendBuffered('log', {level: 'warn', message: data});
     }
 
     debug(data) {
-      this._sendMessageBuffered({level: 'debug', message: data});
+      this._sendBuffered('log', {level: 'debug', message: data});
     }
 
     message(data) {
-      this._sendMessageBuffered({level: 'message', message: data});
+      this._sendBuffered('log', {level: 'message', message: data});
     }
 
     returnValue(data) {
-      this._sendMessageBuffered({level: 'returnValue', message: data});
+      this._sendBuffered('log', {level: 'returnValue', message: data});
     }
 
     dispose() {
@@ -96,13 +98,12 @@
     }
 
     _handleSockedOpen() {
-      const success = this._send('connect', {
+      const success = this._sendImmediate('connect', {
         platform: tabris.device.platform,
         model: tabris.device.model
       });
       if (success) {
         this._reconnectAttempts = 0;
-        this._sendBufferedMessages();
       }
     }
 
@@ -186,7 +187,7 @@
       if (tabris.device.platform === 'iOS') {
         storage.secureStorage = this._serializeStorage(tabris.secureStorage);
       }
-      this._send('storage', storage);
+      this._sendBuffered('storage', storage);
     }
 
     _serializeStorage(storage) {
@@ -226,7 +227,7 @@
           console.warn(ex);
         }
       } finally {
-        this._send('action-response', {enablePrompt: true});
+        this._sendBuffered('action-response', {enablePrompt: true});
       }
     }
 
@@ -241,37 +242,44 @@
       }
     }
 
-    _sendMessageBuffered(clientMessage) {
+    /**
+     * @param {string} type
+     * @param {any} parameter
+     */
+    _sendBuffered(type, parameter) {
       if (this._isDisposed) {
         return;
       }
-      const success = this._send('log', {messages: [clientMessage]});
-      if (!success) {
-        this._buffer.push(clientMessage);
-      }
-    }
-
-    _sendBufferedMessages() {
-      const success = this._send('log', {messages: this._buffer});
-      if (success) {
-        this._buffer = [];
-      }
+      this._buffer.push({type, parameter});
+      this._throttledFlush();
     }
 
     /**
      * @param {string} type
      * @param {any} parameter
      */
-    _send(type, parameter) {
+    _sendImmediate(type, parameter) {
+      return this._sendMessages([{type, parameter}]);
+    }
+
+    _flush() {
+      const success = this._sendMessages(this._buffer);
+      if (success) {
+        this._buffer = [];
+      }
+      return success;
+    }
+
+    /**
+     * @param {{type: string, parameter: any}[]} messages
+     */
+    _sendMessages(messages) {
       this._disposeCheck();
       if (!this._isConnectionOpen()) {
         return false;
       }
       try {
-        this._webSocket.send(JSON.stringify({
-          type,
-          parameter
-        }));
+        this._webSocket.send(JSON.stringify(messages));
         return true;
       } catch (ex) {
         console.warn(ex);
@@ -301,5 +309,55 @@
     }
 
   };
+
+  // Based on the Underscore.js implementation of throttle.
+  // Source: https://stackoverflow.com/a/27078401
+  /**
+   *
+   * @template {Function} T
+   * @param {T} func
+   * @param {number} wait
+   * @param {{leading: boolean, trailing: boolean}} options
+   * @returns {T}
+   */
+  function throttle(func, wait, options) {
+    let context, args, result;
+    let timeout = null;
+    let previous = 0;
+    if (!options) {
+      options = {};
+    }
+    const later = function() {
+      previous = options.leading === false ? 0 : Date.now();
+      timeout = null;
+      result = func.apply(context, args);
+      if (!timeout) {
+        context = args = null;
+      }
+    };
+    return function() {
+      const now = Date.now();
+      if (!previous && options.leading === false) {
+        previous = now;
+      }
+      const remaining = wait - (now - previous);
+      context = this;
+      args = arguments;
+      if (remaining <= 0 || remaining > wait) {
+        if (timeout) {
+          clearTimeout(timeout);
+          timeout = null;
+        }
+        previous = now;
+        result = func.apply(context, args);
+        if (!timeout) {
+          context = args = null;
+        }
+      } else if (!timeout && options.trailing !== false) {
+        timeout = setTimeout(later, remaining);
+      }
+      return result;
+    };
+  }
 
 })();

@@ -2,16 +2,12 @@
 
 ```
 interface ClientMessage {
-   sessionId: string;
-   type: 'log' | 'connect' | 'action-response';
-   parameter: LogParameter | ConnectParameter | ActionResponseParameter;
+    sessionId: string;
+    type: 'log' | 'connect' | 'action-response' | 'storage';
+    parameter: LogParameter | ConnectParameter | ActionResponseParameter | StorageParameter;
 };
 
 interface LogParameter {
-    messages: LogMessage[];
-}
-
-interface LogMessage {
     level: 'debug' | 'log' | 'info' | 'warn' | 'error';
     message: string;
 };
@@ -23,5 +19,11 @@ interface ConnectParameter {
 
 interface ActionResponseParameter {
     enablePrompt: boolean;
+}
+
+interface StorageParameter {
+    platform: 'ios' | 'android';
+    localStorage: object;
+    secureStorage: object;
 }
 ```
