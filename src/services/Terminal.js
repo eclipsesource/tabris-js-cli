@@ -1,4 +1,4 @@
-const {gray, yellow, red, blue, bold} = require('chalk');
+const {cyan, gray, yellow, green, red, blue, bold} = require('chalk');
 const readline = require('../lib/readline/readline');
 const {pathCompleter} = require('./pathCompleter');
 const EventEmitter = require('events');
@@ -121,6 +121,26 @@ module.exports = class Terminal extends EventEmitter {
     this._hidePrompt();
     this._console.log(`${gray('<')}  ${text}`);
     this._restorePrompt();
+  }
+
+  logRequest({url, method, status, responseTime, origin}) {
+    this._hidePrompt();
+    const metadata = typeof responseTime !== 'undefined' ? `(${responseTime} ms)` : '';
+    this._console.log(
+      gray(`[${origin}] ${bold(method)} ${bold(url)} ${this._colorizeStatus(status)} ${metadata}`)
+    );
+    this._restorePrompt();
+  }
+
+  _colorizeStatus(status) {
+    // Status color mapping adapted from https://github.com/expressjs/morgan/blob/aa718d7/index.js#L190
+    const initial = x => x;
+    const color = status >= 500 ? red
+      : status >= 400 ? yellow
+        : status >= 300 ? cyan
+          : status >= 200 ? green
+            : initial;
+    return color(status.toString());
   }
 
   messageNoAppConnected(message) {

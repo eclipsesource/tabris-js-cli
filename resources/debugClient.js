@@ -24,6 +24,31 @@
         }
         rc[event.level](event.message);
       });
+      // eslint-disable-next-line no-constant-condition
+      if ('{{EnableRequestLogging}}' === 'true') {
+        this._initRequestsLogging(rc);
+      }
+    },
+
+    _initRequestsLogging(rc) {
+      const originalFetch = global.fetch;
+      tabris.fetch = global.fetch = function(...parameters) {
+        return new Promise((resolve, reject) => {
+          const url = parameters[0];
+          const method = (parameters[1] && parameters[1].method || 'get').toUpperCase();
+          const startDate = new Date();
+          originalFetch.apply(this, parameters)
+            // async is not supported by older Tabris.js clients
+            // eslint-disable-next-line promise/prefer-await-to-then
+            .then(response => {
+              const endDate = new Date();
+              const responseTime = endDate.getTime() - startDate.getTime();
+              rc.logRequest({url, method, status: response.status, responseTime, origin: 'fetch'});
+              resolve(response);
+            })
+            .catch(reject);
+        });
+      };
     }
 
   };

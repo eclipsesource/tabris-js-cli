@@ -5,7 +5,6 @@ const {readJsonSync, existsSync, lstat} = require('fs-extra');
 const serveStatic = require('serve-static');
 const connect = require('connect');
 const portscanner = require('portscanner');
-const {red, blue} = require('chalk');
 const WebSocket = require('ws');
 const proc = require('../helpers/proc');
 const DebugServer = require('./DebugServer');
@@ -33,6 +32,7 @@ module.exports = class Server extends EventEmitter {
     if (options.requestLogging) {
       this.on('request', this._logRequest);
     }
+    this._appRequestLogging = !!options.appRequestLogging;
     this._watch = !!options.watch;
     this._interactive = !!options.interactive;
     this._autoReload  = !!options.autoReload;
@@ -197,27 +197,23 @@ module.exports = class Server extends EventEmitter {
     ];
   }
 
-  _logRequest(req, err) {
-    if (err) {
-      this.terminal.error(red(`${req.method} ${req.url}: "${err.message || err}"`));
-    } else {
-      this.terminal.info(blue(`${req.method} ${req.url}`));
-    }
+  _logRequest({req: {url, method}, res: {statusCode}, error}) {
+    this.terminal.logRequest({url, method, status: statusCode, error, origin: 'cli'});
   }
 
   _createErrorHandler() {
     // Error handling middlewares have four parameters.
     // The fourth parameter needs to be given although it's currently not used.
     // eslint-disable-next-line no-unused-vars
-    return (err, req, res, next) => {
-      this.emit('request', req, err);
+    return (error, req, res, next) => {
+      this.emit('request', {req, res, error});
       res.end();
     };
   }
 
   _createRequestEmitter() {
     return (req, res, next) => {
-      this.emit('request', req);
+      req.once('end', () => this.emit('request', {req, res}));
       next();
     };
   }
@@ -261,7 +257,8 @@ module.exports = class Server extends EventEmitter {
         return res.end(getBootJs(
           this.appPath,
           this.debugServer.getNewSessionId(),
-          encodeURIComponent(this.serverId)
+          encodeURIComponent(this.serverId),
+          this._appRequestLogging
         ));
       }
       next();
@@ -283,7 +280,6 @@ module.exports = class Server extends EventEmitter {
     return (req, res) => {
       res.writeHead(404, {'Content-Type': 'text/plain'});
       res.end('Not found\n');
-      this.emit('request', req, '404: Not found');
     };
   }
 

@@ -3,6 +3,7 @@ const {EventEmitter} = require('events');
 const STATE_CHECK_INTERVAL = process.env.NODE_ENV === 'test' ? 500 : 5000;
 const TYPE_CONNECTION = 'connect';
 const TYPE_LOG = 'log';
+const TYPE_LOG_REQUEST = 'log-request';
 const TYPE_STORAGE = 'storage';
 const TYPE_ACTION_RESPONSE = 'action-response';
 
@@ -67,6 +68,8 @@ module.exports = class DebugConnection extends EventEmitter {
             this.emit('connect');
           } else if (type === TYPE_LOG) {
             this.emit('log', parameter);
+          } else if (type === TYPE_LOG_REQUEST) {
+            this.emit('logRequest', parameter);
           } else if(type === TYPE_ACTION_RESPONSE) {
             this.emit('actionResponse', parameter);
           } else if(type === TYPE_STORAGE) {

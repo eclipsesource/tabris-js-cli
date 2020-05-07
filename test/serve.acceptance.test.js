@@ -298,7 +298,7 @@ describe('serve', function() {
     it('requests are logged to the console', async function() {
       writeTabrisProject(path);
 
-      serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-l'], {env});
+      serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '--log-cli-requests'], {env});
 
       const stdout1 = await waitForStdout(serve, 10000);
       const port = getPortFromStdout(stdout1);
@@ -312,16 +312,16 @@ describe('serve', function() {
 
     it('request errors are logged to the console', async function() {
       writeTabrisProject(path);
-      serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '-l'], {env});
+      serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '--log-cli-requests'], {env});
 
       const stdout1 = await waitForStdout(serve, 10000);
       const port = getPortFromStdout(stdout1);
       const [stdout2] = await Promise.all([
-        waitForStderr(serve, 10000),
+        waitForStdout(serve, 10000),
         fetch(`http://127.0.0.1:${port}/non-existent`)
       ]);
       const log = stdout2.toString();
-      expect(log).to.contain('GET /non-existent: "404: Not found"');
+      expect(log).to.contain('GET /non-existent 404');
     }).timeout(30000);
 
   });

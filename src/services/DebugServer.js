@@ -162,6 +162,10 @@ module.exports = class DebugServer extends EventEmitter {
     this._printClientMessage(message);
   }
 
+  _handleLogRequest(_connection, message) {
+    this._terminal.logRequest(message);
+  }
+
   _handleActionResponse(_connection, {enablePrompt}) {
     if (enablePrompt && this._onEvaluationCompleted) {
       this._onEvaluationCompleted();
@@ -207,6 +211,7 @@ module.exports = class DebugServer extends EventEmitter {
     connection.on('connect', () => this._handleConnect(connection, sessionId));
     connection.on('disconnect', () => this._handleDisconnect(connection));
     connection.on('log', args => this._handleLog(connection, args));
+    connection.on('logRequest', args => this._handleLogRequest(connection, args));
     connection.on('storage', args => this.emit('storage', args));
     connection.on('actionResponse', args => this._handleActionResponse(connection, args));
     connection.open(webSocket, sessionId);

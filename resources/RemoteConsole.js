@@ -64,6 +64,10 @@
       this._sendBuffered('log', {level: 'returnValue', message: data});
     }
 
+    logRequest(entry) {
+      this._sendBuffered('log-request', entry);
+    }
+
     dispose() {
       this._disposeSocket();
       this._buffer = null;

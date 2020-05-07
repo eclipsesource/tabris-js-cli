@@ -9,7 +9,8 @@ program
   .option('-m, --main [module]', 'main module of the project, overrides the "main" field of package.json if present')
   .option('-a, --auto-reload', 'auto reload the application when a source file is modified')
   .option('-i, --interactive', 'enable interactive console for JavaScript input (experimental)')
-  .option('-l, --logging', 'Logs requests to the internal HTTP server of the CLI.' +
+  .option('-l, --log-requests', 'Logs fetch() requests made by the app.')
+  .option('--log-cli-requests', 'Logs requests to the internal HTTP server of the CLI.' +
     ' Useful for debugging connection issues during app sideloading.'
   )
   .option('-w, --watch', 'execute the "watch" instead of the "build" script of the app before serving')
@@ -29,7 +30,8 @@ function serve(options) {
   const server = new Server({
     terminal,
     watch: options.watch,
-    requestLogging: options.logging,
+    requestLogging: options.logCliRequests,
+    appRequestLogging: options.logRequests,
     interactive: options.interactive,
     autoReload: options.autoReload,
     qrcodeRenderer: options.qrcodeRenderer,
