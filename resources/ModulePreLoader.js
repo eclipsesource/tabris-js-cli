@@ -65,6 +65,7 @@
     constructor() {
       this._dirs = {};
       this._sourceMaps = {};
+      this._pathToUrl = {};
     }
 
     createLoader(url) {
@@ -72,6 +73,7 @@
       if (!file || !file.content) {
         return null;
       }
+      this._pathToUrl[file.path] = url;
       try {
         return tabris.Module.execute(modulePrefix + file.content + modulePostfix, file.path);
       } catch (ex) {
@@ -79,10 +81,11 @@
       }
     }
 
-    getSourceMap(url) {
-      if (!(url in this._sourceMaps)) {
+    getSourceMap(path) {
+      if (!(path in this._sourceMaps)) {
         try {
-          const src = this._load(url) || '';
+          const url = this._pathToUrl[path] || path;
+          const src = this._load(url);
           if (sourceMapUrl.test(src)) {
             const match = src.match(sourceMapUrl);
             const mapUri = (match ? match[1] || match[2] || '' : '');
@@ -91,25 +94,25 @@
               const mimeType = dataUriMatch[1] || '';
               if (jsonMimeTypeRegex.test(mimeType)) {
                 const encodedMap = (dataUriMatch[3] || '').replace(/^\)\]\}'/, '');
-                this._sourceMaps[url] = JSON.parse(
+                this._sourceMaps[path] = JSON.parse(
                   dataUriMatch[2] === ';base64' ? atob(encodedMap) : decodeURIComponent(encodedMap)
                 );
               } else {
-                this._sourceMaps[url] = null;
+                this._sourceMaps[path] = null;
                 throw new Error('Unexpected source map mime type: "' + mimeType + '"');
               }
             } else if (mapUri) {
-              this._sourceMaps[url] = this.readJSON(url.slice(0, url.lastIndexOf('/')) + '/' + mapUri);
+              this._sourceMaps[path] = this.readJSON(url.slice(0, url.lastIndexOf('/')) + '/' + mapUri);
             } else {
-              this._sourceMaps[url] = null;
+              this._sourceMaps[path] = null;
             }
           }
         } catch (ex) {
-          console.warn('Error loading source map ' + url);
-          this._sourceMaps[url] = null;
+          console.warn(`Error loading source map ${path} (${ex.message})`);
+          this._sourceMaps[path] = null;
         }
       }
-      return this._sourceMaps[url] || null;
+      return this._sourceMaps[path] || null;
     }
 
     readJSON(url) {
