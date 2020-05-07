@@ -9,8 +9,8 @@ program
   .option('-m, --main [module]', 'main module of the project, overrides the "main" field of package.json if present')
   .option('-a, --auto-reload', 'auto reload the application when a source file is modified')
   .option('-i, --interactive', 'enable interactive console for JavaScript input (experimental)')
-  .option('-l, --log-requests', 'Logs fetch() requests made by the app.')
-  .option('--log-cli-requests', 'Logs requests to the internal HTTP server of the CLI.' +
+  .option('-l, --log-requests', 'log requests made by the app')
+  .option('--log-cli-requests', 'Log requests to the internal HTTP server of the CLI.' +
     ' Useful for debugging connection issues during app sideloading.'
   )
   .option('-w, --watch', 'execute the "watch" instead of the "build" script of the app before serving')

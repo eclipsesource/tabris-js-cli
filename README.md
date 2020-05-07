@@ -28,7 +28,7 @@ The directory to serve the Tabris.js app from. Needs to contain a package.json a
 
 ##### `-m [module], --main [module]`
 
-Overrides the "main" field of package.json. The argument must be a valid module id relative to the project root, e.g. "dist/main.js".
+Override the "main" field of package.json. The argument must be a valid module id relative to the project root, e.g. "dist/main.js".
 
 ##### `-a, --auto-reload`
 
@@ -38,17 +38,21 @@ Auto reload the application when a source file is modified.
 
 Enable interactive console for JavaScript input.
 
-##### `-l, --logging`
+##### `-l, --log-requests`
 
-Logs requests to the internal HTTP server of the CLI. Useful for debugging connection issues during app sideloading. This is in *addition* to the potential log output created by the app and the watch script. These are enabled regardless.
+Log requests made by the app.
+
+##### `--log-cli-requests`
+
+Log requests to the internal HTTP server of the CLI. Useful for debugging connection issues during app sideloading. This is in *addition* to the potential log output created by the app and the watch script. These are enabled regardless.
 
 ##### `-w, --watch`
 
-Executes the _watch_ instead of the _build_ script given in the package.json of the app. The _watch_ script can be a long-running task. A _prewatch_ script will be executed before _watch_ and before the server is started.
+Execute the _watch_ instead of the _build_ script given in the package.json of the app. The _watch_ script can be a long-running task. A _prewatch_ script will be executed before _watch_ and before the server is started.
 
 ##### `--no-intro`
 
-Does not print the available external URLs or QR code to the console, only the port. They can still be viewed by opening the given port in a browser.
+Do not print the available external URLs or QR code to the console, only the port. They can still be viewed by opening the given port in a browser.
 
 ##### `--qrcode-renderer`
 

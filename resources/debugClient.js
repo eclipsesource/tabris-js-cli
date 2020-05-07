@@ -31,6 +31,11 @@
     },
 
     _initRequestsLogging(rc) {
+      this._initFetchRequestLogging(rc);
+      this._initXhrRequestLogging(rc);
+    },
+
+    _initFetchRequestLogging(rc) {
       const originalFetch = global.fetch;
       tabris.fetch = global.fetch = function(...parameters) {
         return new Promise((resolve, reject) => {
@@ -49,6 +54,26 @@
             .catch(reject);
         });
       };
+    },
+
+    _initXhrRequestLogging(rc) {
+      const originalXhrOpen = tabris.XMLHttpRequest.prototype.open;
+      tabris.XMLHttpRequest.prototype.open = function(...parameters) {
+        const method = parameters[0].toUpperCase();
+        const url = parameters[1];
+        const startDate = new Date();
+        const stateChangedHandler = (event) => {
+          if (this.readyState === this.DONE) {
+            const endDate = new Date();
+            const responseTime = endDate.getTime() - startDate.getTime();
+            rc.logRequest({url, method, status: this.status, responseTime, origin: 'xhr'});
+            this.removeEventListener(event.type, stateChangedHandler);
+          }
+        };
+        this.addEventListener('readystatechange', stateChangedHandler);
+        originalXhrOpen.apply(this, parameters);
+      };
+
     }
 
   };
