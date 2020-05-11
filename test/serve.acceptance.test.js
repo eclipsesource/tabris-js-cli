@@ -297,8 +297,9 @@ describe('serve', function() {
 
     it('requests are logged to the console', async function() {
       writeTabrisProject(path);
+      env['TABRIS_CLI_SERVER_LOG'] = 'true';
 
-      serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '--log-cli-requests'], {env});
+      serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
       const stdout1 = await waitForStdout(serve, 10000);
       const port = getPortFromStdout(stdout1);
@@ -312,7 +313,9 @@ describe('serve', function() {
 
     it('request errors are logged to the console', async function() {
       writeTabrisProject(path);
-      serve = spawn('node', ['./src/tabris', 'serve', '-p', path, '--log-cli-requests'], {env});
+      env['TABRIS_CLI_SERVER_LOG'] = 'true';
+
+      serve = spawn('node', ['./src/tabris', 'serve', '-p', path], {env});
 
       const stdout1 = await waitForStdout(serve, 10000);
       const port = getPortFromStdout(stdout1);

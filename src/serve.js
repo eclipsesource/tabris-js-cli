@@ -10,9 +10,6 @@ program
   .option('-a, --auto-reload', 'auto reload the application when a source file is modified')
   .option('-i, --interactive', 'enable interactive console for JavaScript input (experimental)')
   .option('-l, --log-requests', 'log requests made by the app')
-  .option('--log-cli-requests', 'Log requests to the internal HTTP server of the CLI.' +
-    ' Useful for debugging connection issues during app sideloading.'
-  )
   .option('-w, --watch', 'execute the "watch" instead of the "build" script of the app before serving')
   .option('--no-intro', 'do not print the available external URLs or QR code.')
   .option('--qrcode-renderer <renderer>',
@@ -30,7 +27,7 @@ function serve(options) {
   const server = new Server({
     terminal,
     watch: options.watch,
-    requestLogging: options.logCliRequests,
+    requestLogging: process.env.TABRIS_CLI_SERVER_LOG === 'true',
     appRequestLogging: options.logRequests,
     interactive: options.interactive,
     autoReload: options.autoReload,

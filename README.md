@@ -42,10 +42,6 @@ Enable interactive console for JavaScript input.
 
 Log requests made by the app.
 
-##### `--log-cli-requests`
-
-Log requests to the internal HTTP server of the CLI. Useful for debugging connection issues during app sideloading. This is in *addition* to the potential log output created by the app and the watch script. These are enabled regardless.
-
 ##### `-w, --watch`
 
 Execute the _watch_ instead of the _build_ script given in the package.json of the app. The _watch_ script can be a long-running task. A _prewatch_ script will be executed before _watch_ and before the server is started.
@@ -110,6 +106,10 @@ Saves a `.json` file containing all current content of the app's `localStorage` 
 Loads a `.json` file (as created by CTRL + S) and writes its content in to the app's `localStorage`/`secureStorage`. All previous content will be removed. You will be prompted for the file name/path of the source file. The path is relative to the current working directory and autocompletion via the tab key is supported.
 
 Note that you can not load storage data created on an Android device to an iOS device, or vice versa. This is because `secureStorage` only exists on iOS.
+
+##### Environment variable TABRIS_CLI_SERVER_LOG
+
+Set TABRIS_CLI_SERVER_LOG=true to log requests to the internal HTTP server of the CLI. Useful for debugging connection issues during app sideloading.
 
 ### `tabris build [options] <platform> [cordova-platform-opts]`
 
