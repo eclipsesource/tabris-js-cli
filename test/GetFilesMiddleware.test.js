@@ -60,6 +60,9 @@ describe('GetFilesMiddleware', () => {
           createLoader: stub().returns('orgCreateLoader'),
           readJSON: stub().returns('orgReadJSON'),
           getSourceMap: stub().returns('orgGetSourceMap')
+        },
+        device: {
+          platform: 'Android'
         }
       };
       eval(getDebugClient(''));
@@ -178,7 +181,19 @@ describe('GetFilesMiddleware', () => {
         expect(listener).to.have.been.calledWith(posix.join(APP_PATH, 'foo', 'baz.json'));
       });
 
-      it('createLoader calls Module.execute with correct parameters', function() {
+      it('createLoader calls Module.execute with relative path on iOS', function() {
+        stub(global.tabris.Module, 'execute');
+        global.tabris.device.platform = 'iOS';
+
+        preLoader.createLoader('./foo/bar.js');
+
+        expect(global.tabris.Module.execute).to.have.been.calledWithMatch(
+          source,
+          normalize('./foo/bar.js')
+        );
+      });
+
+      it('createLoader calls Module.execute with absolute path on Android', function() {
         stub(global.tabris.Module, 'execute');
 
         preLoader.createLoader('./foo/bar.js');

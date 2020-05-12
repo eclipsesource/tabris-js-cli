@@ -66,6 +66,7 @@
       this._dirs = {};
       this._sourceMaps = {};
       this._pathToUrl = {};
+      this._useAbsolutePaths = tabris.device.platform === 'Android';
     }
 
     createLoader(url) {
@@ -73,9 +74,10 @@
       if (!file || !file.content) {
         return null;
       }
-      this._pathToUrl[file.path] = url;
+      const path = this._useAbsolutePaths ? file.path : url;
+      this._pathToUrl[path] = url;
       try {
-        return tabris.Module.execute(modulePrefix + file.content + modulePostfix, file.path);
+        return tabris.Module.execute(modulePrefix + file.content + modulePostfix, path);
       } catch (ex) {
         throw new Error('Could not parse ' + url + ':' + ex);
       }
