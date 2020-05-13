@@ -278,7 +278,9 @@
      * @param {{type: string, parameter: any}[]} messages
      */
     _sendMessages(messages) {
-      this._disposeCheck();
+      if (this._isDisposed) {
+        return false;
+      }
       if (!this._isConnectionOpen()) {
         return false;
       }
@@ -303,12 +305,6 @@
         this._webSocket.onmessage = null;
         this._webSocket.close();
         this._webSocket = null;
-      }
-    }
-
-    _disposeCheck() {
-      if (this._isDisposed) {
-        throw new Error('RemoteConsole is disposed');
       }
     }
 
