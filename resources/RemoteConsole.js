@@ -33,7 +33,7 @@
       this._buffer = [];
       this._isDisposed = false;
       this._connect();
-      this._throttledFlush = throttle(this._flush, FLUSH_THROTTLE_INTERVAL, {leading: false, trailing: true});
+      this._throttledFlush = throttle(() => this._flush(), FLUSH_THROTTLE_INTERVAL, {leading: false, trailing: true});
     }
 
     log(data) {
