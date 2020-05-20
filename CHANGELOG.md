@@ -1,3 +1,14 @@
+## 3.5.0
+* `tabris serve` updates:
+  * Support logging fetch and XHR requests made by the app. Give the `-l, --log-requests` option to enable it.
+  * Support printing the storage contents. UI tree and storage contents can now both be printed by pressing `Ctrl+P`.
+  * Logging of requests to the internal HTTP server of the CLI, previously `-l, --logging`, can now be used by setting the environment variable `TABRIS_CLI_SERVER_LOG` to `true` instead.
+  * Fix source maps issues.
+  * Improve UX of prompts:
+    * Do not require pressing Enter for boolean and choice prompts.
+    * Support canceling prompts by pressing ESC.
+  * Improve buffering of debug connection messages.
+
 ## 3.4.1
 Update outdated generator-tabris-js dependency.
 
