@@ -108,6 +108,7 @@
       });
       if (success) {
         this._reconnectAttempts = 0;
+        this._flush();
       }
     }
 
