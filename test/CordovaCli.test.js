@@ -46,44 +46,98 @@ describe('CordovaCli', function() {
       expect(proc.spawnSync).to.have.been.calledWith(CORDOVA, args, {cwd});
     });
 
-    it('calls cordova platform add if platforms.json exists but misses platform', function() {
-      mkdirSync(join(cwd, 'platforms'));
-      writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{}');
-      cli.platformAddSafe('name', 'spec');
+    describe('platform declaration in platforms.json', function() {
+      it('calls cordova platform add if platforms.json exists but misses platform', function() {
+        mkdirSync(join(cwd, 'platforms'));
+        writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{}');
+        cli.platformAddSafe('name', 'spec');
 
-      expect(fs.removeSync).not.to.have.been.called;
-      const args = match.array.contains(['platform', 'add', 'spec']);
-      expect(proc.spawnSync).to.have.been.calledWith(CORDOVA, args, {cwd});
+        expect(fs.removeSync).not.to.have.been.called;
+        const args = match.array.contains(['platform', 'add', 'spec']);
+        expect(proc.spawnSync).to.have.been.calledWith(CORDOVA, args, {cwd});
+      });
+
+      it('does not call cordova platform add if platform declared', function() {
+        mkdirSync(join(cwd, 'platforms'));
+        writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{"name": "foo"}');
+
+        cli.platformAddSafe('name', 'bar');
+
+        expect(fs.removeSync).not.to.have.been.called;
+        expect(proc.spawnSync).not.to.have.been.calledWith(CORDOVA);
+      });
+
+      it('returns self if platform declared', function() {
+        mkdirSync(join(cwd, 'platforms'));
+        writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{"name": "foo"}');
+
+        expect(cli.platformAddSafe('name', 'bar')).to.equal(cli);
+      });
+
+      it('removes platform directory before platform add if existing and missing from platforms.json', function() {
+        mkdirsSync(join(cwd, 'platforms', 'name'));
+        writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{}');
+        cli.platformAddSafe('name', 'spec');
+
+        expect(fs.removeSync).to.have.been.calledWithMatch(/platforms.name$/);
+        const args = match.array.contains(['platform', 'add', 'spec']);
+        expect(proc.spawnSync).to.have.been.calledWith(CORDOVA, args, {cwd});
+      });
+
     });
 
-    it('does not call cordova platform add if platform declared', function() {
-      mkdirSync(join(cwd, 'platforms'));
-      writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{"name": "foo"}');
+    describe('platform declaration in package.json', function() {
 
-      cli.platformAddSafe('name', 'bar');
+      it('calls cordova platform add if package.json exists but misses platform', function() {
+        mkdirSync(join(cwd, 'platforms'));
+        writeFileSync(join(cwd, 'package.json'), '{"cordova": {"platforms": ["other"]}}');
+        cli.platformAddSafe('name', 'spec');
 
-      expect(fs.removeSync).not.to.have.been.called;
-      expect(proc.spawnSync).not.to.have.been.calledWith(CORDOVA);
+        expect(fs.removeSync).not.to.have.been.called;
+        const args = match.array.contains(['platform', 'add', 'spec']);
+        expect(proc.spawnSync).to.have.been.calledWith(CORDOVA, args, {cwd});
+      });
+
+      it('calls cordova platform add if package.json exists but misses platforms array', function() {
+        mkdirSync(join(cwd, 'platforms'));
+        writeFileSync(join(cwd, 'package.json'), '{"cordova": {}}');
+        cli.platformAddSafe('name', 'spec');
+
+        expect(fs.removeSync).not.to.have.been.called;
+        const args = match.array.contains(['platform', 'add', 'spec']);
+        expect(proc.spawnSync).to.have.been.calledWith(CORDOVA, args, {cwd});
+      });
+
+      it('does not call cordova platform add if platform declared', function() {
+        mkdirSync(join(cwd, 'platforms'));
+        writeFileSync(join(cwd, 'package.json'), '{"cordova": {"platforms": ["name"]}}');
+
+        cli.platformAddSafe('name', 'bar');
+
+        expect(fs.removeSync).not.to.have.been.called;
+        expect(proc.spawnSync).not.to.have.been.calledWith(CORDOVA);
+      });
+
+      it('returns self if platform declared', function() {
+        mkdirSync(join(cwd, 'platforms'));
+        writeFileSync(join(cwd, 'package.json'), '{"cordova": {"platforms": ["name"]}}');
+
+        expect(cli.platformAddSafe('name', 'bar')).to.equal(cli);
+      });
+
+      it('removes platform directory before platform add if existing and missing from package.json', function() {
+        mkdirsSync(join(cwd, 'platforms', 'name'));
+        writeFileSync(join(cwd, 'package.json'), '{"cordova": {"platforms": ["other"]}}');
+        cli.platformAddSafe('name', 'spec');
+
+        expect(fs.removeSync).to.have.been.calledWithMatch(/platforms.name$/);
+        const args = match.array.contains(['platform', 'add', 'spec']);
+        expect(proc.spawnSync).to.have.been.calledWith(CORDOVA, args, {cwd});
+      });
+
     });
 
-    it('returns self if platform declared', function() {
-      mkdirSync(join(cwd, 'platforms'));
-      writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{"name": "foo"}');
-
-      expect(cli.platformAddSafe('name', 'bar')).to.equal(cli);
-    });
-
-    it('removes platform directory before platform add if existing and missing from platforms.json', function() {
-      mkdirsSync(join(cwd, 'platforms', 'name'));
-      writeFileSync(join(cwd, 'platforms', 'platforms.json'), '{}');
-      cli.platformAddSafe('name', 'spec');
-
-      expect(fs.removeSync).to.have.been.calledWithMatch(/platforms.name$/);
-      const args = match.array.contains(['platform', 'add', 'spec']);
-      expect(proc.spawnSync).to.have.been.calledWith(CORDOVA, args, {cwd});
-    });
-
-    it('removes platform directory before platform add if existing and platforms.json missing', function() {
+    it('removes platform directory before platform add if existing and platform declaration files', function() {
       mkdirsSync(join(cwd, 'platforms', 'name'));
       cli.platformAddSafe('name', 'spec');
 

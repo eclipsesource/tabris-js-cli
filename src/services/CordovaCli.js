@@ -32,12 +32,29 @@ class CordovaCli {
   }
 
   _platformDeclared(name) {
+    return this._platformDeclaredInPlatformsJson(name) || this._platformDeclaredInPackageJson(name);
+  }
+
+  _platformDeclaredInPlatformsJson(name) {
     const platformsJsonPath = join(this._cwd, 'platforms', 'platforms.json');
     if (!existsSync(platformsJsonPath)) {
       return false;
     }
     const platforms = JSON.parse(readFileSync(platformsJsonPath, 'utf8'));
     return !!platforms[name];
+  }
+
+  _platformDeclaredInPackageJson(name) {
+    const packageJsonPath = join(this._cwd, 'package.json');
+    if (!existsSync(packageJsonPath)) {
+      return false;
+    }
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+    return packageJson &&
+      packageJson.cordova &&
+      packageJson.cordova.platforms &&
+      packageJson.cordova.platforms instanceof Array &&
+      packageJson.cordova.platforms.includes(name);
   }
 
   _execCordova(args, opts = [], platformOpts = []) {
