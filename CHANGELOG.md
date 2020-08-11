@@ -1,3 +1,7 @@
+## 3.6.0
+
+* Bug Fixes
+
 ## 3.5.0
 * `tabris serve` updates:
   * Support logging fetch and XHR requests made by the app. Give the `-l, --log-requests` option to enable it.
