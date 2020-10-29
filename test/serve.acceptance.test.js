@@ -194,7 +194,7 @@ describe('serve', function() {
 
   it('does not reload client when the changed file was not a source file', async function() {
     writeTabrisProject(path);
-    writeFileSync(join(path, 'bar'));
+    writeFileSync(join(path, 'bar'), '');
     serve = spawn('node', ['./src/tabris', 'serve', '-wap', path], {env});
     const stdout = await waitForStdout(serve);
     const port = getPortFromStdout(stdout);

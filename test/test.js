@@ -38,7 +38,7 @@ function writeTabrisProject(path, projectPackage, tabrisPackage) {
     mkdirSync(join(path, 'node_modules'), {recursive: true});
     mkdirSync(join(path, 'node_modules', 'tabris'), {recursive: true});
     writeFileSync(join(path, 'node_modules', 'tabris', 'package.json'), tabrisPackage || '{"version": "3.0.0"}');
-    writeFileSync(join(path, 'node_modules', 'tabris', 'boot.min.js'));
+    writeFileSync(join(path, 'node_modules', 'tabris', 'boot.min.js'), '');
   }
 }
 

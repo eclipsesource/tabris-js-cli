@@ -130,7 +130,7 @@ describe('TabrisApp', function() {
 
     it('deletes contents of www/app before copying project contents to destination/www/app', function() {
       mkdirsSync(join(cwd, 'destination/www/app'));
-      writeFileSync(join(cwd, 'destination/www/app/obsoleted'));
+      writeFileSync(join(cwd, 'destination/www/app/obsoleted'), '');
       mkdirSync(join(cwd, 'src'));
       mkdirSync(join(cwd, 'test'));
       writeFileSync(join(cwd, 'src/foo'), 'test');
@@ -232,7 +232,7 @@ describe('TabrisApp', function() {
 
     it('installs production dependencies using npm ci when package-lock.json exists', function() {
       const destination = join(cwd, 'destination');
-      writeFileSync(join(cwd, 'package-lock.json'));
+      writeFileSync(join(cwd, 'package-lock.json'), '');
 
       project.createCordovaProject(destination);
 
@@ -242,7 +242,7 @@ describe('TabrisApp', function() {
 
     it('installedTabrisVersion returns version without build metadata', function() {
       const destination = join(cwd, 'destination');
-      writeFileSync(join(cwd, 'package-lock.json'));
+      writeFileSync(join(cwd, 'package-lock.json'), '');
 
       project.createCordovaProject(destination);
 

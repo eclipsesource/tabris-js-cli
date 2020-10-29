@@ -37,7 +37,7 @@ describe('pathCompleter', function() {
 
   it('suggests same file path when file path given', () => {
     const barFilePath = join(folderPath, 'bar');
-    writeFileSync(barFilePath);
+    writeFileSync(barFilePath, '');
     const [suggestions] = pathCompleterSync(barFilePath);
 
     expect(suggestions.length).to.equal(1);
@@ -46,7 +46,7 @@ describe('pathCompleter', function() {
 
   it('does not suggest anything when file path with / suffix given', () => {
     const barFilePath = join(folderPath, 'bar');
-    writeFileSync(barFilePath);
+    writeFileSync(barFilePath, '');
     const [suggestions] = pathCompleterSync(barFilePath + '/');
 
     expect(suggestions.length).to.equal(0);
@@ -54,7 +54,7 @@ describe('pathCompleter', function() {
 
   it('suggests files in directory when directory path with / suffix given', () => {
     const barFilePath = join(folderPath, 'bar');
-    writeFileSync(barFilePath);
+    writeFileSync(barFilePath, '');
     const [suggestions] = pathCompleterSync(folderPath + '/');
 
     expect(suggestions.length).to.equal(1);
@@ -65,9 +65,9 @@ describe('pathCompleter', function() {
     const barFilePath = join(folderPath, 'bar');
     const baFilePath = join(folderPath, 'ba');
     const carFilePath = join(folderPath, 'car');
-    writeFileSync(barFilePath);
-    writeFileSync(baFilePath);
-    writeFileSync(carFilePath);
+    writeFileSync(barFilePath, '');
+    writeFileSync(baFilePath, '');
+    writeFileSync(carFilePath, '');
     const [suggestions] = pathCompleterSync(join(folderPath, 'b'));
 
     expect(suggestions.length).to.equal(2);
