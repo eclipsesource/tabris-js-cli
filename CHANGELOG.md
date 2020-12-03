@@ -1,3 +1,7 @@
+## 3.7.0
+
+* No changes
+
 ## 3.6.0
 
 * Bug Fixes
