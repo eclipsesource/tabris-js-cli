@@ -2,8 +2,10 @@ const {join, normalize, posix} = require('path');
 const GetFilesMiddleware = require('../src/services/GetFilesMiddleware');
 const {expect, restore, spy, stub} = require('./test');
 const {getDebugClient} = require('../src/services/getBootJs');
-
 const APP_PATH = normalize('/projectdir');
+
+// shim for running ModulePreLoader.js on node 10:
+require('string.prototype.matchall').shim();
 
 const source = 'Object.assign(exports, {module, require, __filename, __dirname, bar: true});';
 const isFile = () => true;
@@ -255,15 +257,19 @@ describe('GetFilesMiddleware', () => {
           {isFile, name: 'bar.js'},
           {isFile, name: 'bar-inline.js'},
           {isFile, name: 'bar-inline-b64.js'},
+          {isFile, name: 'bar-twice.js'},
           {isFile, name: 'bar.js.map'},
           {isFile, name: 'baz.js'},
           {isFile, name: 'baz2.js'}
         ]);
-        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar.js').returns(bar_js + bar_source_map_url);
+        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar.js')
+          .returns(bar_js + bar_source_map_url);
         fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar-inline.js')
           .returns(bar_js + bar_source_map_data);
         fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar-inline-b64.js')
           .returns(bar_js + bar_source_map_b64);
+        fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar-twice.js')
+          .returns(bar_js + '\n//# sourceMappingURL=wrong.js.map\nfoo();' + bar_source_map_url);
         fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'bar.js.map').returns(bar_source_map);
         fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'baz.js').returns(source);
         fileService.getFileContent.withArgs(join(APP_PATH, 'foo'), 'baz2.js')
@@ -302,6 +308,12 @@ describe('GetFilesMiddleware', () => {
 
       it('getSourceMap with external source map returns source map', function() {
         const sourceMap = preLoader.getSourceMap('./foo/bar.js');
+
+        expect(sourceMap).to.deep.equal(JSON.parse(bar_source_map));
+      });
+
+      it('getSourceMap with two external source maps returns last one', function() {
+        const sourceMap = preLoader.getSourceMap('./foo/bar-twice.js');
 
         expect(sourceMap).to.deep.equal(JSON.parse(bar_source_map));
       });

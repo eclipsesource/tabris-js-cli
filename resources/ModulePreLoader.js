@@ -12,9 +12,8 @@
   // https://github.com/lydell/source-map-url/blob/f13c43ca675379922f26c87737fdcbbeac07eb09/LICENSE
   // https://github.com/lydell/source-map-resolve/blob/858cd9e2ecce25427761b8be616cabf704c69316/LICENSE
   const innerRegex = /[#@] sourceMappingURL=([^\s'"]*)/.source;
-  const sourceMapUrl = new RegExp(
-    '(?:/\\*(?:\\s*\r?\n(?://)?)?(?:' + innerRegex + ')\\s*\\*/|//(?:' + innerRegex + '))\\s*'
-  );
+  // For this one use a string instead of RegExp instance since the "lastIndex" field can mutate and cause issue:
+  const sourceMapUrl = '(?:/\\*(?:\\s*\r?\n(?://)?)?(?:' + innerRegex + ')\\s*\\*/|//(?:' + innerRegex + '))\\s*';
   const dataUriRegex = /^data:([^,;]*)(;[^,;]*)*(?:,(.*))?$/;
   const jsonMimeTypeRegex = /^(?:application|text)\/json$/;
 
@@ -88,8 +87,8 @@
         try {
           const url = this._pathToUrl[path] || path;
           const src = this._load(url);
-          if (sourceMapUrl.test(src)) {
-            const match = src.match(sourceMapUrl);
+          if (new RegExp(sourceMapUrl).test(src)) {
+            const match = Array.from(src.matchAll(new RegExp(sourceMapUrl, 'g'))).pop();
             const mapUri = (match ? match[1] || match[2] || '' : '');
             const dataUriMatch = mapUri.match(dataUriRegex);
             if (dataUriMatch) {
