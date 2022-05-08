@@ -48,7 +48,7 @@ module.exports = class Server extends EventEmitter {
   static get externalAddresses() {
     const interfaces = os.networkInterfaces();
     return Object.keys(interfaces)
-      .map(key => interfaces[key].find(details => details.family === 'IPv4' && details.internal === false))
+      .map(key => interfaces[key].find(details => (details.family === 'IPv4' || details.family === 4) && details.internal === false))
       .filter(val => !!val)
       .map(iface => iface.address);
   }
