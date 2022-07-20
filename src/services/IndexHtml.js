@@ -1,4 +1,4 @@
-const xml2js = require('xml2js');
+const {XMLBuilder} = require('fast-xml-parser');
 
 const style = `
   body {
@@ -26,49 +26,46 @@ module.exports = class IndexHtml {
     const qrCode = await new Promise(resolve =>
       this.info.generateDataUrlQRCode(this.info.formatUrl(mainUrl), resolve)
     );
-    const builder = new xml2js.Builder({headless: true, preserveChildrenOrder: true});
     const multiAddress = this.info.externalURLs.length > 1;
     const data = {
       html: {
-        $: {lang: 'en'},
+        '@_lang': 'en',
         head: {
-          meta: {$: {charset: 'utf-8'}},
-          title: {_: 'Tabris.js CLI'},
-          style: {$: {type: 'text/css'}, _: style}
+          meta: {'@_charset': 'utf-8'},
+          title: 'Tabris.js CLI',
+          style: {'@_type': 'text/css', '#text': style},
         },
         body: {
-          h1: {_: 'Tabris.js CLI is running'},
+          h1: 'Tabris.js CLI is running',
           p: {
-            span: {
-              _: 'Scan the QR Code below using the',
-            },
+            span: 'Scan the QR Code below using the ',
             a: {
-              _: 'Tabris.js Developer App',
-              $: {
-                href: 'https://docs.tabris.com/latest/developer-app.html',
-                target: '_blank',
-                rel: 'noreferrer'
-              }
+              '@_href': 'https://docs.tabris.com/latest/developer-app.html',
+              '@_target': '_blank',
+              '@_rel': 'noreferrer',
+              '#text': 'Tabris.js Developer App'
             }
           },
-          img: {$:{src: qrCode}},
-          h3: {_: multiAddress ? 'Available URLs:' : 'URL:'},
+          img: {'@_src': qrCode},
+          h3: multiAddress ? 'Available URLs:' : 'URL:',
           ul: {
             li: this.info.externalURLs.map(url => ({
               code: {
-                $: {style: 'font-weight: bold'},
-                _: this.info.formatUrl(url)
+                '@_style': 'font-weight: bold',
+                '#text': this.info.formatUrl(url)
               },
               span: {
-                $: {style: 'font-style: italic'},
-                _: ((url.host === mainUrl.host) && multiAddress) ? '(QR Code)' : ''
+                '@_style': 'font-style: italic',
+                '#text': ((url.host === mainUrl.host) && multiAddress) ? '(QR Code)' : ''
               }
             }))
           }
         }
       }
     };
-    return '<!doctype html>\n' + builder.buildObject(data) + '\n';
+    const builder = new XMLBuilder({ignoreAttributes: false, suppressEmptyNode: true});
+    const result = builder.build(data);
+    return '<!doctype html>\n' + result + '\n';
   }
 
 };

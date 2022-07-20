@@ -1,5 +1,5 @@
 const {writeFileSync, readFileSync} = require('fs-extra');
-const {Parser, Builder} = require('xml2js');
+const {XMLParser, XMLBuilder, XMLValidator} = require('fast-xml-parser');
 const log = require('../helpers/log');
 
 module.exports = class ConfigXml {
@@ -28,14 +28,16 @@ module.exports = class ConfigXml {
   }
 
   get widgetId() {
-    return this._parsedXml.widget.$.id;
+    const widgetEl = this._parsedXml.find(child => child['widget'] != null);
+    return widgetEl && widgetEl[':@'] && widgetEl[':@']['@_id'];
   }
 
   _validateContents() {
-    if (!this._parsedXml.widget) {
+    const widgetEl = this._parsedXml.find(child => child['widget'] != null);
+    if (!widgetEl) {
       throw new Error('Missing or empty <widget> element in config.xml');
     }
-    if (!(this._parsedXml.widget.$ && this._parsedXml.widget.$.id)) {
+    if (!widgetEl[':@'] || !widgetEl[':@']['@_id']) {
       throw new Error('"id" attribute of <widget> element in config.xml missing');
     }
   }
@@ -50,13 +52,18 @@ module.exports = class ConfigXml {
   }
 
   adjustContentPath() {
-    if (this._parsedXml.widget.content) {
-      const src = this._parsedXml.widget.content[0].$.src;
-      this._parsedXml.widget.content[0].$.src = this._join('app', src);
+    const widgetEl = this._parsedXml.find(child => child['widget'] != null);
+    const widgetElChildren = widgetEl['widget'];
+    const contentEl = widgetElChildren && widgetElChildren.find(child => child['content'] != null);
+    if (contentEl && contentEl[':@'] && contentEl[':@']['@_src']) {
+      contentEl[':@']['@_src'] = this._join('app', contentEl[':@']['@_src']);
+    } else if (contentEl) {
+      contentEl[':@'] = {'@_src': 'app/package.json'};
     } else {
-      this._parsedXml.widget.content = [{$: {src: this._join('app', 'package.json')}}];
+      widgetElChildren.push({content: [], ':@': {'@_src': 'app/package.json'}});
     }
-    this._contents = new Builder().buildObject(this._parsedXml);
+    const builder = new XMLBuilder({preserveOrder: true, ignoreAttributes: false, suppressEmptyNode: true});
+    this._contents = builder.build(this._parsedXml);
     return this;
   }
 
@@ -72,15 +79,11 @@ module.exports = class ConfigXml {
   }
 
   _parseXml(xml) {
-    let result;
-    new Parser({trim: true, async: false})
-      .parseString(xml, (err, root) => {
-        if (err) {
-          throw new Error('Could not parse config.xml: ' + err.message);
-        }
-        result = root;
-      });
-    return result;
+    const validationResult = XMLValidator.validate(xml);
+    if (validationResult !== true) {
+      throw new Error('Could not parse config.xml: ' + validationResult.err.message);
+    }
+    return new XMLParser({preserveOrder: true, ignoreAttributes: false}).parse(xml);
   }
 
   _join(...segments) {
