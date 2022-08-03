@@ -1,4 +1,4 @@
-const {join} = require('path');
+const {join, normalize} = require('path');
 const fs = require('fs-extra');
 const progress = require('cli-progress');
 const log = require('../helpers/log');
@@ -6,6 +6,7 @@ const zip = require('../helpers/zip');
 const {FileDownloader} = require('../helpers/download');
 const BuildKeyProvider = require('./BuildKeyProvider');
 const PlatformsCache = require('./PlatformsCache');
+const proc = require('../helpers/proc');
 
 const PATH = '/api/v1/downloads/cli';
 const HOST = process.env.TABRIS_HOST || 'tabrisjs.com';
@@ -19,6 +20,15 @@ module.exports = class PlatformProvider {
   }
 
   async getPlatform(platform) {
+    const path = await this._getPlatformPath(platform);
+    if (!fs.pathExistsSync(path)) {
+      throw new Error('Invalid platform path: ' + path);
+    }
+    proc.spawnSync('npm', ['install', '--production'], {cwd: normalize(path)});
+    return path;
+  }
+
+  async _getPlatformPath(platform) {
     const envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
     if (envVarPlatformSpec) {
       return envVarPlatformSpec;

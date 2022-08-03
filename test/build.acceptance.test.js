@@ -24,10 +24,12 @@ const mockBinDir = join(__dirname, 'bin');
 
     this.timeout(10000);
 
-    let cwd, env, opts, home;
+    let cwd, env, opts, home, dirIOs, dirAndroid;
 
     beforeEach(function() {
       const dir = temp.mkdirSync('test');
+      dirIOs = realpathSync(temp.mkdirSync('ios'));
+      dirAndroid = realpathSync(temp.mkdirSync('android'));
       const fakeCordova = join(mockBinDir, 'cordova');
       cwd = realpathSync(dir);
       home = join(cwd, 'test_home');
@@ -38,8 +40,8 @@ const mockBinDir = join(__dirname, 'bin');
         USERPROFILE: home,
         APPDATA: 'appdata',
         PATH: mockBinDir + (platform() === 'win32' ? ';' : ':') + process.env.PATH,
-        TABRIS_ANDROID_PLATFORM: 'path/to/tabris-android',
-        TABRIS_IOS_PLATFORM: 'path/to/tabris-ios'
+        TABRIS_ANDROID_PLATFORM: dirAndroid,
+        TABRIS_IOS_PLATFORM: dirIOs
       });
       opts = {cwd, env, encoding: 'utf8'};
       mkdirsSync(join(cwd, 'cordova'));
@@ -49,8 +51,12 @@ const mockBinDir = join(__dirname, 'bin');
       writeFileSync(join(cwd, 'test_install', 'node_modules', 'tabris', 'package.json'),
         `{"version": "${packageJson.version}"}`);
       mkdirsSync(join(cwd, 'test_install_cordova', 'node_modules', '.bin'));
-      symlinkSync(fakeCordova, join(cwd, 'test_install_cordova', 'node_modules', '.bin', 'cordova'));
-      symlinkSync(fakeCordova, join(cwd, 'test_install_cordova', 'node_modules', '.bin', 'cordova.cmd'));
+      try {
+        symlinkSync(fakeCordova, join(cwd, 'test_install_cordova', 'node_modules', '.bin', 'cordova'));
+        symlinkSync(fakeCordova, join(cwd, 'test_install_cordova', 'node_modules', '.bin', 'cordova.cmd'));
+      } catch (ex) {
+        throw new Error('You may need admin rights to execute this test: ' + ex.message);
+      }
     });
 
     afterEach(restore);
@@ -65,7 +71,6 @@ const mockBinDir = join(__dirname, 'bin');
     for (const platform of ['android', 'ios']) {
       it(`succeeds with platform '${platform}'`, function() {
         const result = spawnSync('node', [tabris, command, platform], opts);
-
         expect(result.stderr).to.equal('');
         expect(result.status).to.equal(0);
       });

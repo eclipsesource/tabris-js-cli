@@ -12,6 +12,8 @@ const version = '2.3';
 
 describe('PlatformProvider', function() {
 
+  this.timeout(10000);
+
   let cliDataDir, provider, platformPath;
 
   beforeEach(function() {
@@ -34,7 +36,7 @@ describe('PlatformProvider', function() {
     describe('when TABRIS_XXX_PLATFORM is set', function() {
 
       beforeEach(function() {
-        process.env.TABRIS_BAR_PLATFORM = 'customSpec';
+        process.env.TABRIS_BAR_PLATFORM = temp.mkdirSync('customSpec');
       });
 
       afterEach(function() {
@@ -43,7 +45,7 @@ describe('PlatformProvider', function() {
 
       it('resolves with custom platform spec', async function() {
         const platform = await provider.getPlatform({name, version});
-        expect(platform).to.equal('customSpec');
+        expect(platform).to.equal(process.env.TABRIS_BAR_PLATFORM);
       });
 
     });
