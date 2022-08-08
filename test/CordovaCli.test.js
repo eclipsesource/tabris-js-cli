@@ -5,9 +5,8 @@ const proc = require('../src/helpers/proc');
 const {join} = require('path');
 const {expect, stub, restore, match} = require('./test');
 const CordovaCli = require('../src/services/CordovaCli');
-const {sep} = require('path');
 
-const CORDOVA = `path${sep}cordova`;
+const CORDOVA = 'path/cordova';
 
 describe('CordovaCli', function() {
 
