@@ -1,4 +1,4 @@
-const {mkdirsSync, readFileSync, readdirSync} = require('fs-extra');
+const {mkdirsSync, readFileSync, readdirSync, existsSync} = require('fs-extra');
 const {join} = require('path');
 const https = require('https');
 const yazl = require('yazl');
@@ -83,6 +83,11 @@ describe('PlatformProvider', function() {
         expect(children).to.deep.equal([name]);
       });
 
+      it('runs npm install if needed', async function() {
+        await provider.getPlatform({name, version});
+        expect(existsSync(join(platformPath, 'package.json'))).to.be.true;
+      });
+
     });
 
     describe('when platform download returns error code', function() {
@@ -158,6 +163,7 @@ function fakeResponse(statusCode) {
 function createPlatformResponseStream(statusCode) {
   const zipFile = new yazl.ZipFile();
   zipFile.addBuffer(Buffer.from('hello'), 'tabris-bar/foo.file');
+  zipFile.addBuffer(Buffer.from('{}'), 'tabris-bar/package.json');
   zipFile.end();
   zipFile.outputStream.statusCode = statusCode;
   zipFile.outputStream.headers = {'content-length': 1000};
