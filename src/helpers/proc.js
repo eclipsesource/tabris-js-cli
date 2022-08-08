@@ -26,7 +26,7 @@ function _spawn({cmd, args, opts = {}}, {sync}) {
     shell: isWindows()
   }, opts));
   if (sync && child.status !== 0) {
-    throw new Error(childProcessExitedMessage(cmd, child.status));
+    throw new Error(childProcessExitedMessage(cmd, child.status || child.signal || child.error));
   }
   if (!sync) {
     childProcesses.push(child);

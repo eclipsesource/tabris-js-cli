@@ -1,5 +1,5 @@
 const {writeFileSync, readdirSync, statSync} = require('fs-extra');
-const {join} = require('path');
+const {join, sep} = require('path');
 const temp = require('temp');
 const {expect, restore} = require('./test');
 const {pathCompleterSync} = require('../src/services/pathCompleter');
@@ -23,7 +23,7 @@ describe('pathCompleter', function() {
   });
 
   it('suggests contents of current working directory when ./ as path given', () => {
-    const [suggestions] = pathCompleterSync('./');
+    const [suggestions] = pathCompleterSync('.' + sep);
 
     expect(suggestions).to.deep.equal(readdirSync('.').map(appendSlashToDirectoryNames));
   });
@@ -32,7 +32,7 @@ describe('pathCompleter', function() {
     const [suggestions] = pathCompleterSync(folderPath);
 
     expect(suggestions.length).to.equal(1);
-    expect(suggestions[0]).to.equal(folderPath + '/');
+    expect(suggestions[0]).to.equal(folderPath + sep);
   });
 
   it('suggests same file path when file path given', () => {
@@ -47,7 +47,7 @@ describe('pathCompleter', function() {
   it('does not suggest anything when file path with / suffix given', () => {
     const barFilePath = join(folderPath, 'bar');
     writeFileSync(barFilePath, '');
-    const [suggestions] = pathCompleterSync(barFilePath + '/');
+    const [suggestions] = pathCompleterSync(barFilePath + sep);
 
     expect(suggestions.length).to.equal(0);
   });
@@ -55,7 +55,7 @@ describe('pathCompleter', function() {
   it('suggests files in directory when directory path with / suffix given', () => {
     const barFilePath = join(folderPath, 'bar');
     writeFileSync(barFilePath, '');
-    const [suggestions] = pathCompleterSync(folderPath + '/');
+    const [suggestions] = pathCompleterSync(folderPath + sep);
 
     expect(suggestions.length).to.equal(1);
     expect(suggestions[0]).to.equal(barFilePath);
@@ -77,4 +77,4 @@ describe('pathCompleter', function() {
 
 });
 
-const appendSlashToDirectoryNames = dir => dir + (statSync(dir).isDirectory() ? '/' : '');
+const appendSlashToDirectoryNames = dir => dir + (statSync(dir).isDirectory() ? sep : '');

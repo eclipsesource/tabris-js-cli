@@ -1,5 +1,5 @@
 const https = require('https');
-const {createWriteStream, removeSync} = require('fs-extra');
+const {createWriteStream, removeSync, existsSync} = require('fs-extra');
 const EventEmitter = require('events');
 
 class FileDownloader extends EventEmitter {
@@ -37,6 +37,13 @@ class FileDownloader extends EventEmitter {
 
   _handleError(e = new Error('Error downloading file'), destination) {
     removeSync(destination);
+    // Windows sometimes fails silently on the first try:
+    if (existsSync(destination)) {
+      removeSync(destination);
+      if (existsSync(destination)) {
+        console.warn('Failed to delete ' + destination + ' trying again...');
+      }
+    }
     this.emit('error', e);
   }
 
