@@ -25,7 +25,7 @@ module.exports = class PlatformProvider {
     const hasNodeModules = fs.pathExistsSync(join(path, 'node_modules'));
     if (hasPackageJson && !hasNodeModules) {
       log.command('Installing platform dependencies');
-      proc.spawnSync('npm', ['install', '--production'], {cwd: normalize(path)});
+      proc.spawnSync('npm', ['install'], {cwd: normalize(path)});
     }
     return path;
   }
