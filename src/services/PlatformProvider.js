@@ -1,4 +1,4 @@
-const {join} = require('path');
+const {join, normalize} = require('path');
 const fs = require('fs-extra');
 const progress = require('cli-progress');
 const log = require('../helpers/log');
@@ -6,6 +6,7 @@ const zip = require('../helpers/zip');
 const {FileDownloader} = require('../helpers/download');
 const BuildKeyProvider = require('./BuildKeyProvider');
 const PlatformsCache = require('./PlatformsCache');
+const proc = require('../helpers/proc');
 
 const PATH = '/api/v1/downloads/cli';
 const HOST = process.env.TABRIS_HOST || 'tabrisjs.com';
@@ -19,14 +20,24 @@ module.exports = class PlatformProvider {
   }
 
   async getPlatform(platform) {
+    const path = await this._getPlatformPath(platform);
+    const hasPackageJson = fs.pathExistsSync(join(path, 'package.json'));
+    const hasNodeModules = fs.pathExistsSync(join(path, 'node_modules'));
+    if (hasPackageJson && !hasNodeModules) {
+      log.command('Installing platform dependencies');
+      proc.spawnSync('npm', ['install', '--production'], {cwd: normalize(path)});
+    }
+    return path;
+  }
+
+  _getPlatformPath(platform) {
     const envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
     if (envVarPlatformSpec) {
-      return envVarPlatformSpec;
+      return Promise.resolve(envVarPlatformSpec);
     } else if (this._platformsCache.has(platform)) {
-      return this._platformsCache.get(platform);
+      return Promise.resolve(this._platformsCache.get(platform));
     } else {
-      const path = await this._downloadPlatform(platform);
-      return path;
+      return this._downloadPlatform(platform);
     }
   }
 
