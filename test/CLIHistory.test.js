@@ -8,6 +8,8 @@ const FILE_PATH = join(os.tmpdir(), 'cli_history.log');
 
 describe('CLI History', function() {
 
+  this.timeout(10000);
+
   let cliHistory = null;
 
   this.timeout(30000);
@@ -47,7 +49,7 @@ describe('CLI History', function() {
       cliHistory.addToHistory(`command ${i}`);
     }
     expect(cliHistory._history.length).to.equal(1000);
-  }).timeout(8000);
+  }).timeout(10000);
 
   it('remove old items when limit is exceeded', function() {
     for (let i = 1; i <= 1100; ++i) {
@@ -66,7 +68,7 @@ describe('CLI History', function() {
     }
     const currentItem = cliHistory.currentHistory;
     expect(currentItem).to.equal('');
-  }).timeout(8000);
+  });
 
   it('should be empty when next item called more than limit', function() {
     for (let i = 1; i <= 2000; ++i) {
@@ -74,6 +76,6 @@ describe('CLI History', function() {
     }
     const currentItem = cliHistory.currentHistory;
     expect(currentItem).to.equal('');
-  }).timeout(8000);
+  });
 
 });
