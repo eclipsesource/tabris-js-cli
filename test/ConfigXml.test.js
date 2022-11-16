@@ -132,6 +132,14 @@ describe('ConfigXml', function() {
       expect(configXml.toString()).to.contain('<content src="app/foo/package.json"/>');
     });
 
+    it('adds src attribute to existing content element without src attribute', function() {
+      const configXml = new ConfigXml(createContent('<content />'));
+
+      configXml.adjustContentPath();
+
+      expect(configXml.toString()).to.contain('<content src="app/package.json"/>');
+    });
+
     it('returns context', function() {
       const configXml = new ConfigXml(createContent());
 
