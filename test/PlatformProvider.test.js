@@ -14,6 +14,8 @@ describe('PlatformProvider', function() {
 
   let cliDataDir, provider, platformPath;
 
+  this.timeout(20000);
+
   beforeEach(function() {
     stub(log, 'command');
     stub(console, 'error');
