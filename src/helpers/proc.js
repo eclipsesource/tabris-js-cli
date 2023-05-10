@@ -10,24 +10,39 @@ const TERMINATING_EVENT = 'terminating';
 const childProcesses = [];
 
 function spawn(cmd, args, opts = {}) {
+  console.log('>>> spawn <<<');
+  console.log(`>>> cmd: ${cmd} args: ${JSON.stringify(args)} opts: ${JSON.stringify(opts)}`);
   return _spawn({cmd, args, opts}, {sync: false});
 }
 
 function spawnSync(cmd, args, opts = {}) {
+  console.log('*** spawnSync ***');
+  console.log(`*** cmd: ${cmd} args: ${JSON.stringify(args)} opts: ${JSON.stringify(opts)}`);
   return _spawn({cmd, args, opts}, {sync: true});
 }
 
 function _spawn({cmd, args, opts = {}}, {sync}) {
+  console.log('+++ _spawn +++');
+  console.log(`+++ cmd: ${cmd} args: ${JSON.stringify(args)} opts: ${JSON.stringify(opts)}`);
   const normalizedCmd = normalizeCommand(cmd);
   const normalizedArgs = normalizeArguments(args);
+  console.log(`+++ normalizedCmd: ${normalizedCmd} normalizedArgs: ${normalizedArgs}`);
   log.command([normalizedCmd, ...normalizedArgs].join(' '), opts.cwd);
   const child = proc[sync && 'spawnSync' || 'spawn'](normalizedCmd, normalizedArgs, Object.assign({
     stdio: 'inherit',
     shell: isWindows()
   }, opts));
+  console.log('+++ Before Error Check +++');
   if (sync && child.status !== 0) {
+    console.log('--- Error ---');
+    console.log(`--- child.status: ${child.status}`);
+    console.log(`--- child.signal: ${child.signal}`);
+    console.log(`--- child.error: ${child.error}`);
+    console.log(`--- child: ${JSON.stringify(child)}`);
     throw new Error(childProcessExitedMessage(cmd, child.status || child.signal || child.error));
   }
+  console.log('=== NO Error ===');
+  console.log(`=== child: ${JSON.stringify(child)}`);
   if (!sync) {
     childProcesses.push(child);
     handleTermination(cmd, child);
