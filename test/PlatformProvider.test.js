@@ -20,14 +20,12 @@ describe('PlatformProvider', function() {
     stub(log, 'command');
     stub(console, 'error');
     stub(https, 'get');
-    process.env.TABRIS_BUILD_KEY = 'key';
     cliDataDir = temp.mkdirSync('cliDataDir');
     platformPath = join(cliDataDir, 'platforms', name, version);
     provider = new PlatformProvider(cliDataDir);
   });
 
   afterEach(() => {
-    delete process.env.TABRIS_BUILD_KEY;
     restore();
   });
 
@@ -119,34 +117,6 @@ describe('PlatformProvider', function() {
 
     });
 
-    describe('when platform download rejects build key', function() {
-
-      beforeEach(function() {
-        fakeResponse(401);
-      });
-
-      it('prompts build key again', async function() {
-        stub(provider._buildKeyProvider, 'promptBuildKey').callsFake(() => {
-          fakeResponse(200);
-          return Promise.resolve('key');
-        });
-        await provider.getPlatform({name, version});
-        expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
-      });
-
-      it('prompts build key again more than once', async function() {
-        stub(provider._buildKeyProvider, 'promptBuildKey')
-          .onCall(0).returns(Promise.resolve('key'))
-          .onCall(1).callsFake(() => {
-            fakeResponse(200);
-            return Promise.resolve('key');
-          });
-        await provider.getPlatform({name, version});
-        expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
-      });
-
-    });
-
   });
 
 });
@@ -155,8 +125,8 @@ function fakeResponse(statusCode) {
   https.get
     .withArgs({
       host: 'tabrisjs.com',
-      path: `/api/v1/downloads/cli/${version}/${name}`,
-      headers: {'X-Tabris-Build-Key': 'key'}
+      path: `/downloads/${version}/platforms/tabris-${name}.zip`,
+      headers: {}
     }, match.func)
     .callsArgWith(1, statusCode === 200 ? createPlatformResponseStream(statusCode) : {statusCode, headers: {}})
     .returns({get: https.get, on: stub().returnsThis()});
