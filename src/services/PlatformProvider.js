@@ -4,18 +4,16 @@ const progress = require('cli-progress');
 const log = require('../helpers/log');
 const zip = require('../helpers/zip');
 const {FileDownloader} = require('../helpers/download');
-const BuildKeyProvider = require('./BuildKeyProvider');
 const PlatformsCache = require('./PlatformsCache');
 const proc = require('../helpers/proc');
 
-const PATH = '/api/v1/downloads/cli';
+const PATH = '/downloads';
 const HOST = process.env.TABRIS_HOST || 'tabrisjs.com';
 
 module.exports = class PlatformProvider {
 
   constructor(cliDataDir) {
     this._platformsDir = join(cliDataDir, 'platforms');
-    this._buildKeyProvider = new BuildKeyProvider(cliDataDir);
     this._platformsCache = new PlatformsCache(cliDataDir);
   }
 
@@ -46,8 +44,7 @@ module.exports = class PlatformProvider {
     const extractedZipPath = join(this._platformsDir, `.extracted-${platform.name}-${platform.version}`);
     const platformDir = join(extractedZipPath, `tabris-${platform.name}`);
     await fs.mkdirs(this._platformsDir);
-    const buildKey = await this._buildKeyProvider.getBuildKey();
-    await this._downloadPlatformZip(zipPath, buildKey, platform);
+    await this._downloadPlatformZip(zipPath, platform);
     await this._unzipPlatform(zipPath, extractedZipPath);
     this._platformsCache.set(platform, platformDir);
     await fs.remove(extractedZipPath);
@@ -55,12 +52,13 @@ module.exports = class PlatformProvider {
     return this._platformsCache.get(platform);
   }
 
-  async _downloadPlatformZip(platformZipPath, buildKey, platform) {
+  async _downloadPlatformZip(platformZipPath, platform) {
     log.command(`Downloading ${platform.name} platform version ${platform.version}...`);
+    console.info(`${PATH}/${platform.version}/platforms/tabris-${platform.name}.zip`);
     const options = {
       host: HOST,
-      path: `${PATH}/${platform.version}/${platform.name}`,
-      headers: {'X-Tabris-Build-Key': buildKey}
+      path: `${PATH}/${platform.version}/platforms/tabris-${platform.name}.zip`,
+      headers: {}
     };
     const progressBar = new progress.Bar({
       clearOnComplete: true,
