@@ -9,10 +9,11 @@ const log = require('../src/helpers/log');
 
 const name = 'bar';
 const version = '2.3';
+const preReleaseVersion = '2.3-dev.20231110';
 
 describe('PlatformProvider', function() {
 
-  let cliDataDir, provider, platformPath;
+  let cliDataDir, provider, platformPath, preReleasePlatformPath;
 
   this.timeout(20000);
 
@@ -22,6 +23,7 @@ describe('PlatformProvider', function() {
     stub(https, 'get');
     cliDataDir = temp.mkdirSync('cliDataDir');
     platformPath = join(cliDataDir, 'platforms', name, version);
+    preReleasePlatformPath = join(cliDataDir, 'platforms', name, preReleaseVersion);
     provider = new PlatformProvider(cliDataDir);
   });
 
@@ -67,9 +69,14 @@ describe('PlatformProvider', function() {
         fakeResponse(200);
       });
 
-      it('downloads and extracts platform', async function() {
+      it('downloads and extracts release platform', async function() {
         await provider.getPlatform({name, version});
-        expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello');
+        expect(readFileSync(join(platformPath, 'foo.file'), 'utf8')).to.equal('hello release');
+      });
+
+      it('downloads and extracts nightly platform', async function() {
+        await provider.getPlatform({name, version: preReleaseVersion});
+        expect(readFileSync(join(preReleasePlatformPath, 'foo.file'), 'utf8')).to.equal('hello nightly');
       });
 
       it('resolves with platform spec', async function() {
@@ -128,13 +135,31 @@ function fakeResponse(statusCode) {
       path: `/downloads/${version}/platforms/tabris-${name}.zip`,
       headers: {}
     }, match.func)
-    .callsArgWith(1, statusCode === 200 ? createPlatformResponseStream(statusCode) : {statusCode, headers: {}})
+    .callsArgWith(1, statusCode === 200 ? createReleasePlatformResponseStream(statusCode) : {statusCode, headers: {}})
+    .returns({get: https.get, on: stub().returnsThis()});
+  https.get
+    .withArgs({
+      host: 'tabrisjs.com',
+      path: `/downloads/nightly/platforms/tabris-${name}-${preReleaseVersion}.zip`,
+      headers: {}
+    }, match.func)
+    .callsArgWith(1, statusCode === 200 ? createNightlyPlatformResponseStream(statusCode) : {statusCode, headers: {}})
     .returns({get: https.get, on: stub().returnsThis()});
 }
 
-function createPlatformResponseStream(statusCode) {
+function createReleasePlatformResponseStream(statusCode) {
   const zipFile = new yazl.ZipFile();
-  zipFile.addBuffer(Buffer.from('hello'), 'tabris-bar/foo.file');
+  zipFile.addBuffer(Buffer.from('hello release'), 'tabris-bar/foo.file');
+  zipFile.addBuffer(Buffer.from('{}'), 'tabris-bar/package.json');
+  zipFile.end();
+  zipFile.outputStream.statusCode = statusCode;
+  zipFile.outputStream.headers = {'content-length': 1000};
+  return zipFile.outputStream;
+}
+
+function createNightlyPlatformResponseStream(statusCode) {
+  const zipFile = new yazl.ZipFile();
+  zipFile.addBuffer(Buffer.from('hello nightly'), 'tabris-bar/foo.file');
   zipFile.addBuffer(Buffer.from('{}'), 'tabris-bar/package.json');
   zipFile.end();
   zipFile.outputStream.statusCode = statusCode;

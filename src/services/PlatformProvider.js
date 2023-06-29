@@ -7,7 +7,6 @@ const {FileDownloader} = require('../helpers/download');
 const PlatformsCache = require('./PlatformsCache');
 const proc = require('../helpers/proc');
 
-const PATH = '/downloads';
 const HOST = process.env.TABRIS_HOST || 'tabrisjs.com';
 
 module.exports = class PlatformProvider {
@@ -18,7 +17,7 @@ module.exports = class PlatformProvider {
   }
 
   async getPlatform(platform) {
-    const path = await this._getPlatformPath(platform);
+    const path = await this._getLocalPlatformPath(platform);
     const hasPackageJson = fs.pathExistsSync(join(path, 'package.json'));
     const hasNodeModules = fs.pathExistsSync(join(path, 'node_modules'));
     if (hasPackageJson && !hasNodeModules) {
@@ -28,7 +27,7 @@ module.exports = class PlatformProvider {
     return path;
   }
 
-  _getPlatformPath(platform) {
+  _getLocalPlatformPath(platform) {
     const envVarPlatformSpec = process.env[`TABRIS_${platform.name.toUpperCase()}_PLATFORM`];
     if (envVarPlatformSpec) {
       return Promise.resolve(envVarPlatformSpec);
@@ -54,10 +53,9 @@ module.exports = class PlatformProvider {
 
   async _downloadPlatformZip(platformZipPath, platform) {
     log.command(`Downloading ${platform.name} platform version ${platform.version}...`);
-    console.info(`${PATH}/${platform.version}/platforms/tabris-${platform.name}.zip`);
     const options = {
       host: HOST,
-      path: `${PATH}/${platform.version}/platforms/tabris-${platform.name}.zip`,
+      path: this._getRemotePlatformPath(platform),
       headers: {}
     };
     const progressBar = new progress.Bar({
@@ -97,6 +95,13 @@ module.exports = class PlatformProvider {
   _unzipPlatform(zipPath, destination) {
     log.command('Extracting platform...');
     return zip.unzip(zipPath, destination);
+  }
+
+  _getRemotePlatformPath({version, name}) {
+    if (version.indexOf('-dev.') !== -1) {
+      return `/downloads/nightly/platforms/tabris-${name}-${version}.zip`;
+    }
+    return `/downloads/${version}/platforms/tabris-${name}.zip`;
   }
 
 };
