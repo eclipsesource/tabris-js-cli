@@ -1,3 +1,7 @@
+## 3.10.0
+
+* Update cordova CLI to version 12
+
 ## 3.9.0
 
 * Remove requirement for build key.
